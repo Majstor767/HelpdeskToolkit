@@ -7,4 +7,4 @@ rem -WindowStyle Hidden hides the console window that would otherwise stay open
 rem   behind the application window.
 rem %~dp0 is the folder this file is in, so it works from any location.
 
-start "" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command "Import-Module '%~dp0HelpdeskToolkit\HelpdeskToolkit.psd1'; Show-PCHealthCheck"
+start "" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0Start-HelpdeskToolkit.ps1"
