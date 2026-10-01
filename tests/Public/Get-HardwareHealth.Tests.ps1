@@ -27,6 +27,8 @@ Describe 'Get-HardwareHealth' {
         # Folder sizes are replaced, so the tests never read the real disk.
         Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 1GB; FileCount = 40; Complete = $true } }
         Mock -ModuleName HelpdeskToolkit Get-RecycleBinSize { [PSCustomObject]@{ Bytes = 2GB; Complete = $true } }
+        # The tests run as a standard user unless a test says otherwise.
+        Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
         # The Downloads folder is treated as present, whatever the test machine looks like.
         Mock -ModuleName HelpdeskToolkit Test-Path { $true }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_PhysicalDisk' } {
@@ -223,6 +225,105 @@ Describe 'Get-HardwareHealth' {
         It 'says so when Windows runs without a page file' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' } { }
             (Get-HardwareHealth | Where-Object Check -eq 'Page file').Value | Should -Be 'No page file'
+        }
+    }
+
+    Context 'without administrator rights' {
+        It 'marks <_> as "Requires admin" instead of trying to read it' -ForEach @('Drive details', 'File system', 'System temporary files') {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability { }
+            $result = Get-HardwareHealth | Where-Object Check -eq $_
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Requires admin'
+            Should -Invoke -ModuleName HelpdeskToolkit Get-DriveReliability -Times 0 -Exactly
+        }
+    }
+
+    Context 'with administrator rights' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability {
+                [PSCustomObject]@{ Name = 'Contoso NVMe'; Temperature = 41; Wear = 3; PowerOnHours = 5200; ReadErrors = 0; WriteErrors = 0 }
+            }
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Volume' } {
+                [PSCustomObject]@{ DriveLetter = 'D:'; DirtyBitSet = $false }
+                [PSCustomObject]@{ DriveLetter = 'C:'; DirtyBitSet = $false }
+                [PSCustomObject]@{ DriveLetter = $null; DirtyBitSet = $false }
+            }
+            $degrees = '{0}C' -f [char]176
+        }
+
+        It 'reports what a healthy drive measures about itself' {
+            $detail = Get-HardwareHealth | Where-Object Check -eq 'Drive details: Contoso NVMe'
+            $detail.Status | Should -Be 'OK'
+            $detail.Value | Should -Be "41 $degrees, 3 % of its lifetime used, 5200 hours powered on, 0 uncorrected errors"
+            $detail.Typical | Should -Be "30 - 50 $degrees"
+        }
+
+        It 'is <Status> at a drive temperature of <Temperature> degrees' -ForEach @(
+            @{ Temperature = 65; Status = 'Warning' }
+            @{ Temperature = 75; Status = 'Critical' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability {
+                [PSCustomObject]@{ Name = 'Hot'; Temperature = $Temperature; Wear = 1; PowerOnHours = 10; ReadErrors = 0; WriteErrors = 0 }
+            }
+            $detail = Get-HardwareHealth | Where-Object Check -eq 'Drive details: Hot'
+            $detail.Status | Should -Be $Status
+            $detail.Recommendation | Should -Match 'too hot'
+        }
+
+        It 'is a Warning when most of the lifetime of an SSD is used up' {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability {
+                [PSCustomObject]@{ Name = 'Worn'; Temperature = 40; Wear = 88; PowerOnHours = 30000; ReadErrors = 0; WriteErrors = 0 }
+            }
+            $detail = Get-HardwareHealth | Where-Object Check -eq 'Drive details: Worn'
+            $detail.Status | Should -Be 'Warning'
+            $detail.Recommendation | Should -Match 'replace'
+        }
+
+        It 'is a Warning when the drive has errors it could not correct' {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability {
+                [PSCustomObject]@{ Name = 'Failing'; Temperature = 40; Wear = 5; PowerOnHours = 100; ReadErrors = 3; WriteErrors = 1 }
+            }
+            $detail = Get-HardwareHealth | Where-Object Check -eq 'Drive details: Failing'
+            $detail.Status | Should -Be 'Warning'
+            $detail.Value | Should -Match '4 uncorrected errors'
+        }
+
+        It 'only shows what the drive reports (a hard disk has no wear value)' {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability {
+                [PSCustomObject]@{ Name = 'HDD'; Temperature = 0; Wear = $null; PowerOnHours = 12000; ReadErrors = $null; WriteErrors = $null }
+            }
+            $detail = Get-HardwareHealth | Where-Object Check -eq 'Drive details: HDD'
+            $detail.Status | Should -Be 'OK'
+            $detail.Value | Should -Be '12000 hours powered on'
+        }
+
+        It 'reports the drives as unavailable when the details cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-DriveReliability { throw 'Not supported by the storage driver' }
+            (Get-HardwareHealth | Where-Object Check -eq 'Drive details').Value | Should -Be 'Unavailable'
+        }
+
+        It 'reports a clean file system on all drives with a letter' {
+            $fileSystem = Get-HardwareHealth | Where-Object Check -eq 'File system'
+            $fileSystem.Status | Should -Be 'OK'
+            $fileSystem.Value | Should -Be 'No errors flagged (C:, D:)'
+        }
+
+        It 'is a Warning when Windows flagged a drive for a disk check' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Volume' } {
+                [PSCustomObject]@{ DriveLetter = 'C:'; DirtyBitSet = $true }
+                [PSCustomObject]@{ DriveLetter = 'D:'; DirtyBitSet = $false }
+            }
+            $fileSystem = Get-HardwareHealth | Where-Object Check -eq 'File system'
+            $fileSystem.Status | Should -Be 'Warning'
+            $fileSystem.Value | Should -Be 'Possible errors on C:'
+            $fileSystem.Recommendation | Should -Match 'chkdsk'
+        }
+
+        It 'reports the size of the temporary files of Windows' {
+            $systemTemp = Get-HardwareHealth | Where-Object Check -eq 'System temporary files'
+            $systemTemp.Status | Should -Be 'OK'
+            $systemTemp.Value | Should -Be '1 GB'
         }
     }
 

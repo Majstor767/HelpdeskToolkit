@@ -3,8 +3,7 @@ function Get-HardwareHealth {
     .SYNOPSIS
         Checks CPU load, memory usage, free disk space and the battery.
     .DESCRIPTION
-        Reads everything through CIM (WMI), which needs no administrator rights and
-        changes nothing on the system:
+        Reads everything through CIM (WMI) and changes nothing on the system:
 
         - CPU load at the time of the check
         - used physical memory and the five programs that use the most of it
@@ -12,6 +11,11 @@ function Get-HardwareHealth {
         - space that could be freed: temporary files, the Downloads folder and the Recycle Bin
         - page file usage
         - devices without a working driver
+
+        Three checks need administrator rights and are otherwise marked "Requires
+        admin": the details every drive reports about itself (temperature, wear,
+        power-on hours, uncorrected errors), drives flagged for a disk check and the
+        size of the temporary files of Windows.
         - free space on every local fixed disk
         - battery charge, when the computer has a battery
 
@@ -237,6 +241,103 @@ function Get-HardwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Page file' -ErrorRecord $_
+    }
+
+    # Checks that Windows only allows for administrators. Without elevation they are
+    # not attempted at all, because some of these queries wait several seconds before
+    # they fail, and one of them simply returns nothing instead of an error.
+    if (-not (Test-IsAdministrator)) {
+        New-AdminRequiredResult -Category $category -Check 'Drive details'
+        New-AdminRequiredResult -Category $category -Check 'File system'
+        New-AdminRequiredResult -Category $category -Check 'System temporary files'
+    }
+    else {
+        # What every drive measures about itself (SMART)
+        try {
+            $limits = $thresholds.DriveDetail
+            $degrees = '{0}C' -f [char]176
+            foreach ($drive in Get-DriveReliability) {
+                $parts = @()
+                $statuses = @()
+                $advice = @()
+
+                if ($drive.Temperature) {
+                    $parts += '{0} {1}' -f $drive.Temperature, $degrees
+                    $state = Get-ThresholdStatus -Value $drive.Temperature -Warning $limits.TemperatureWarning -Critical $limits.TemperatureCritical
+                    if ($state -ne 'OK') {
+                        $statuses += $state
+                        $advice += 'The drive is too hot. Clean the dust out of the computer and make sure the air can flow; heat shortens the life of a drive.'
+                    }
+                }
+                if ($null -ne $drive.Wear) {
+                    $parts += '{0} % of its lifetime used' -f $drive.Wear
+                    $state = Get-ThresholdStatus -Value $drive.Wear -Warning $limits.WearWarningPercent -Critical $limits.WearCriticalPercent
+                    if ($state -ne 'OK') {
+                        $statuses += $state
+                        $advice += 'The drive is close to the end of its rated lifetime. Back up the data and plan to replace it.'
+                    }
+                }
+                if ($drive.PowerOnHours) {
+                    $parts += '{0} hours powered on' -f $drive.PowerOnHours
+                }
+                if ($null -ne $drive.ReadErrors -or $null -ne $drive.WriteErrors) {
+                    $errors = [long]$drive.ReadErrors + [long]$drive.WriteErrors
+                    $parts += '{0} uncorrected errors' -f $errors
+                    if ($errors -gt 0) {
+                        $statuses += 'Warning'
+                        $advice += 'The drive could not read or write some data. Back up the data now; a drive with uncorrected errors is likely to fail.'
+                    }
+                }
+
+                $status = if ($statuses -contains 'Critical') { 'Critical' } elseif ($statuses -contains 'Warning') { 'Warning' } elseif ($parts.Count -gt 0) { 'OK' } else { 'Info' }
+                $value = if ($parts.Count -gt 0) { $parts -join ', ' } else { 'The drive reports no details' }
+
+                New-CheckResult -Category $category -Check ('Drive details: {0}' -f $drive.Name) -Status $status -Value $value `
+                    -Recommendation ($advice -join ' ') `
+                    -Allowed ('temperature up to {0} {1}, lifetime used up to {2} %, 0 uncorrected errors' -f $limits.TemperatureWarning, $degrees, $limits.WearWarningPercent) `
+                    -Typical ('{0} {1}' -f $limits.TypicalTemperature, $degrees)
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'Drive details' -ErrorRecord $_
+        }
+
+        # File system: Windows sets a "dirty" flag on a volume that may be damaged.
+        try {
+            $volumes = @(Get-CimInstance -ClassName Win32_Volume -Filter 'DriveType = 3' -ErrorAction Stop | Where-Object { $_.DriveLetter })
+            $flagged = @($volumes | Where-Object { $_.DirtyBitSet } | ForEach-Object { $_.DriveLetter })
+
+            if ($flagged.Count -gt 0) {
+                New-CheckResult -Category $category -Check 'File system' -Status Warning `
+                    -Value ('Possible errors on {0}' -f ($flagged -join ', ')) `
+                    -Recommendation 'Windows has flagged the drive for a disk check. Restart the computer and let the check run, or run "chkdsk /scan" for that drive as administrator.'
+            }
+            else {
+                New-CheckResult -Category $category -Check 'File system' -Status OK `
+                    -Value ('No errors flagged ({0})' -f (($volumes | ForEach-Object { $_.DriveLetter } | Sort-Object) -join ', '))
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'File system' -ErrorRecord $_
+        }
+
+        # Temporary files of Windows itself
+        try {
+            $systemTemp = Get-FolderSize -Path (Join-Path -Path $env:WINDIR -ChildPath 'Temp') -TimeoutMs $cleanup.TimeoutMs
+            $status = Get-ThresholdStatus -Value ($systemTemp.Bytes / 1GB) -Warning $cleanup.SystemTempWarningGb
+            $recommendation = if ($status -ne 'OK') {
+                'Windows has collected a lot of temporary files. Run Disk Cleanup (cleanmgr) and choose "Clean up system files".'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'System temporary files' -Status $status `
+                -Value ('{0}{1}' -f (Format-Gigabyte -Bytes $systemTemp.Bytes), $(if (-not $systemTemp.Complete) { ' or more' })) `
+                -Recommendation $recommendation -Allowed (Format-AllowedRange -Warning $cleanup.SystemTempWarningGb -Unit 'GB')
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'System temporary files' -ErrorRecord $_
+        }
     }
 
     # Devices that Device Manager marks with a yellow warning sign. Error code 0 means
