@@ -1,0 +1,50 @@
+name: Release
+
+# Runs when a version tag such as v1.0.0 is pushed. It tests the code, builds the
+# installer and the portable ZIP and publishes them as a GitHub release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Creating a release needs write access to the repository contents.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Pester and PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -MinimumVersion 5.5.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
+
+      # A release is only published from code that passes the same checks as CI.
+      - name: Run PSScriptAnalyzer and Pester
+        shell: pwsh
+        run: ./tools/Test-Project.ps1
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      # Fails when the tag and the version in the module manifest do not match.
+      - name: Build the installer and the ZIP
+        shell: pwsh
+        run: ./tools/Build-Release.ps1 -ExpectedVersion $env:GITHUB_REF_NAME
+
+      - name: Publish the GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = (Get-ChildItem -Path dist -File).FullName
+          gh release create $env:GITHUB_REF_NAME $files --title "HelpdeskToolkit $env:GITHUB_REF_NAME" --generate-notes
