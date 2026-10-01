@@ -36,6 +36,13 @@ function Write-HealthSummary {
         Write-Host ('  {0,-10} ' -f $label) -ForegroundColor $colors[$result.Status] -NoNewline
         Write-Host ('{0}: {1}' -f $result.Check, $result.Value)
 
+        $reference = @()
+        if ($result.Allowed) { $reference += 'allowed: {0}' -f $result.Allowed }
+        if ($result.Typical) { $reference += 'typical: {0}' -f $result.Typical }
+        if ($reference.Count -gt 0) {
+            Write-Host ('             {0}' -f ($reference -join ' | ')) -ForegroundColor DarkGray
+        }
+
         if ($result.Recommendation) {
             Write-Host ('             -> {0}' -f $result.Recommendation) -ForegroundColor DarkGray
         }

@@ -293,6 +293,20 @@ tbody tr:nth-child(even) {
     font-variant-numeric: tabular-nums;
 }
 
+.reference {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 20px;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.reference b {
+    font-weight: 600;
+}
+
 .recommendation {
     margin-top: 4px;
     color: var(--muted);
