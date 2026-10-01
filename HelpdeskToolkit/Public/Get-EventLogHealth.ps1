@@ -8,6 +8,9 @@ function Get-EventLogHealth {
         in the selected period. That quickly shows whether the computer has a
         recurring problem and where to look in Event Viewer.
 
+        It also counts unexpected shutdowns (event 6008): power loss, crashes and
+        forced power-offs.
+
         Both logs are readable by standard users, so no administrator rights are
         needed. The limits come from Config\Thresholds.psd1.
     .PARAMETER Days
@@ -34,6 +37,34 @@ function Get-EventLogHealth {
     $category = 'Event Log'
     $thresholds = (Get-HealthThreshold).EventLog
     $since = (Get-Date).AddDays(-$Days)
+    $period = if ($Days -eq 1) { 'in the last day' } else { 'in the last {0} days' -f $Days }
+
+    # Event 6008 is written at the next start when Windows was not shut down properly.
+    try {
+        $shutdowns = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; Id = 6008; StartTime = $since } -ErrorAction Stop)
+        $shutdownCount = $shutdowns.Count
+    }
+    catch {
+        if ($_.FullyQualifiedErrorId -like 'NoMatchingEventsFound*') {
+            $shutdownCount = 0
+        }
+        else {
+            $shutdownCount = $null
+            New-FailureResult -Category $category -Check 'Unexpected shutdowns' -ErrorRecord $_
+        }
+    }
+
+    if ($null -ne $shutdownCount) {
+        $status = Get-ThresholdStatus -Value $shutdownCount -Warning $thresholds.UnexpectedShutdownWarningAbove
+        $recommendation = if ($status -ne 'OK') {
+            'The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.'
+        }
+        else {
+            ''
+        }
+        New-CheckResult -Category $category -Check 'Unexpected shutdowns' -Status $status `
+            -Value ('{0} {1}' -f $shutdownCount, $period) -Recommendation $recommendation
+    }
 
     foreach ($logName in 'System', 'Application') {
         try {
@@ -55,7 +86,6 @@ function Get-EventLogHealth {
 
         $criticalCount = @($entries | Where-Object { $_.Level -eq 1 }).Count
         $errorCount = @($entries | Where-Object { $_.Level -eq 2 }).Count
-        $period = if ($Days -eq 1) { 'in the last day' } else { 'in the last {0} days' -f $Days }
 
         $status = Get-ThresholdStatus -Value $criticalCount `
             -Warning $thresholds.CriticalEventWarningAbove -Critical $thresholds.CriticalEventCriticalAbove
