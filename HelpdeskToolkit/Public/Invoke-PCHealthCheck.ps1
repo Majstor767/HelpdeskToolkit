@@ -133,13 +133,7 @@ function Invoke-PCHealthCheck {
     Write-HealthSummary -Report $report -ReportPath $reportPaths
 
     if ($htmlPath -and -not $NoOpen) {
-        try {
-            # Opens the report with the default application for .html files (the browser).
-            Invoke-Item -LiteralPath $htmlPath -ErrorAction Stop
-        }
-        catch {
-            Write-Warning "The report was saved but could not be opened automatically: $($_.Exception.Message)"
-        }
+        Open-HealthReport -Path $htmlPath
     }
 
     if ($PassThru) {
