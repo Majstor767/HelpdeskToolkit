@@ -15,8 +15,14 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$OutputPath = (Join-Path -Path $PSScriptRoot -ChildPath '..\docs')
+    [string]$OutputPath
 )
+
+# The default is set here and not in the param block: Windows PowerShell 5.1 does not
+# know $PSScriptRoot yet while it evaluates parameter defaults of a script run with -File.
+if (-not $OutputPath) {
+    $OutputPath = Join-Path -Path $PSScriptRoot -ChildPath '..\docs'
+}
 
 $manifest = Join-Path -Path $PSScriptRoot -ChildPath '..\HelpdeskToolkit\HelpdeskToolkit.psd1'
 $module = Import-Module -Name $manifest -Force -PassThru
