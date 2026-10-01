@@ -1,16 +1,17 @@
 function Get-SecurityHealth {
     <#
     .SYNOPSIS
-        Checks Microsoft Defender, the Windows firewall profiles and BitLocker.
+        Checks Microsoft Defender, the firewall profiles, Secure Boot, TPM and BitLocker.
     .DESCRIPTION
         - Defender real-time protection. When it is off because a third-party
           antivirus is registered in Windows Security Center, that is reported as
           information instead of a problem.
         - Age of the antivirus definitions.
         - State of the Domain, Private and Public firewall profiles.
-        - BitLocker protection of the system drive. Windows only exposes this to
-          administrators, so without elevation the check is skipped and marked
-          "Requires admin".
+        - Secure Boot state.
+        - TPM presence and version, and BitLocker protection of the system drive.
+          Windows only exposes these two to administrators, so without elevation
+          they are skipped and marked "Requires admin".
 
         Nothing is changed on the system. The limits come from Config\Thresholds.psd1.
     .EXAMPLE
@@ -87,6 +88,50 @@ function Get-SecurityHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Firewall' -ErrorRecord $_
+    }
+
+    # Secure Boot
+    switch (Get-SecureBootState) {
+        'Enabled' {
+            New-CheckResult -Category $category -Check 'Secure Boot' -Status OK -Value 'Enabled'
+        }
+        'Disabled' {
+            New-CheckResult -Category $category -Check 'Secure Boot' -Status Info -Value 'Disabled' `
+                -Recommendation 'Secure Boot protects the startup process from tampering and is required by Windows 11. It can be turned on in the UEFI firmware settings.'
+        }
+        default {
+            New-CheckResult -Category $category -Check 'Secure Boot' -Status Info -Value 'Not supported (legacy BIOS mode)'
+        }
+    }
+
+    # TPM (administrators only; without elevation the query just waits and fails)
+    if (-not (Test-IsAdministrator)) {
+        New-AdminRequiredResult -Category $category -Check 'TPM'
+    }
+    else {
+        try {
+            $tpm = Get-CimInstance -Namespace 'root/CIMV2/Security/MicrosoftTpm' -ClassName Win32_Tpm -ErrorAction Stop |
+                Select-Object -First 1
+
+            if (-not $tpm) {
+                New-CheckResult -Category $category -Check 'TPM' -Status Info -Value 'Not present' `
+                    -Recommendation 'No TPM was found. Windows 11 and BitLocker need TPM 2.0; it can often be enabled in the UEFI firmware settings.'
+            }
+            else {
+                # SpecVersion looks like "2.0, 0, 1.59"; the first part is the TPM version.
+                $version = ([string]$tpm.SpecVersion -split ',')[0].Trim()
+                if ($tpm.IsEnabled_InitialValue) {
+                    New-CheckResult -Category $category -Check 'TPM' -Status OK -Value ('Enabled, version {0}' -f $version)
+                }
+                else {
+                    New-CheckResult -Category $category -Check 'TPM' -Status Warning -Value ('Present but disabled, version {0}' -f $version) `
+                        -Recommendation 'Enable the TPM in the UEFI firmware settings.'
+                }
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'TPM' -ErrorRecord $_
+        }
     }
 
     # BitLocker on the system drive (administrators only)
