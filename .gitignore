@@ -1,0 +1,14 @@
+# Generated reports contain real computer names and IP addresses - never commit them.
+# The sanitized sample in docs/ is the only exception.
+reports/
+PCHealth_*.html
+PCHealth_*.json
+
+# Test and analysis output
+testResults.xml
+coverage.xml
+
+# Editor and OS files
+.vscode/
+Thumbs.db
+desktop.ini
