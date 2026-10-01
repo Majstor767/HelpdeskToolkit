@@ -58,9 +58,16 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'User profiles', 'Info', 'Requires admin', $adminOnly)
 
         , @('Specifications', 'Processor', 'Info', 'Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz', '')
+        , @('Specifications', 'Processor details', 'Info', 'L2 cache 10 MB, L3 cache 24 MB, 64-bit, virtualization enabled in firmware', '')
         , @('Specifications', 'Memory', 'Info', '16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used', '')
-        , @('Specifications', 'Graphics', 'Info', 'Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz', '')
+        , @('Specifications', 'Memory module', 'Info', 'DIMM A: 8 GB DDR4, 3200 MHz, Contoso CT8G4SFS832A', '')
+        , @('Specifications', 'Memory module', 'Info', 'DIMM B: 8 GB DDR4, 3200 MHz, Contoso CT8G4SFS832A', '')
+        , @('Specifications', 'Graphics', 'Info', 'Contoso Graphics 770 (driver 31.0.101.5186 from 2025-11-03), 1920 x 1080 @ 60 Hz', '')
         , @('Specifications', 'Display', 'Info', 'Contoso 24W (CTS, 2023)', '')
+        , @('Specifications', 'Storage', 'Info', 'Contoso NVMe 256GB, 238.5 GB SSD (NVMe), firmware 2B4QCXM7', '')
+        , @('Specifications', 'Storage', 'Info', 'Contoso HDD 500GB, 465.8 GB HDD (SATA), firmware 0001SDM1', '')
+        , @('Specifications', 'Audio devices', 'Info', 'Contoso High Definition Audio, Contoso USB Headset and 1 virtual', '')
+        , @('Specifications', 'Input devices', 'Info', 'Contoso Precision Touchpad, Contoso Wireless Mouse M2, Standard PS/2 Keyboard', '')
         , @('Specifications', 'Motherboard', 'Info', 'Contoso Ltd. 0A1B2C', '')
         , @('Specifications', 'BIOS', 'Info', 'Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode', '')
         , @('Specifications', 'Serial number', 'Info', 'CNT4012XYZ', '')
@@ -187,6 +194,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
     $details = @{
         'Startup programs'   = @('Screenshot Tool', 'SecurityHealth', 'Teams', 'Touchpad Driver')
         'Installed programs' = @('Teams 25.1', 'Touchpad Driver 19.5', 'Video Player 3.0', 'Web Meeting Client 6.2')
+        'Audio devices'      = @('Web Meeting Virtual Speaker (virtual)')
     }
 
     $results = @(

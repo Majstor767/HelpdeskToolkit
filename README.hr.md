@@ -23,7 +23,7 @@ Sučelje i izvještaj su na engleskom jeziku.
 | Kategorija | Provjere |
 |---|---|
 | System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\* |
-| Specifications | Procesor, memorijski moduli i slobodni utori, grafičke kartice, monitori, matična ploča, BIOS/UEFI, serijski broj |
+| Specifications | Procesor s veličinom cache memorije i stanjem virtualizacije, raspored memorije i slobodni utori, svaki memorijski modul (utor, brzina, proizvođač, kataloški broj), grafičke kartice s memorijom i datumom drivera, monitori, fizički diskovi s verzijom firmwarea, optički pogoni, audio uređaji, tipkovnice i pokazivački uređaji, matična ploča, BIOS/UEFI, serijski broj |
 | Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), page file, uređaji bez ispravnog drivera, baterija, detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\* |
 | Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, zadani preglednik |
 | Event Log | Neočekivana gašenja, plavi ekrani, greške diska, greške hardvera (WHEA), kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
@@ -39,6 +39,27 @@ Svaki rezultat ima status (**OK**, **Warning**, **Critical** ili **Info**), krat
 objašnjenje što je to što se provjerava i preporučeno rješenje kad god je status Warning
 ili Critical. Uz mjerenja se prikazuju i dopušteni raspon te tipična vrijednost za
 usporedbu.
+
+## Live monitor
+
+Stranica **Live monitor** u prozoru ne traži provjeru. Prikazuje što računalo radi u
+ovom trenutku i osvježava se otprilike svake dvije sekunde:
+
+- opterećenje svakog logičkog procesora, ukupno opterećenje i trenutni takt
+- zauzeta i rezervirana (committed) memorija
+- opterećenje i memorija grafičke kartice
+- aktivnost te brzina čitanja i pisanja svakog fizičkog diska
+- brzina preuzimanja i slanja svakog mrežnog adaptera
+- programi koji troše najviše procesorskog vremena
+
+![Stranica Live monitor](docs/screenshot-monitor.png)
+
+Isti podaci dostupni su u skriptama kroz `Get-PerformanceSnapshot`.
+
+Temperature, brzine ventilatora i naponi se ne prikazuju. Windows ih ne daje
+programima; alati koji ih prikazuju instaliraju vlastiti hardverski driver, što ovaj
+alat namjerno ne radi. Iznimka je temperatura diskova: ona je dio detalja diska koji se
+čitaju s administratorskim pravima.
 
 ## Administratorska prava
 
@@ -113,9 +134,11 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 Show-PCHealthCheck
 ```
 
-Klikni **Run check**. Stranica **Overview** prikazuje sve probleme s preporučenim
+Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjerava.
+Stranica **Overview** prikazuje sve probleme s preporučenim
 rješenjem. Odaberi kategoriju lijevo (System, Hardware, Network, ...) da vidiš sve što je
 u njoj provjereno; točka i broj uz svaku kategoriju pokazuju gdje su problemi.
+**Live monitor** prikazuje trenutno opterećenje računala, vidi [Live monitor](#live-monitor).
 **Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
 sprema kao HTML ili JSON na mjesto koje odabereš.
 
@@ -155,14 +178,20 @@ Get-ComputerSpecification | Format-Table Check, Value -AutoSize
 $report = Get-PCHealthReport -Days 14
 $report.Summary
 $report.Results | Where-Object Status -eq 'Critical'
+
+# Što računalo radi upravo sada: opterećenje po logičkom procesoru, najzaposleniji programi
+$now = Get-PerformanceSnapshot
+$now.Cpu.Processors | Format-Table Name, Percent, FrequencyMHz
+$now.Processes
 ```
 
 Dostupne naredbe: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Get-SystemHealth`, `Get-ComputerSpecification`, `Get-HardwareHealth`,
 `Get-SoftwareHealth`, `Get-EventLogHealth`, `Get-WindowsUpdateHealth`,
-`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`. Svaka ima potpunu pomoć: `Get-Help <naredba> -Full`.
+`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`,
+`Get-PerformanceSnapshot`. Svaka ima potpunu pomoć: `Get-Help <naredba> -Full`.
 
-Svaki rezultat je objekt s istim svojstvima:
+Svaki rezultat provjere je objekt s istim svojstvima:
 
 | Svojstvo | Sadržaj |
 |---|---|

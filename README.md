@@ -21,7 +21,7 @@ problems it found and what to do about them.
 | Category | Checks |
 |---|---|
 | System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs, last startup duration\*, size of the user profiles\* |
-| Specifications | Processor, memory modules and free slots, graphics adapters, displays, motherboard, BIOS/UEFI, serial number |
+| Specifications | Processor with cache sizes and virtualization state, memory layout and free slots, every memory module (slot, speed, manufacturer, part number), graphics adapters with memory and driver date, displays, physical drives with firmware version, optical drives, audio devices, keyboards and pointing devices, motherboard, BIOS/UEFI, serial number |
 | Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, space that can be freed (temporary files, Downloads, Recycle Bin), page file, devices without a working driver, battery, drive details (temperature, wear, power-on hours, uncorrected errors)\*, drives flagged for a disk check\*, temporary files of Windows\* |
 | Software | Installed programs with versions, recently installed programs, application crashes per program, default browser |
 | Event Log | Unexpected shutdowns, blue screens, disk errors, hardware errors (WHEA), critical events and errors in the System and Application logs for the last N days, top sources |
@@ -37,6 +37,27 @@ Every result has a status (**OK**, **Warning**, **Critical** or **Info**), a sho
 explanation of what the checked thing is, and a recommended fix whenever the status is
 Warning or Critical. Measurements also show the allowed range and a typical value for
 comparison.
+
+## Live monitor
+
+The **Live monitor** page of the window needs no health check. It shows what the
+computer is doing right now and refreshes about every two seconds:
+
+- load of every logical processor, total load and current clock speed
+- memory in use and committed memory
+- load and memory of the graphics adapter
+- activity, read rate and write rate of every physical disk
+- download and upload rate of every network adapter
+- the programs that use the most processor time
+
+![The Live monitor page](docs/screenshot-monitor.png)
+
+The same data is available in scripts through `Get-PerformanceSnapshot`.
+
+Temperatures, fan speeds and voltages are not shown. Windows does not expose them to
+programs; tools that display them install a hardware driver of their own, which this
+tool deliberately does not do. The temperature of the drives is the exception: it is
+part of the drive details that are read with administrator rights.
 
 ## Administrator rights
 
@@ -111,9 +132,11 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 Show-PCHealthCheck
 ```
 
-Click **Run check**. The **Overview** page lists every problem with its recommended fix.
+Click **Run check**; a progress bar shows which category is being checked. The
+**Overview** page lists every problem with its recommended fix.
 Choose a category on the left (System, Hardware, Network, ...) to see everything it
 checked; the dot and the number next to each category show where the problems are.
+**Live monitor** shows the current load of the computer, see [Live monitor](#live-monitor).
 **Open HTML report** saves the report and opens it in the browser; **Save as...** saves
 it as HTML or JSON wherever you choose.
 
@@ -153,14 +176,20 @@ Get-ComputerSpecification | Format-Table Check, Value -AutoSize
 $report = Get-PCHealthReport -Days 14
 $report.Summary
 $report.Results | Where-Object Status -eq 'Critical'
+
+# What the computer is doing right now: load per logical processor, busiest programs
+$now = Get-PerformanceSnapshot
+$now.Cpu.Processors | Format-Table Name, Percent, FrequencyMHz
+$now.Processes
 ```
 
 Available commands: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Get-SystemHealth`, `Get-ComputerSpecification`, `Get-HardwareHealth`,
 `Get-SoftwareHealth`, `Get-EventLogHealth`, `Get-WindowsUpdateHealth`,
-`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`. Each has full help: `Get-Help <command> -Full`.
+`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`,
+`Get-PerformanceSnapshot`. Each has full help: `Get-Help <command> -Full`.
 
-Every result is an object with the same properties:
+Every check result is an object with the same properties:
 
 | Property | Content |
 |---|---|
