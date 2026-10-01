@@ -14,24 +14,25 @@ pronađenim problemima i preporukama što učiniti.
 - **Ne traži administratorska prava.** Provjere kojima trebaju preskače i označava s "Requires admin".
 - **Ne traži ništa osim samog alata.** Napisan je u PowerShellu i koristi ono što Windows već ima.
 
-Sučelje i izvještaj su na engleskom jeziku.
+Prozor se može prebaciti na hrvatski (stranica **Settings**). Izvještaji i naredbe su na
+engleskom, pa su i nazivi u ovom dokumentu navedeni onako kako pišu na engleskom.
 
-![Prozor aplikacije](docs/screenshot-window.png)
+![Obilazak prozora aplikacije](docs/demo.gif)
 
 ## Što provjerava
 
 | Kategorija | Provjere |
 |---|---|
-| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\* |
+| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, zakazani zadaci koji nisu dio Windowsa, plan napajanja, Fast Startup, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\* |
 | Specifications | Procesor s veličinom cache memorije i stanjem virtualizacije, raspored memorije i slobodni utori, svaki memorijski modul (utor, brzina, proizvođač, kataloški broj), grafičke kartice s memorijom i datumom drivera, monitori, fizički diskovi s verzijom firmwarea, optički pogoni, audio uređaji, tipkovnice i pokazivački uređaji, matična ploča, BIOS/UEFI, serijski broj |
-| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), page file, uređaji bez ispravnog drivera, baterija, detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\* |
-| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, zadani preglednik |
+| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, najveće mape na disku koji se puni, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), datoteka hibernacije, page file, uređaji bez ispravnog drivera, nepotpisani driveri, stari driveri, napunjenost i zdravlje baterije (preostali kapacitet u odnosu na novu bateriju), detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\* |
+| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, proširenja preglednika, zadani preglednik |
 | Event Log | Neočekivana gašenja, plavi ekrani, greške diska, greške hardvera (WHEA), kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
-| Windows Update | Zadnje instalirano ažuriranje, čeka li se restart, jesu li ažuriranja pauzirana |
-| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\* |
-| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), mrežni profil, proxy, hosts datoteka, mapirani mrežni diskovi, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup, točnost sata |
+| Windows Update | Zadnje instalirano ažuriranje, ažuriranja koja čekaju instalaciju, ažuriranja koja se nisu uspjela instalirati, čeka li se restart, jesu li ažuriranja pauzirana |
+| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, portovi otvoreni prema mreži i programi koji na njima slušaju, sigurnosne kopije (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\*, točke vraćanja\* |
+| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), jačina signala, pojas, standard i zaštita Wi-Fi mreže, mrežni profil, proxy, hosts datoteka, mapirani mrežni diskovi, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup, točnost sata |
 | Printers | Zadani pisač, instalirani pisači i oni koji su offline, dokumenti zaglavljeni u redu za ispis |
-| Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
+| Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler te servisi koji nisu dio Windowsa |
 
 \* traži administratorska prava; inače je označeno s "Requires admin". Vidi [Administratorska prava](#administratorska-prava).
 
@@ -40,10 +41,59 @@ objašnjenje što je to što se provjerava i preporučeno rješenje kad god je s
 ili Critical. Uz mjerenja se prikazuju i dopušteni raspon te tipična vrijednost za
 usporedbu.
 
+## Prozor
+
+![Stranica Overview](docs/screenshot-window.png)
+
+Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjerava.
+
+- **Overview** prikazuje sve probleme s preporučenim rješenjem. Uz rješenje stoji gumb
+  koji otvara mjesto u Windowsu gdje se ono provodi (**Open Storage settings**,
+  **Open Task Manager**, **Open Windows Update**, ...). Gumb samo otvara tu stranicu;
+  samu promjenu uvijek radi osoba za računalom.
+- **Health score** od 0 do 100 sažima provjeru u jedan broj: svaki rezultat Critical
+  oduzima 15 bodova, a svaki Warning 4.
+- **Since the last check** pokazuje što je novo, gore, bolje ili riješeno u odnosu na
+  prethodnu provjeru istog računala. Aplikacija za to čuva zadnjih 30 izvještaja.
+- **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
+  provjereno; točka i broj uz svaku pokazuju gdje su problemi.
+- **Pretraga** traži po svim rezultatima odjednom, a filtar statusa sužava popis, na
+  primjer samo na probleme.
+- **Copy summary** stavlja kratak tekstualni sažetak u međuspremnik, spreman za
+  lijepljenje u ticket ili e-mail.
+- **Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
+  sprema kao HTML, PDF, CSV ili JSON na mjesto koje odabereš.
+
+![Stranica jedne kategorije](docs/screenshot-category.png)
+
+Tipkovni prečaci:
+
+| Tipka | Radnja |
+|---|---|
+| `F5` | Pokreni provjeru |
+| `Ctrl+F` | Pretraga; `Esc` je briše |
+| `Ctrl+O` | Otvori HTML izvještaj |
+| `Ctrl+S` | Save as... |
+| `Ctrl+Shift+C` | Kopiraj sažetak |
+| `Ctrl+M` | Live monitor |
+
+### Jezik i tema
+
+Na stranici **Settings** prozor se prebacuje između engleskog i hrvatskog te između
+svijetle i tamne teme (ili one koju koristi Windows). Izvještaji i naredbe ostaju na
+engleskom, pa izvještaj izgleda jednako tko god ga napravio. Aplikacija pamti i
+veličinu i položaj prozora.
+
+![Tamna tema s hrvatskim prijevodom](docs/screenshot-dark-hr.png)
+
+Postavke i povijest izvještaja čuvaju se u `%LOCALAPPDATA%\HelpdeskToolkit`; na stranici
+Settings postoji gumb koji otvara tu mapu. Brisanjem mape aplikacija se vraća na
+početno stanje.
+
 ## Live monitor
 
 Stranica **Live monitor** u prozoru ne traži provjeru. Prikazuje što računalo radi u
-ovom trenutku i osvježava se otprilike svake dvije sekunde:
+ovom trenutku:
 
 - **Procesor:** ukupno opterećenje s grafom povijesti, takt na kojem stvarno radi
   (uključujući turbo), opterećenje svakog logičkog procesora, broj procesa, niti i
@@ -52,17 +102,30 @@ ovom trenutku i osvježava se otprilike svake dvije sekunde:
   rezervirana (committed) memorija, kernel poolovi, zauzeće page filea
 - **Grafika:** opterećenje s grafom povijesti, opterećenje po engineu (3D, copy, video
   decode, video encode), vlastita i dijeljena memorija
-- **Diskovi:** aktivnost, brzina čitanja i pisanja te red čekanja svakog fizičkog diska,
-  i zauzeti prostor svakog slova diska (mjerač postaje narančast i crven prema istim
-  pragovima kao provjera prostora na disku)
-- **Mreža:** brzina preuzimanja i slanja te brzina veze svakog adaptera
+- **Diskovi:** aktivnost s grafom povijesti, brzina čitanja i pisanja te red čekanja
+  svakog fizičkog diska, i zauzeti prostor svakog slova diska (mjerač postaje narančast
+  i crven prema istim pragovima kao provjera prostora na disku)
+- **Mreža:** brzina preuzimanja i slanja s grafom povijesti te brzina veze svakog adaptera
 - **Senzori:** temperatura, brzina ventilatora i potrošnja NVIDIA grafičkih kartica;
   termalne zone i baterija na računalima koja ih imaju; temperatura, istrošenost i sati
   rada diskova\*
 - **Programi:** oni koji troše najviše procesorskog vremena, najviše memorije te čitaju i
-  pišu najviše podataka
+  pišu najviše podataka. Klikom na program vidi se odakle je pokrenut, tko ga je
+  napravio, otkad radi i koliko procesa ima.
 
 \* traži administratorska prava.
+
+Alati na vrhu stranice:
+
+- **Pause** zamrzava prikaz, a osvježavanje se može postaviti na 2, 5, 10 ili 30 sekundi.
+- **Record to file** zapisuje svako mjerenje u CSV datoteku u `Documents\HelpdeskToolkit`
+  tijekom 1, 5, 15 ili 60 minuta. To je odgovor na "ponekad je sporo": snimaj dok
+  korisnik radi, pa datoteku pogledaj u programu za tablice.
+- **Upozorenja** se pojave kad procesor, memorija ili disk ostanu iznad 90 % nekoliko
+  mjerenja zaredom, ili kad se grafička kartica zagrije iznad 85 °C. Jedan kratki skok
+  je normalan i ne izaziva upozorenje.
+
+Gumba koji gasi program namjerno nema: alat samo čita.
 
 ![Stranica Live monitor](docs/screenshot-monitor.png)
 
@@ -105,6 +168,14 @@ Cijeli primjer s izmišljenim podacima nalazi se u [docs/sample-report.html](doc
 (preuzmi ga i otvori u pregledniku). Isti podaci u JSON-u:
 [docs/sample-report.json](docs/sample-report.json).
 
+Ostali formati:
+
+| Format | Čemu služi |
+|---|---|
+| JSON | Daljnja obrada i usporedba dviju provjera naredbom `Compare-PCHealthReport` |
+| CSV | Program za tablice; jedan redak po rezultatu |
+| PDF | Arhiviranje i ispis. To je HTML izvještaj ispisan u datoteku, za što na računalu treba Microsoft Edge ili Google Chrome. |
+
 ## Instalacija
 
 ### Instalacijski program (preporučeno)
@@ -144,23 +215,9 @@ lokalne skripte za svoj korisnički račun:
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 
-## Korištenje
+## Korištenje iz naredbenog retka
 
-### Prozor
-
-```powershell
-Show-PCHealthCheck
-```
-
-Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjerava.
-Stranica **Overview** prikazuje sve probleme s preporučenim
-rješenjem. Odaberi kategoriju lijevo (System, Hardware, Network, ...) da vidiš sve što je
-u njoj provjereno; točka i broj uz svaku kategoriju pokazuju gdje su problemi.
-**Live monitor** prikazuje trenutno opterećenje računala, vidi [Live monitor](#live-monitor).
-**Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
-sprema kao HTML ili JSON na mjesto koje odabereš.
-
-### Naredbeni redak
+`Show-PCHealthCheck` otvara gore opisani prozor. Sve ostalo radi i bez njega.
 
 ```powershell
 # Pokreni sve provjere, spremi HTML izvještaj u Documents\HelpdeskToolkit i otvori ga
@@ -178,8 +235,10 @@ Invoke-PCHealthCheck -NoOpen -SkipNetwork -PassThru |
 |---|---|
 | `-OutputPath` | Mapa za izvještaj. Zadano: `Documents\HelpdeskToolkit`. |
 | `-Days` | Koliko dana Event Loga i rušenja aplikacija se analizira. Zadano: 7. |
-| `-Format` | `Html` (zadano), `Json` ili `Both`. |
+| `-Format` | `Html` (zadano), `Json`, `Csv`, `Pdf`, `Both` (HTML i JSON) ili `All`. |
 | `-SkipNetwork` | Preskače ping, DNS i HTTPS testove. Konfiguracija adaptera se i dalje ispisuje. |
+| `-ComputerName` | Provjerava drugo računalo, vidi [Drugo računalo](#drugo-računalo). |
+| `-Credential` | Račun koji se koristi na drugom računalu. |
 | `-NoOpen` | Ne otvara HTML izvještaj u pregledniku. |
 | `-PassThru` | Dodatno vraća rezultate kao objekte. |
 
@@ -194,6 +253,7 @@ Get-NetworkHealth -SkipConnectivity
 Get-ComputerSpecification | Format-Table Check, Value -AutoSize
 
 $report = Get-PCHealthReport -Days 14
+$report.Score
 $report.Summary
 $report.Results | Where-Object Status -eq 'Critical'
 
@@ -204,10 +264,11 @@ $now.Processes
 ```
 
 Dostupne naredbe: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
-`Get-SystemHealth`, `Get-ComputerSpecification`, `Get-HardwareHealth`,
-`Get-SoftwareHealth`, `Get-EventLogHealth`, `Get-WindowsUpdateHealth`,
-`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`,
-`Get-PerformanceSnapshot`. Svaka ima potpunu pomoć: `Get-Help <naredba> -Full`.
+`Compare-PCHealthReport`, `Get-SystemHealth`, `Get-ComputerSpecification`,
+`Get-HardwareHealth`, `Get-SoftwareHealth`, `Get-EventLogHealth`,
+`Get-WindowsUpdateHealth`, `Get-SecurityHealth`, `Get-NetworkHealth`,
+`Get-PrinterHealth`, `Get-ServiceHealth`, `Get-PerformanceSnapshot`. Svaka ima potpunu
+pomoć: `Get-Help <naredba> -Full`.
 
 Svaki rezultat provjere je objekt s istim svojstvima:
 
@@ -221,20 +282,72 @@ Svaki rezultat provjere je objekt s istim svojstvima:
 | `Allowed`, `Typical` | Za mjerenja: raspon koji se smatra ispravnim i uobičajena vrijednost |
 | `Recommendation` | Što učiniti kad status nije OK |
 
+### Usporedba dviju provjera
+
+Je li popravak pomogao? Spremi JSON izvještaj prije i poslije pa ih usporedi:
+
+```powershell
+Compare-PCHealthReport -Reference .\before.json -Difference .\after.json |
+    Format-Table Change, Category, Check, Before, After
+```
+
+Svaki redak kaže je li problem nov, gori, bolji ili riješen. Rezultati koji se nisu
+promijenili se ne ispisuju.
+
+### Automatizacija: izlazni kodovi
+
+`Invoke-HealthCheck.ps1` u glavnoj mapi pokreće provjeru i rezultat javlja izlaznim
+kodom, a to je ono što gledaju sustavi za nadzor, alati za distribuciju i zakazani
+zadaci:
+
+| Izlazni kod | Značenje |
+|---|---|
+| 0 | Nema problema (svi rezultati su OK ili Info) |
+| 1 | Barem jedan Warning, nijedan Critical |
+| 2 | Barem jedan Critical |
+| 3 | Sama provjera se nije mogla izvršiti |
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Invoke-HealthCheck.ps1 -Format Json -Quiet
+```
+
+### Drugo računalo
+
+```powershell
+Invoke-PCHealthCheck -ComputerName PC-014 -Credential (Get-Credential)
+```
+
+Provjera se tada izvršava na drugom računalu kroz PowerShell remoting, a izvještaj
+nastaje na tvom. Na drugom računalu ne treba ništa instalirati i ništa ondje ne ostaje:
+modul se pošalje i učita samo u memoriju. Uvjeti su uobičajeni za PowerShell remoting:
+mora biti uključen na drugom računalu (u domeni se to inače radi kroz Group Policy), a
+račun ondje mora biti administrator.
+
+Ovaj dio je eksperimentalan. Pokriven je automatskim testovima i isproban tako da je
+modul na isti način učitan u čistu sesiju na jednom računalu, ali još nije isproban
+preko stvarne veze između dva računala.
+
 ## Konfiguracija
 
-Ponašanje određuju dvije podatkovne datoteke; kod se ne mora mijenjati:
+Ponašanje određuju tri podatkovne datoteke; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
-  odredišta mrežnih testova, popis praćenih servisa i datumi kraja podrške za verzije
-  Windowsa (preuzeti s Microsoftovih stranica o životnom ciklusu; kad izađe nova
-  verzija, dodaje se jedan redak).
+  odredišta mrežnih testova, popis praćenih servisa, pragovi upozorenja u Live
+  monitoru, bodovi za Health score i datumi kraja podrške za verzije Windowsa (preuzeti
+  s Microsoftovih stranica o životnom ciklusu; kad izađe nova verzija, dodaje se jedan
+  redak).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):
   objašnjenje koje se prikazuje uz svaku provjeru.
+- [`HelpdeskToolkit/Config/Actions.psd1`](HelpdeskToolkit/Config/Actions.psd1):
+  koju stranicu Windowsa otvara gumb uz preporučeno rješenje.
 
 Vrijednosti "Typical" su iskustvene, okvirne vrijednosti za zdravo uredsko računalo.
 Služe samo za usporedbu i nikad ne utječu na status.
+
+Prijevod prozora je još jedna podatkovna datoteka:
+[`HelpdeskToolkit/Lang/hr.psd1`](HelpdeskToolkit/Lang/hr.psd1) sadrži hrvatske tekstove
+uz engleske izvornike. Tekst bez prijevoda jednostavno se prikaže na engleskom.
 
 ## Zahtjevi
 
@@ -247,14 +360,19 @@ Služe samo za usporedbu i nikad ne utječu na status.
 HelpdeskToolkit/          modul
   Public/                 izvezene naredbe, jedna po datoteci
   Private/                interne pomoćne funkcije, jedna po datoteci
-  Config/                 pragovi i opisi
-  Assets/                 stilovi izvještaja, izgled prozora (XAML), ikona
+  Config/                 pragovi, opisi i odredišta gumba uz rješenja
+  Lang/                   prijevodi prozora
+  Assets/                 stilovi izvještaja, izgled prozora (XAML), tamna tema, ikona
 tests/                    Pester testovi
 tools/                    skripte za testiranje, slaganje izdanja i generiranje datoteka
 installer/                Inno Setup skripta
-docs/                     primjer izvještaja i slike
+docs/                     primjer izvještaja, slike, bilješke o objavi
 .github/workflows/        CI i automatsko izdavanje
+Invoke-HealthCheck.ps1    provjera s izlaznim kodom, za automatizaciju
+Start-HelpdeskToolkit.*   pokreće prozor
 ```
+
+Promjene po verzijama popisane su u [CHANGELOG.md](CHANGELOG.md).
 
 ### Testovi
 
@@ -270,6 +388,9 @@ Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
 .\tools\Test-Project.ps1 -Coverage  # dodatno ispisuje pokrivenost koda
 ```
 
+Windows PowerShell 5.1 i PowerShell 7 drže module u različitim mapama, pa ta dva modula
+treba instalirati u svakoj verziji kojom želiš testirati.
+
 GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 na svaki push.
 
 ### Slaganje izdanja
@@ -280,13 +401,14 @@ GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 
 ```
 
 Slanje oznake poput `v1.0.0` pokreće testove, slaže instalaciju i ZIP te ih objavljuje
-kao GitHub izdanje. Oznaka se mora podudarati s `ModuleVersion` u manifestu.
+kao GitHub izdanje. Oznaka se mora podudarati s `ModuleVersion` u manifestu. Koraci za
+izdanje, PowerShell Gallery i winget zapisani su u [docs/publishing.md](docs/publishing.md).
 
 ### Generirane datoteke
 
 ```powershell
 .\tools\New-SampleReport.ps1        # docs\sample-report.html i .json (izmišljeni podaci)
-.\tools\New-Screenshot.ps1          # docs\screenshot-*.png
+.\tools\New-Screenshot.ps1          # docs\screenshot-*.png i docs\demo.gif
 .\tools\New-AppIcon.ps1             # ikona aplikacije
 ```
 
