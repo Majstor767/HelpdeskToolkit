@@ -83,6 +83,47 @@ Describe 'Source files' {
     }
 }
 
+Describe 'Recommendations' {
+    # Every problem the tool reports must tell the reader what to do about it. This test
+    # reads the source code of the checks instead of running them, so it also covers
+    # results that only appear on a computer with that particular problem.
+    It 'every result that can be a Warning or Critical is created with a recommendation' {
+        $files = Get-ChildItem -Path (Join-Path -Path $moduleRoot -ChildPath 'Public'), (Join-Path -Path $moduleRoot -ChildPath 'Private') -Filter '*.ps1'
+        $checked = 0
+
+        foreach ($file in $files) {
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$null)
+            $calls = $ast.FindAll({
+                    param($node)
+                    $node -is [System.Management.Automation.Language.CommandAst] -and $node.GetCommandName() -eq 'New-CheckResult'
+                }, $true)
+
+            foreach ($call in $calls) {
+                $elements = @($call.CommandElements)
+                $parameters = @($elements | Where-Object { $_ -is [System.Management.Automation.Language.CommandParameterAst] })
+                $statusParameter = $parameters | Where-Object { $_.ParameterName -eq 'Status' }
+                if (-not $statusParameter) {
+                    continue
+                }
+
+                # The value follows the -Status parameter: a fixed word or a variable.
+                $statusValue = $elements[[array]::IndexOf($elements, $statusParameter) + 1]
+                $isVariable = $statusValue -is [System.Management.Automation.Language.VariableExpressionAst]
+                $text = $statusValue.Extent.Text.Trim("'", '"')
+
+                if ($isVariable -or $text -in 'Warning', 'Critical') {
+                    $checked++
+                    @($parameters | Where-Object { $_.ParameterName -eq 'Recommendation' }).Count |
+                        Should -Be 1 -Because "the result created in $($file.Name) on line $($call.Extent.StartLineNumber) can be a problem and needs a recommendation"
+                }
+            }
+        }
+
+        # Guards the test itself: if the search stopped finding calls it would pass for the wrong reason.
+        $checked | Should -BeGreaterThan 30
+    }
+}
+
 Describe 'Configuration files' {
     BeforeAll {
         $thresholds = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Config\Thresholds.psd1')
