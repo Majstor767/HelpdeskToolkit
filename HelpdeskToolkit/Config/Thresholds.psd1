@@ -47,6 +47,15 @@
         Typical       = '8 - 10'
     }
 
+    Boot          = @{
+        # Last measured startup of Windows longer than this many seconds = Warning.
+        WarningSeconds = 120
+        Typical        = '30 - 90 seconds'
+        # Windows only measures the startup now and then. A measurement older than this
+        # many days is shown for information only and not judged.
+        StaleDays      = 30
+    }
+
     Startup       = @{
         # More programs than this starting with Windows = Warning.
         WarningProgramCount = 15
@@ -78,9 +87,23 @@
         # Space that could be freed: more gigabytes than this = Warning.
         TempWarningGb       = 5
         RecycleBinWarningGb = 10
+        SystemTempWarningGb = 5
         # Counting stops after this many milliseconds per folder, so a huge folder
         # cannot hold up the whole check; the size is then reported as "or more".
         TimeoutMs           = 3000
+        # User profiles are large, so they get more time each.
+        ProfileTimeoutMs    = 5000
+    }
+
+    DriveDetail   = @{
+        # Values the drive reports about itself (SMART); read with administrator rights.
+        # Temperature in degrees Celsius above these values.
+        TemperatureWarning  = 60
+        TemperatureCritical = 70
+        TypicalTemperature  = '30 - 50'
+        # Percentage of the rated lifetime of an SSD that is used up, above these values.
+        WearWarningPercent  = 80
+        WearCriticalPercent = 95
     }
 
     PageFile      = @{
@@ -109,6 +132,9 @@
         # Blue screens (Windows crashes).
         BlueScreenWarningAbove         = 0
         TypicalBlueScreens             = '0'
+        # Errors reported by disks and the file system, and by the hardware itself (WHEA).
+        DiskErrorWarningAbove          = 0
+        HardwareErrorWarningAbove      = 0
     }
 
     Software      = @{
@@ -136,6 +162,13 @@
         ScanWarningDays       = 14
         # Defender runs a quick scan on its own about once a week.
         TypicalScan           = '0 - 7 days'
+    }
+
+    SignIn        = @{
+        # Failed sign-ins in the selected period (-Days); read with administrator rights.
+        # More than this many = Warning. A few are normal (mistyped passwords).
+        FailedWarningAbove = 20
+        TypicalFailed      = '0 - 5 per week'
     }
 
     Printers      = @{

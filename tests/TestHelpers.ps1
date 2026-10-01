@@ -39,7 +39,10 @@ function Set-TestThreshold {
                 WarningDaysBeforeEnd = 90
             }
             Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
-            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; TimeoutMs = 3000 }
+            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000 }
+            Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30 }
+            DriveDetail   = @{ TemperatureWarning = 60; TemperatureCritical = 70; TypicalTemperature = '30 - 50'; WearWarningPercent = 80; WearCriticalPercent = 95 }
+            SignIn        = @{ FailedWarningAbove = 20; TypicalFailed = 'typical failed sign-ins' }
             PageFile      = @{ WarningPercent = 80; Typical = 'typical page file' }
             Uptime        = @{ WarningDays = 7; Typical = 'typical uptime' }
             Startup       = @{ WarningProgramCount = 15; Typical = 'typical startup' }
@@ -55,6 +58,8 @@ function Set-TestThreshold {
                 TypicalErrorEvents             = 'typical errors'
                 UnexpectedShutdownWarningAbove = 0
                 TypicalUnexpectedShutdowns     = 'typical shutdowns'
+                DiskErrorWarningAbove          = 0
+                HardwareErrorWarningAbove      = 0
                 BlueScreenWarningAbove         = 0
                 TypicalBlueScreens             = 'typical blue screens'
             }
