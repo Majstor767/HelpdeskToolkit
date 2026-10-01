@@ -132,6 +132,10 @@
             <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
                 <DockPanel Margin="10,12">
                     <StackPanel DockPanel.Dock="Bottom" Margin="2,10,2,0">
+                        <!-- Shows whether the window runs with administrator rights; the button
+                             below it is hidden once it does. -->
+                        <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"/>
+                        <Button x:Name="ElevateButton" Content="Restart as administrator" Style="{StaticResource ActionButton}" Margin="0,0,0,14"/>
                         <Button x:Name="OpenReportButton" Content="Open HTML report" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
                         <Button x:Name="SaveAsButton" Content="Save as..." Style="{StaticResource ActionButton}" IsEnabled="False"/>
                     </StackPanel>

@@ -11,8 +11,11 @@ function Show-PCHealthCheck {
 
         The window runs exactly the same checks as Invoke-PCHealthCheck; it only
         presents them differently. The checks run in the background, so the window
-        stays responsive. Nothing on the computer is changed, and no administrator
-        rights are needed.
+        stays responsive. Nothing on the computer is changed.
+
+        No administrator rights are needed. Checks that need them are marked "Requires
+        admin"; the "Restart as administrator" button starts the window again
+        elevated, after the user has confirmed the Windows prompt, and then includes them.
 
         The command returns when the window is closed.
     .PARAMETER OutputPath
@@ -58,6 +61,13 @@ function Show-PCHealthCheck {
     $gui.Timer.Add_Tick({ Receive-WindowCheck -Gui $script:HealthCheckWindow })
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
+
+    # With administrator rights there is nothing left to elevate.
+    if (Test-IsAdministrator) {
+        $controls.ElevationText.Text = 'Running as administrator: all checks are included.'
+        $controls.ElevateButton.Visibility = [System.Windows.Visibility]::Collapsed
+    }
+    $controls.ElevateButton.Add_Click({ [void](Invoke-ElevatedRestart -Gui $script:HealthCheckWindow) })
 
     # Choosing an entry in the category list shows that page on the right.
     $controls.CategoryList.Add_SelectionChanged({ Show-WindowPage -Gui $script:HealthCheckWindow })

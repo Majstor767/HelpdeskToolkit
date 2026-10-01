@@ -42,7 +42,7 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
         'RunButton', 'SkipNetworkCheckBox', 'DaysComboBox', 'ProgressBar', 'StatusText', 'ComputerText'
         'CategoryList', 'PageTitle', 'PageSubtitle', 'OverviewPanel', 'ResultItems', 'ResultScroll', 'EmptyText'
         'VerdictBorder', 'VerdictText', 'CriticalCount', 'WarningCount', 'OkCount', 'InfoCount'
-        'OpenReportButton', 'SaveAsButton'
+        'OpenReportButton', 'SaveAsButton', 'ElevateButton', 'ElevationText'
     ) {
         $gui.Controls[$_] | Should -Not -BeNullOrEmpty
     }
@@ -259,6 +259,31 @@ Describe 'Receive-WindowCheck' -Skip:(-not $isSta) {
     It 'does nothing when no check is running' {
         $gui = New-TestWindow
         { InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Receive-WindowCheck -Gui $Gui } } | Should -Not -Throw
+    }
+}
+
+Describe 'Invoke-ElevatedRestart' -Skip:(-not $isSta) {
+    It 'starts the application again elevated and hidden, through the launcher script' {
+        Mock -ModuleName HelpdeskToolkit Start-Process { }
+        $gui = New-TestWindow
+        $started = InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-ElevatedRestart -Gui $Gui }
+
+        $started | Should -BeTrue
+        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -ParameterFilter {
+            $Verb -eq 'RunAs' -and
+            $WindowStyle -eq 'Hidden' -and
+            $FilePath -like '*\WindowsPowerShell\v1.0\powershell.exe' -and
+            ($ArgumentList -join ' ') -match 'Start-HelpdeskToolkit\.ps1'
+        }
+    }
+
+    It 'keeps the window open and says so when the user declines the Windows prompt' {
+        Mock -ModuleName HelpdeskToolkit Start-Process { throw 'The operation was canceled by the user.' }
+        $gui = New-TestWindow
+        $started = InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-ElevatedRestart -Gui $Gui }
+
+        $started | Should -BeFalse
+        $gui.Controls.StatusText.Text | Should -Match 'Administrator rights were not granted'
     }
 }
 
