@@ -11,7 +11,7 @@ function New-HealthCheckWindow {
         - Controls:     every element that has an x:Name in the XAML, by that name
         - ManifestPath: where the module is, for the background runspaces
         - Report, Worker, Handle, Timer: state of the current health check
-        - Monitor, MonitorTimer:         state of the Live monitor page
+        - Monitor, MonitorTimer, MonitorHistory: state of the Live monitor page
 
         The category list starts with the two pages that need no health check:
         Overview and Live monitor.
@@ -57,14 +57,20 @@ function New-HealthCheckWindow {
     )
 
     @{
-        Window       = $window
-        Controls     = $controls
-        ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
-        Report       = $null
-        Worker       = $null
-        Handle       = $null
-        Timer        = $null
-        Monitor      = $null
-        MonitorTimer = $null
+        Window         = $window
+        Controls       = $controls
+        ManifestPath   = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
+        Report         = $null
+        Worker         = $null
+        Handle         = $null
+        Timer          = $null
+        Monitor        = $null
+        MonitorTimer   = $null
+        # The last measurements of the values that are drawn as graphs, oldest first.
+        MonitorHistory = @{
+            Cpu    = New-Object -TypeName 'System.Collections.Generic.List[double]'
+            Memory = New-Object -TypeName 'System.Collections.Generic.List[double]'
+            Gpu    = New-Object -TypeName 'System.Collections.Generic.List[double]'
+        }
     }
 }

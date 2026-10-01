@@ -135,6 +135,22 @@ Describe 'Format-DataRate' {
     }
 }
 
+Describe 'Format-Duration' {
+    It 'formats <Seconds> seconds as <Expected>' -ForEach @(
+        @{ Seconds = 0; Expected = '0 min' }
+        @{ Seconds = 59; Expected = '0 min' }
+        @{ Seconds = 2700; Expected = '45 min' }
+        @{ Seconds = 7800; Expected = '2 h 10 min' }
+        @{ Seconds = 93784; Expected = '1 d 2 h' }
+        @{ Seconds = 2592000; Expected = '30 d 0 h' }
+        @{ Seconds = -5; Expected = '0 min' }
+    ) {
+        InModuleScope HelpdeskToolkit -Parameters $_ {
+            Format-Duration -Seconds $Seconds | Should -Be $Expected
+        }
+    }
+}
+
 Describe 'ConvertTo-HtmlEncodedText' {
     It 'escapes characters that have a meaning in HTML' {
         InModuleScope HelpdeskToolkit {

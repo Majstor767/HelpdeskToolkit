@@ -32,17 +32,83 @@
         <SolidColorBrush x:Key="InfoBrush" Color="#2B5EA8"/>
         <SolidColorBrush x:Key="InfoBackBrush" Color="#E7EFFA"/>
 
+        <!-- Buttons: rounded corners, a color change under the mouse and an optional icon.
+             The icon is one character of the "Segoe MDL2 Assets" font, which is part of
+             Windows 10 and 11; a button passes it in its Tag. The three styles below only
+             differ in their colors. -->
+        <ControlTemplate x:Key="ButtonTemplate" TargetType="Button">
+            <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="Glyph" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                               FontFamily="Segoe MDL2 Assets" FontSize="13" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                    <ContentPresenter VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="Tag" Value="{x:Null}">
+                    <Setter TargetName="Glyph" Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="Chrome" Property="Opacity" Value="0.45"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Ordinary button: white with a thin border -->
         <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Template" Value="{StaticResource ButtonTemplate}"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="#B8C2CF"/>
+            <Setter Property="BorderBrush" Value="#C5CEDA"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EEF3FA"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#DCE7F7"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
-        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+        <!-- The main action of the side bar: filled with the accent color -->
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="{StaticResource InfoBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="20,7"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3A70BF"/>
+                    <Setter Property="BorderBrush" Value="#3A70BF"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#234E8C"/>
+                    <Setter Property="BorderBrush" Value="#234E8C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- The Run button on the dark header: a brighter blue, without a border -->
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="#3B7DDD"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,9"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#5290EA"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#2B67C0"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="Tile" TargetType="Border">
@@ -113,6 +179,50 @@
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
+        <!-- Live monitor: one color per component, used for its tile, meter and graph -->
+        <SolidColorBrush x:Key="CpuBrush" Color="#2B5EA8"/>
+        <SolidColorBrush x:Key="MemoryBrush" Color="#7A4FBF"/>
+        <SolidColorBrush x:Key="GpuBrush" Color="#178F7E"/>
+
+        <Style x:Key="MonitorTile" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <Style x:Key="MonitorTileValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+
+        <Style x:Key="MonitorTileSub" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+
+        <!-- The frame around a history graph. The graph itself is a line drawn by
+             Show-WindowMonitor into the Canvas inside the frame. -->
+        <Style x:Key="GraphCaption" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#8A95A5"/>
+            <Setter Property="Margin" Value="6,3,0,0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+
+        <Style x:Key="GraphFrame" TargetType="Border">
+            <Setter Property="Height" Value="64"/>
+            <Setter Property="Background" Value="#F6F8FB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
         <!-- One entry of the category list on the left. -->
         <Style x:Key="NavItem" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="12,9"/>
@@ -158,7 +268,7 @@
                         <ComboBoxItem Content="30 days" Tag="30"/>
                         <ComboBoxItem Content="90 days" Tag="90"/>
                     </ComboBox>
-                    <Button x:Name="RunButton" Content="Run check" Style="{StaticResource PrimaryButton}" Margin="18,0,0,0"/>
+                    <Button x:Name="RunButton" Content="Run check" Tag="&#xE768;" Style="{StaticResource PrimaryButton}" Margin="18,0,0,0"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -194,9 +304,9 @@
                         <!-- Shows whether the window runs with administrator rights; the button
                              below it is hidden once it does. -->
                         <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"/>
-                        <Button x:Name="ElevateButton" Content="Restart as administrator" Style="{StaticResource ActionButton}" Margin="0,0,0,14"/>
-                        <Button x:Name="OpenReportButton" Content="Open HTML report" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
-                        <Button x:Name="SaveAsButton" Content="Save as..." Style="{StaticResource ActionButton}" IsEnabled="False"/>
+                        <Button x:Name="ElevateButton" Content="Restart as administrator" Tag="&#xEA18;" Style="{StaticResource ActionButton}" Margin="0,0,0,14"/>
+                        <Button x:Name="OpenReportButton" Content="Open HTML report" Tag="&#xE8A7;" Style="{StaticResource AccentButton}" IsEnabled="False" Margin="0,0,0,6"/>
+                        <Button x:Name="SaveAsButton" Content="Save as..." Tag="&#xE74E;" Style="{StaticResource ActionButton}" IsEnabled="False"/>
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="CATEGORIES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="12,2,0,6"/>
                     <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
@@ -448,14 +558,55 @@
                     <ScrollViewer x:Name="MonitorPanel" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                         <StackPanel Margin="0,0,6,0">
 
-                            <!-- Processor: total, then one meter per logical processor -->
+                            <!-- The most important numbers at a glance -->
+                            <UniformGrid Columns="4" Margin="0,0,-10,10">
+                                <Border Style="{StaticResource MonitorTile}">
+                                    <StackPanel>
+                                        <TextBlock Text="PROCESSOR" Style="{StaticResource TileLabel}"/>
+                                        <TextBlock x:Name="MonitorTileCpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource CpuBrush}"/>
+                                        <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource MonitorTile}">
+                                    <StackPanel>
+                                        <TextBlock Text="MEMORY" Style="{StaticResource TileLabel}"/>
+                                        <TextBlock x:Name="MonitorTileMemory" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource MemoryBrush}"/>
+                                        <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource MonitorTile}">
+                                    <StackPanel>
+                                        <TextBlock Text="GRAPHICS" Style="{StaticResource TileLabel}"/>
+                                        <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource GpuBrush}"/>
+                                        <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource MonitorTile}">
+                                    <StackPanel>
+                                        <TextBlock Text="RUNNING FOR" Style="{StaticResource TileLabel}"/>
+                                        <TextBlock x:Name="MonitorTileUptime" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock x:Name="MonitorTileUptimeSub" Style="{StaticResource MonitorTileSub}"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <!-- Processor: history, details, then one meter per logical processor -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <DockPanel Margin="0,0,0,6">
+                                    <DockPanel Margin="0,0,0,8">
                                         <TextBlock x:Name="MonitorCpuText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
                                         <TextBlock Text="Processor" Style="{StaticResource SectionTitle}"/>
                                     </DockPanel>
-                                    <ProgressBar x:Name="MonitorCpuBar" Style="{StaticResource MeterBar}" Height="10" Margin="0,0,0,12"/>
+                                    <Border Style="{StaticResource GraphFrame}">
+                                        <Grid>
+                                            <Canvas x:Name="MonitorCpuGraph" ClipToBounds="True">
+                                                <Polygon x:Name="MonitorCpuArea" Fill="{StaticResource CpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorCpuLine" Stroke="{StaticResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                            </Canvas>
+                                            <TextBlock Text="last 2 minutes, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock x:Name="MonitorCpuDetail" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
                                     <ItemsControl x:Name="MonitorProcessors">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -464,7 +615,7 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <StackPanel Margin="0,0,14,10">
+                                                <StackPanel Margin="0,0,14,10" ToolTip="{Binding Tip}" Background="Transparent">
                                                     <DockPanel Margin="0,0,0,3">
                                                         <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
                                                         <TextBlock Text="{Binding Name}" Foreground="{StaticResource MutedBrush}"/>
@@ -477,23 +628,55 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Memory -->
+                            <!-- Memory: share in use, history and the breakdown -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <DockPanel Margin="0,0,0,6">
+                                    <DockPanel Margin="0,0,0,8">
                                         <TextBlock x:Name="MonitorMemoryText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
                                         <TextBlock Text="Memory" Style="{StaticResource SectionTitle}"/>
                                     </DockPanel>
-                                    <ProgressBar x:Name="MonitorMemoryBar" Style="{StaticResource MeterBar}" Height="10"/>
-                                    <TextBlock x:Name="MonitorCommitText" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,6,0,0"/>
+                                    <ProgressBar x:Name="MonitorMemoryBar" Style="{StaticResource MeterBar}" Height="10" Foreground="{StaticResource MemoryBrush}" Margin="0,0,0,10"/>
+                                    <Border Style="{StaticResource GraphFrame}">
+                                        <Grid>
+                                            <Canvas x:Name="MonitorMemoryGraph" ClipToBounds="True">
+                                                <Polygon x:Name="MonitorMemoryArea" Fill="{StaticResource MemoryBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorMemoryLine" Stroke="{StaticResource MemoryBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                            </Canvas>
+                                            <TextBlock Text="last 2 minutes, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
+                                        </Grid>
+                                    </Border>
+                                    <ItemsControl x:Name="MonitorMemoryStats">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="4"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,14,6">
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Graphics, disks and network: one row with a meter per device -->
+                            <!-- Graphics: history of the first adapter, then one row per adapter -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <TextBlock Text="Graphics" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Graphics" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                     <TextBlock x:Name="MonitorGpuEmpty" Text="No graphics data available." Foreground="{StaticResource MutedBrush}" Visibility="Collapsed"/>
+                                    <Border x:Name="MonitorGpuGraphFrame" Style="{StaticResource GraphFrame}">
+                                        <Grid>
+                                            <Canvas x:Name="MonitorGpuGraph" ClipToBounds="True">
+                                                <Polygon x:Name="MonitorGpuArea" Fill="{StaticResource GpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorGpuLine" Stroke="{StaticResource GpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                            </Canvas>
+                                            <TextBlock Text="last 2 minutes, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
+                                        </Grid>
+                                    </Border>
                                     <ItemsControl x:Name="MonitorGpus">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -502,7 +685,8 @@
                                                         <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
                                                         <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
                                                     </DockPanel>
-                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}"/>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{StaticResource GpuBrush}"/>
+                                                    <TextBlock Text="{Binding Detail}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -510,9 +694,10 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Disks: activity of the physical disks, then the space on every drive letter -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <TextBlock Text="Disks" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Disks" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                     <ItemsControl x:Name="MonitorDisks">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -526,12 +711,40 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+                                    <TextBlock Text="SPACE USED" Style="{StaticResource TileLabel}" Margin="0,6,0,6"/>
+                                    <ItemsControl x:Name="MonitorVolumes">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,0,8">
+                                                    <DockPanel Margin="0,0,0,3">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                    </DockPanel>
+                                                    <!-- The meter turns orange and red as the drive fills up -->
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}">
+                                                        <ProgressBar.Style>
+                                                            <Style TargetType="ProgressBar" BasedOn="{StaticResource MeterBar}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Level}" Value="Warning">
+                                                                        <Setter Property="Foreground" Value="#D48A00"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Level}" Value="Critical">
+                                                                        <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </ProgressBar.Style>
+                                                    </ProgressBar>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
 
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <TextBlock Text="Network" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Network" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
                                     <ItemsControl x:Name="MonitorNetwork">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -545,14 +758,12 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Busiest programs -->
+                            <!-- Sensors: temperatures, fans, power, drive wear and battery, as far as
+                                 Windows and the drivers hand them out -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
-                                    <DockPanel Margin="0,0,0,6">
-                                        <TextBlock DockPanel.Dock="Right" Text="processor  |  memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
-                                        <TextBlock Text="Busiest programs" Style="{StaticResource SectionTitle}"/>
-                                    </DockPanel>
-                                    <ItemsControl x:Name="MonitorProcesses">
+                                    <TextBlock Text="Sensors" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
+                                    <ItemsControl x:Name="MonitorSensors">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,5">
@@ -562,11 +773,73 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+                                    <TextBlock x:Name="MonitorNote" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Text="The temperature of the processor, the fans of the motherboard and voltages are not shown: Windows does not expose them, and tools that show them install their own hardware driver."/>
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock x:Name="MonitorNote" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,8"
-                                       Text="Temperatures, fan speeds and voltages are not shown: Windows does not expose them, and tools that show them install their own hardware driver."/>
+                            <!-- Programs: the ones using the most processor time, the most memory, and reading
+                                 and writing the most data (files, network and devices together) -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <DockPanel Margin="0,0,0,8">
+                                            <TextBlock DockPanel.Dock="Right" Text="processor  |  memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                            <TextBlock Text="Busiest programs" Style="{StaticResource SectionTitle}"/>
+                                        </DockPanel>
+                                        <ItemsControl x:Name="MonitorProcesses">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <DockPanel Margin="0,0,0,5">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <DockPanel Margin="0,0,0,8">
+                                            <TextBlock DockPanel.Dock="Right" Text="memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                            <TextBlock Text="Most memory" Style="{StaticResource SectionTitle}"/>
+                                        </DockPanel>
+                                        <ItemsControl x:Name="MonitorMemoryProcesses">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <DockPanel Margin="0,0,0,5">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <DockPanel Margin="0,0,0,8">
+                                            <TextBlock DockPanel.Dock="Right" Text="read + written" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                            <TextBlock Text="Most data" Style="{StaticResource SectionTitle}"/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="MonitorIoEmpty" Text="No program is reading or writing." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                                        <ItemsControl x:Name="MonitorIoProcesses">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <DockPanel Margin="0,0,0,5">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
