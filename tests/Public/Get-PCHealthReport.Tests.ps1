@@ -9,10 +9,12 @@ Describe 'Get-PCHealthReport' {
         Mock -ModuleName HelpdeskToolkit Get-SystemHealth { New-TestResult -Category 'System' -Check 'Uptime' -Status OK }
         Mock -ModuleName HelpdeskToolkit Get-ComputerSpecification { New-TestResult -Category 'Specifications' -Check 'Processor' -Status Info }
         Mock -ModuleName HelpdeskToolkit Get-HardwareHealth { New-TestResult -Category 'Hardware' -Check 'Disk (C:)' -Status Critical }
+        Mock -ModuleName HelpdeskToolkit Get-SoftwareHealth { New-TestResult -Category 'Software' -Check 'Installed programs' -Status Info }
         Mock -ModuleName HelpdeskToolkit Get-EventLogHealth { New-TestResult -Category 'Event Log' -Check 'System log - errors' -Status Warning }
         Mock -ModuleName HelpdeskToolkit Get-WindowsUpdateHealth { New-TestResult -Category 'Windows Update' -Check 'Pending restart' -Status OK }
         Mock -ModuleName HelpdeskToolkit Get-SecurityHealth { New-TestResult -Category 'Security' -Check 'Secure Boot' -Status OK }
         Mock -ModuleName HelpdeskToolkit Get-NetworkHealth { New-TestResult -Category 'Network' -Check 'Proxy' -Status Info }
+        Mock -ModuleName HelpdeskToolkit Get-PrinterHealth { New-TestResult -Category 'Printers' -Check 'Print queue' -Status OK }
         Mock -ModuleName HelpdeskToolkit Get-ServiceHealth { New-TestResult -Category 'Services' -Check 'Spooler' -Status OK }
         Mock -ModuleName HelpdeskToolkit Write-Progress { }
     }
@@ -37,14 +39,14 @@ Describe 'Get-PCHealthReport' {
         }
 
         It 'contains the results of every category in the order they ran' {
-            $report.Results.Category | Should -Be @('System', 'Specifications', 'Hardware', 'Event Log', 'Windows Update', 'Security', 'Network', 'Services')
+            $report.Results.Category | Should -Be @('System', 'Specifications', 'Hardware', 'Software', 'Event Log', 'Windows Update', 'Security', 'Network', 'Printers', 'Services')
         }
 
         It 'counts the results per status' {
-            $report.Summary.OK | Should -Be 4
+            $report.Summary.OK | Should -Be 5
             $report.Summary.Warning | Should -Be 1
             $report.Summary.Critical | Should -Be 1
-            $report.Summary.Info | Should -Be 2
+            $report.Summary.Info | Should -Be 3
         }
 
         It 'reports progress under one activity name, which the window relies on' {
@@ -75,7 +77,7 @@ Describe 'Get-PCHealthReport' {
             Mock -ModuleName HelpdeskToolkit Get-HardwareHealth { throw 'Unexpected failure in the hardware check' }
             $report = Get-PCHealthReport
 
-            @($report.Results).Count | Should -Be 8
+            @($report.Results).Count | Should -Be 10
             $failed = $report.Results | Where-Object Category -eq 'Hardware'
             $failed.Check | Should -Be 'Check execution'
             $failed.Status | Should -Be 'Warning'

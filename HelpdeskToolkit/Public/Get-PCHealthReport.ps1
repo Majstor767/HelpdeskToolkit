@@ -3,9 +3,9 @@ function Get-PCHealthReport {
     .SYNOPSIS
         Runs all health checks and returns the complete report as an object.
     .DESCRIPTION
-        Runs every check category (system, specifications, hardware, event log, Windows
-        Update, security, network and services) and returns one report object with the
-        run details, the count per status and all results.
+        Runs every check category (system, specifications, hardware, software, event
+        log, Windows Update, security, network, printers and services) and returns one
+        report object with the run details, the count per status and all results.
 
         Nothing is printed, saved or opened. Use this command when the data is needed
         in a script; use Invoke-PCHealthCheck for the console summary and the saved
@@ -15,7 +15,7 @@ function Get-PCHealthReport {
         The command only reads information and does not need administrator rights;
         checks that do are skipped and marked "Requires admin".
     .PARAMETER Days
-        How many days of event log history to analyze. The default is 7.
+        How many days of event log and crash history to analyze. The default is 7.
     .PARAMETER SkipNetwork
         Skip the connectivity tests (ping, DNS, HTTPS). The adapter configuration is
         still reported.
@@ -51,10 +51,12 @@ function Get-PCHealthReport {
         'System'         = @{ Command = 'Get-SystemHealth'; Parameters = @{} }
         'Specifications' = @{ Command = 'Get-ComputerSpecification'; Parameters = @{} }
         'Hardware'       = @{ Command = 'Get-HardwareHealth'; Parameters = @{} }
+        'Software'       = @{ Command = 'Get-SoftwareHealth'; Parameters = @{ Days = $Days } }
         'Event Log'      = @{ Command = 'Get-EventLogHealth'; Parameters = @{ Days = $Days } }
         'Windows Update' = @{ Command = 'Get-WindowsUpdateHealth'; Parameters = @{} }
         'Security'       = @{ Command = 'Get-SecurityHealth'; Parameters = @{} }
         'Network'        = @{ Command = 'Get-NetworkHealth'; Parameters = @{ SkipConnectivity = $SkipNetwork.IsPresent } }
+        'Printers'       = @{ Command = 'Get-PrinterHealth'; Parameters = @{} }
         'Services'       = @{ Command = 'Get-ServiceHealth'; Parameters = @{} }
     }
 
