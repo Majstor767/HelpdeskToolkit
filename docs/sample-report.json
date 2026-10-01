@@ -6,10 +6,10 @@
     "IsElevated":  false,
     "EventLogDays":  7,
     "Summary":  {
-                    "OK":  21,
-                    "Warning":  6,
+                    "OK":  25,
+                    "Warning":  8,
                     "Critical":  1,
-                    "Info":  9
+                    "Info":  21
                 },
     "Results":  [
                     {
@@ -28,9 +28,30 @@
                     },
                     {
                         "Category":  "System",
+                        "Check":  "Windows installed",
+                        "Status":  "Info",
+                        "Value":  "2024-11-04",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
                         "Check":  "Manufacturer and model",
                         "Status":  "Info",
                         "Value":  "Contoso Ltd. ProBook 450",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Domain or workgroup",
+                        "Status":  "Info",
+                        "Value":  "Domain: corp.contoso.example",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Signed-in user",
+                        "Status":  "Info",
+                        "Value":  "CONTOSO\\m.horvat",
                         "Recommendation":  ""
                     },
                     {
@@ -39,6 +60,62 @@
                         "Status":  "Warning",
                         "Value":  "12 d 4 h 37 min",
                         "Recommendation":  "Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime."
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Windows activation",
+                        "Status":  "OK",
+                        "Value":  "Activated",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Startup programs",
+                        "Status":  "OK",
+                        "Value":  "6 programs: Contoso VPN, OneDrive, SecurityHealth, Teams, Printer Assistant, Updater",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Processor",
+                        "Status":  "Info",
+                        "Value":  "Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Memory",
+                        "Status":  "Info",
+                        "Value":  "16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Graphics",
+                        "Status":  "Info",
+                        "Value":  "Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Motherboard",
+                        "Status":  "Info",
+                        "Value":  "Contoso Ltd. 0A1B2C",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "BIOS",
+                        "Status":  "Info",
+                        "Value":  "Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Serial number",
+                        "Status":  "Info",
+                        "Value":  "CNT4012XYZ",
+                        "Recommendation":  ""
                     },
                     {
                         "Category":  "Hardware",
@@ -53,6 +130,27 @@
                         "Status":  "Warning",
                         "Value":  "88 % (14 GB of 15.8 GB used)",
                         "Recommendation":  "Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM."
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Top memory consumers",
+                        "Status":  "Info",
+                        "Value":  "msedge (4.9 GB), Teams (2.1 GB), EXCEL (1.6 GB), OUTLOOK (1.2 GB), Memory Compression (0.9 GB)",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Drive: Contoso NVMe 256GB",
+                        "Status":  "OK",
+                        "Value":  "SSD, NVMe, 238.5 GB, health: Healthy",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Drive: Contoso HDD 500GB",
+                        "Status":  "Warning",
+                        "Value":  "HDD, SATA, 465.8 GB, health: Warning",
+                        "Recommendation":  "The drive reports a problem and may fail. Back up the data now and plan to replace the drive."
                     },
                     {
                         "Category":  "Hardware",
@@ -74,6 +172,13 @@
                         "Status":  "OK",
                         "Value":  "64 % (plugged in)",
                         "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Event Log",
+                        "Check":  "Unexpected shutdowns",
+                        "Status":  "Warning",
+                        "Value":  "2 in the last 7 days",
+                        "Recommendation":  "The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers."
                     },
                     {
                         "Category":  "Event Log",
@@ -168,6 +273,20 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "Secure Boot",
+                        "Status":  "OK",
+                        "Value":  "Enabled",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "TPM",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Recommendation":  "Run PowerShell as administrator to include this check."
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "BitLocker (C:)",
                         "Status":  "Info",
                         "Value":  "Requires admin",
@@ -177,7 +296,14 @@
                         "Category":  "Network",
                         "Check":  "Adapter: Contoso Wi-Fi 6 AX200 160MHz",
                         "Status":  "Info",
-                        "Value":  "IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes",
+                        "Value":  "IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
+                        "Check":  "Proxy",
+                        "Status":  "Info",
+                        "Value":  "Not configured",
                         "Recommendation":  ""
                     },
                     {

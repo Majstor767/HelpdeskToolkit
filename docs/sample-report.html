@@ -436,15 +436,16 @@ footer {
 </dl>
 </div></header>
 <main><div class="container">
-<p class="verdict critical"><strong>Action required.</strong> <span>1 critical problem and 6 warnings found.</span></p>
+<p class="verdict critical"><strong>Action required.</strong> <span>1 critical problem and 8 warnings found.</span></p>
 <section class="summary" aria-label="Summary">
 <div class="tile critical"><span class="count">1</span><span class="label">Critical</span></div>
-<div class="tile warning"><span class="count">6</span><span class="label">Warning</span></div>
-<div class="tile ok"><span class="count">21</span><span class="label">OK</span></div>
-<div class="tile info"><span class="count">9</span><span class="label">Info</span></div>
+<div class="tile warning"><span class="count">8</span><span class="label">Warning</span></div>
+<div class="tile ok"><span class="count">25</span><span class="label">OK</span></div>
+<div class="tile info"><span class="count">21</span><span class="label">Info</span></div>
 </section>
 <nav class="toc" aria-label="Categories">
 <a href="#cat-system"><span class="dot warning"></span>System</a>
+<a href="#cat-specifications"><span class="dot info"></span>Specifications</a>
 <a href="#cat-hardware"><span class="dot critical"></span>Hardware</a>
 <a href="#cat-event-log"><span class="dot warning"></span>Event Log</a>
 <a href="#cat-windows-update"><span class="dot warning"></span>Windows Update</a>
@@ -453,13 +454,15 @@ footer {
 <a href="#cat-services"><span class="dot warning"></span>Services</a>
 </nav>
 <section class="card" id="problems">
-<div class="card-header"><h2>Problems and recommendations</h2><span class="counts">7 to review</span></div>
+<div class="card-header"><h2>Problems and recommendations</h2><span class="counts">9 to review</span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
 <tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check check">Disk (C:) <span class="category-label">(Hardware)</span></td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Uptime <span class="category-label">(System)</span></td><td><div class="value">12 d 4 h 37 min</div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Memory usage <span class="category-label">(Hardware)</span></td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Drive: Contoso HDD 500GB <span class="category-label">(Hardware)</span></td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Unexpected shutdowns <span class="category-label">(Event Log)</span></td><td><div class="value">2 in the last 7 days</div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">System log - critical events <span class="category-label">(Event Log)</span></td><td><div class="value">2 in the last 7 days</div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Pending restart <span class="category-label">(Windows Update)</span></td><td><div class="value">Yes (Windows Update)</div><div class="recommendation">Restart the computer to finish installing updates.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Firewall - Public profile <span class="category-label">(Security)</span></td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
@@ -467,33 +470,55 @@ footer {
 </tbody></table>
 </section>
 <section class="card" id="cat-system">
-<div class="card-header"><h2>System</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="info">3 Info</span></span></div>
+<div class="card-header"><h2>System</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">2 OK</span> &middot; <span class="info">6 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Computer name</td><td><div class="value">FIN-LT-014</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Operating system</td><td><div class="value">Microsoft Windows 11 Pro 24H2 (build 26100)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Windows installed</td><td><div class="value">2024-11-04</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Manufacturer and model</td><td><div class="value">Contoso Ltd. ProBook 450</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Domain or workgroup</td><td><div class="value">Domain: corp.contoso.example</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Signed-in user</td><td><div class="value">CONTOSO\m.horvat</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Uptime</td><td><div class="value">12 d 4 h 37 min</div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Windows activation</td><td><div class="value">Activated</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Startup programs</td><td><div class="value">6 programs: Contoso VPN, OneDrive, SecurityHealth, Teams, Printer Assistant, Updater</div></td></tr>
+</tbody></table>
+</section>
+<section class="card" id="cat-specifications">
+<div class="card-header"><h2>Specifications</h2><span class="counts"><span class="info">6 Info</span></span></div>
+<table>
+<thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Processor</td><td><div class="value">Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Memory</td><td><div class="value">16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Graphics</td><td><div class="value">Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Motherboard</td><td><div class="value">Contoso Ltd. 0A1B2C</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">BIOS</td><td><div class="value">Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Serial number</td><td><div class="value">CNT4012XYZ</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-hardware">
-<div class="card-header"><h2>Hardware</h2><span class="counts"><span class="critical">1 Critical</span> &middot; <span class="warning">1 Warning</span> &middot; <span class="ok">3 OK</span></span></div>
+<div class="card-header"><h2>Hardware</h2><span class="counts"><span class="critical">1 Critical</span> &middot; <span class="warning">2 Warning</span> &middot; <span class="ok">4 OK</span> &middot; <span class="info">1 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">CPU load</td><td><div class="value">23 % (Contoso Core 8 2.40GHz)</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Memory usage</td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Top memory consumers</td><td><div class="value">msedge (4.9 GB), Teams (2.1 GB), EXCEL (1.6 GB), OUTLOOK (1.2 GB), Memory Compression (0.9 GB)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Drive: Contoso NVMe 256GB</td><td><div class="value">SSD, NVMe, 238.5 GB, health: Healthy</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Drive: Contoso HDD 500GB</td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
 <tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check check">Disk (C:)</td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Disk (D:)</td><td><div class="value">61.4 % free (286.1 GB of 465.8 GB)</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Battery</td><td><div class="value">64 % (plugged in)</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-event-log">
-<div class="card-header"><h2>Event Log</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">3 OK</span> &middot; <span class="info">2 Info</span></span></div>
+<div class="card-header"><h2>Event Log</h2><span class="counts"><span class="warning">2 Warning</span> &middot; <span class="ok">3 OK</span> &middot; <span class="info">2 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Unexpected shutdowns</td><td><div class="value">2 in the last 7 days</div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">System log - critical events</td><td><div class="value">2 in the last 7 days</div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">System log - errors</td><td><div class="value">31 in the last 7 days</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">System log - top sources</td><td><div class="value">Service Control Manager (14), Microsoft-Windows-DistributedCOM (11), disk (4), Microsoft-Windows-Kernel-Power (2), Netwtw14 (2)</div></td></tr>
@@ -512,7 +537,7 @@ footer {
 </tbody></table>
 </section>
 <section class="card" id="cat-security">
-<div class="card-header"><h2>Security</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">4 OK</span> &middot; <span class="info">1 Info</span></span></div>
+<div class="card-header"><h2>Security</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">5 OK</span> &middot; <span class="info">2 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -521,15 +546,18 @@ footer {
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Firewall - Domain profile</td><td><div class="value">Enabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Firewall - Private profile</td><td><div class="value">Enabled</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Firewall - Public profile</td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Secure Boot</td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">TPM</td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">BitLocker (C:)</td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-network">
-<div class="card-header"><h2>Network</h2><span class="counts"><span class="ok">4 OK</span> &middot; <span class="info">1 Info</span></span></div>
+<div class="card-header"><h2>Network</h2><span class="counts"><span class="ok">4 OK</span> &middot; <span class="info">2 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Adapter: Contoso Wi-Fi 6 AX200 160MHz</td><td><div class="value">IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Adapter: Contoso Wi-Fi 6 AX200 160MHz</td><td><div class="value">IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Proxy</td><td><div class="value">Not configured</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Ping default gateway</td><td><div class="value">10.20.30.1 replied in 3 ms</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Ping internet</td><td><div class="value">1.1.1.1 replied in 18 ms</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">DNS resolution</td><td><div class="value">microsoft.com -&gt; 203.0.113.25</div></td></tr>
