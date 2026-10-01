@@ -1,13 +1,15 @@
 function Get-SecurityHealth {
     <#
     .SYNOPSIS
-        Checks Microsoft Defender, the firewall profiles, Secure Boot, TPM and BitLocker.
+        Checks Microsoft Defender, the firewall, UAC, Remote Desktop, Secure Boot, TPM and BitLocker.
     .DESCRIPTION
         - Defender real-time protection. When it is off because a third-party
           antivirus is registered in Windows Security Center, that is reported as
           information instead of a problem.
-        - Age of the antivirus definitions.
+        - Age of the antivirus definitions and time since the last quick scan.
         - State of the Domain, Private and Public firewall profiles.
+        - User Account Control, Remote Desktop and whether the signed-in user is a
+          local administrator.
         - Secure Boot state.
         - TPM presence and version, and BitLocker protection of the system drive.
           Windows only exposes these two to administrators, so without elevation
@@ -67,6 +69,23 @@ function Get-SecurityHealth {
                 -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.SignatureWarningDays -Critical $thresholds.SignatureCriticalDays -Unit 'days') `
                 -Typical $thresholds.Typical
+
+            # Last quick scan. Defender reports 4294967295 when it has never scanned.
+            $neverScanned = 4294967295
+            $scanAge = [double]$defender.QuickScanAge
+            $scanAllowed = Format-AllowedRange -Warning $thresholds.ScanWarningDays -Unit 'days'
+            $scanAdvice = 'Run a scan: open Windows Security > Virus & threat protection and choose "Quick scan".'
+            if ($scanAge -ge $neverScanned) {
+                New-CheckResult -Category $category -Check 'Defender last scan' -Status Warning -Value 'Never' `
+                    -Recommendation ('The computer has never been scanned. {0}' -f $scanAdvice) -Allowed $scanAllowed -Typical $thresholds.TypicalScan
+            }
+            else {
+                $status = Get-ThresholdStatus -Value $scanAge -Warning $thresholds.ScanWarningDays
+                $recommendation = if ($status -ne 'OK') { 'The last scan was a long time ago. {0}' -f $scanAdvice } else { '' }
+                New-CheckResult -Category $category -Check 'Defender last scan' -Status $status `
+                    -Value ('{0} {1} ago' -f $scanAge, $(if ($scanAge -eq 1) { 'day' } else { 'days' })) `
+                    -Recommendation $recommendation -Allowed $scanAllowed -Typical $thresholds.TypicalScan
+            }
         }
     }
     catch {
@@ -89,6 +108,41 @@ function Get-SecurityHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Firewall' -ErrorRecord $_
+    }
+
+    # User Account Control. EnableLUA = 0 switches UAC off completely.
+    $uac = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'EnableLUA'
+    if ($null -eq $uac) {
+        New-CheckResult -Category $category -Check 'User Account Control' -Status Info -Value 'Unknown'
+    }
+    elseif ($uac -eq 0) {
+        New-CheckResult -Category $category -Check 'User Account Control' -Status Critical -Value 'Disabled' `
+            -Recommendation 'With UAC off every program runs with full rights without asking. Turn it on: Control Panel > User Accounts > Change User Account Control settings, move the slider up and restart the computer.'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'User Account Control' -Status OK -Value 'Enabled'
+    }
+
+    # Remote Desktop. fDenyTSConnections = 0 means incoming connections are accepted.
+    $denyRemoteDesktop = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections'
+    if ($null -eq $denyRemoteDesktop) {
+        New-CheckResult -Category $category -Check 'Remote Desktop' -Status Info -Value 'Unknown'
+    }
+    elseif ($denyRemoteDesktop -eq 0) {
+        New-CheckResult -Category $category -Check 'Remote Desktop' -Status Info -Value 'Enabled' `
+            -Recommendation 'The computer accepts Remote Desktop connections. If nobody needs to connect to it remotely, turn it off in Settings > System > Remote Desktop.'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Remote Desktop' -Status OK -Value 'Disabled'
+    }
+
+    # Account type of the user running the tool
+    if (Test-IsAdministratorMember) {
+        New-CheckResult -Category $category -Check 'Account type' -Status Info -Value 'Administrator' `
+            -Recommendation 'The signed-in user is a local administrator, so malware started by this user can take over the whole computer. For daily work a standard account is safer.'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Account type' -Status OK -Value 'Standard user'
     }
 
     # Secure Boot

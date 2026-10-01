@@ -14,8 +14,12 @@ Describe 'Get-SecurityHealth' {
                 AntivirusEnabled              = $true
                 AntivirusSignatureAge         = 1
                 AntivirusSignatureLastUpdated = [datetime]'2026-01-14 06:12'
+                QuickScanAge                  = 2
             }
         }
+        # Registry: UAC on (EnableLUA = 1), Remote Desktop off (fDenyTSConnections = 1).
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue { 1 }
+        Mock -ModuleName HelpdeskToolkit Test-IsAdministratorMember { $false }
         Mock -ModuleName HelpdeskToolkit Get-AntivirusProduct { 'Windows Defender' }
         Mock -ModuleName HelpdeskToolkit Get-FirewallProfileState {
             [PSCustomObject]@{ Name = 'Domain'; Enabled = $true }
@@ -34,6 +38,10 @@ Describe 'Get-SecurityHealth' {
         It 'reports <Check> as <Status> with value "<Value>"' -ForEach @(
             @{ Check = 'Defender real-time protection'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Defender definitions'; Status = 'OK'; Value = '1 day old (updated 2026-01-14 06:12)' }
+            @{ Check = 'Defender last scan'; Status = 'OK'; Value = '2 days ago' }
+            @{ Check = 'User Account Control'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'Remote Desktop'; Status = 'OK'; Value = 'Disabled' }
+            @{ Check = 'Account type'; Status = 'OK'; Value = 'Standard user' }
             @{ Check = 'Firewall - Domain profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Private profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Public profile'; Status = 'OK'; Value = 'Enabled' }
@@ -90,13 +98,43 @@ Describe 'Get-SecurityHealth' {
         ) {
             Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
                 [PSCustomObject]@{
-                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 0
                     AntivirusSignatureAge = $Age; AntivirusSignatureLastUpdated = (Get-Date).AddDays(-$Age)
                 }
             }
             $definitions = Get-SecurityHealth | Where-Object Check -eq 'Defender definitions'
             $definitions.Status | Should -Be $Status
             $definitions.Allowed | Should -Be '0 - 3 days (critical above 7 days)'
+        }
+
+        It 'reports a last scan <Age> days ago as <Status>' -ForEach @(
+            @{ Age = 1; Status = 'OK'; Value = '1 day ago' }
+            @{ Age = 14; Status = 'OK'; Value = '14 days ago' }
+            @{ Age = 30; Status = 'Warning'; Value = '30 days ago' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
+                [PSCustomObject]@{
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = $Age
+                    AntivirusSignatureAge = 0; AntivirusSignatureLastUpdated = Get-Date
+                }
+            }
+            $scan = Get-SecurityHealth | Where-Object Check -eq 'Defender last scan'
+            $scan.Status | Should -Be $Status
+            $scan.Value | Should -Be $Value
+            $scan.Allowed | Should -Be '0 - 14 days'
+        }
+
+        It 'reports a computer that was never scanned as a Warning' {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
+                [PSCustomObject]@{
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 4294967295
+                    AntivirusSignatureAge = 0; AntivirusSignatureLastUpdated = Get-Date
+                }
+            }
+            $scan = Get-SecurityHealth | Where-Object Check -eq 'Defender last scan'
+            $scan.Status | Should -Be 'Warning'
+            $scan.Value | Should -Be 'Never'
+            $scan.Recommendation | Should -Match 'Quick scan'
         }
 
         It 'reports Defender as unavailable when its status cannot be read' {
@@ -122,6 +160,39 @@ Describe 'Get-SecurityHealth' {
             $public.Status | Should -Be 'Warning'
             $public.Value | Should -Be 'Disabled'
             $public.Recommendation | Should -Match 'Turn on Windows Defender Firewall'
+        }
+    }
+
+    Context 'User Account Control, Remote Desktop and account type' {
+        It 'is Critical when UAC is switched off' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'EnableLUA' } { 0 }
+            $uac = Get-SecurityHealth | Where-Object Check -eq 'User Account Control'
+            $uac.Status | Should -Be 'Critical'
+            $uac.Value | Should -Be 'Disabled'
+            $uac.Recommendation | Should -Match 'User Account Control settings'
+        }
+
+        It 'reports enabled Remote Desktop as information with advice' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'fDenyTSConnections' } { 0 }
+            $remoteDesktop = Get-SecurityHealth | Where-Object Check -eq 'Remote Desktop'
+            $remoteDesktop.Status | Should -Be 'Info'
+            $remoteDesktop.Value | Should -Be 'Enabled'
+            $remoteDesktop.Recommendation | Should -Match 'Remote Desktop'
+        }
+
+        It 'reports Unknown when a registry value cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { }
+            $results = Get-SecurityHealth
+            ($results | Where-Object Check -eq 'User Account Control').Value | Should -Be 'Unknown'
+            ($results | Where-Object Check -eq 'Remote Desktop').Value | Should -Be 'Unknown'
+        }
+
+        It 'reports a local administrator as information with advice' {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministratorMember { $true }
+            $account = Get-SecurityHealth | Where-Object Check -eq 'Account type'
+            $account.Status | Should -Be 'Info'
+            $account.Value | Should -Be 'Administrator'
+            $account.Recommendation | Should -Match 'standard account'
         }
     }
 

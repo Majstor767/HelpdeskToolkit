@@ -199,3 +199,95 @@ Describe 'Resolve-HostAddress' {
         @(InModuleScope HelpdeskToolkit { Resolve-HostAddress -Name 'host.invalid' }).Count | Should -Be 0
     }
 }
+
+Describe 'Get-RegistryValue' {
+    It 'returns the value when it exists' {
+        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { [PSCustomObject]@{ EnableLUA = 1 } }
+        InModuleScope HelpdeskToolkit { Get-RegistryValue -Path 'HKLM:\Test' -Name 'EnableLUA' } | Should -Be 1
+    }
+
+    It 'returns a value of 0 as 0, not as "missing"' {
+        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { [PSCustomObject]@{ EnableLUA = 0 } }
+        $value = InModuleScope HelpdeskToolkit { Get-RegistryValue -Path 'HKLM:\Test' -Name 'EnableLUA' }
+        $value | Should -Be 0
+        $null -eq $value | Should -BeFalse
+    }
+
+    It 'returns nothing when the value does not exist' {
+        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { [PSCustomObject]@{ Other = 1 } }
+        InModuleScope HelpdeskToolkit { Get-RegistryValue -Path 'HKLM:\Test' -Name 'EnableLUA' } | Should -BeNullOrEmpty
+    }
+
+    It 'returns nothing when the key cannot be read' {
+        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { throw 'Key not found' }
+        InModuleScope HelpdeskToolkit { Get-RegistryValue -Path 'HKLM:\Test' -Name 'EnableLUA' } | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-InstalledProgram' {
+    BeforeAll {
+        Mock -ModuleName HelpdeskToolkit Get-ItemProperty {
+            [PSCustomObject]@{ DisplayName = ' Contoso Office '; DisplayVersion = '16.0'; InstallDate = '20260110' }
+            # Registered a second time under another key: must be returned once.
+            [PSCustomObject]@{ DisplayName = ' Contoso Office '; DisplayVersion = '16.0'; InstallDate = '20260110' }
+            [PSCustomObject]@{ DisplayName = 'Archive Tool' }
+            [PSCustomObject]@{ DisplayName = 'Windows Component'; SystemComponent = 1 }
+            [PSCustomObject]@{ DisplayVersion = '1.0' }
+            [PSCustomObject]@{ DisplayName = 'Broken Date'; InstallDate = '00000000' }
+        }
+        $programs = @(InModuleScope HelpdeskToolkit { Get-InstalledProgram })
+    }
+
+    It 'returns each program once' {
+        @($programs | Where-Object Name -eq 'Contoso Office').Count | Should -Be 1
+    }
+
+    It 'skips entries without a name and system components' {
+        $programs.Name | Should -Be @('Contoso Office', 'Archive Tool', 'Broken Date')
+    }
+
+    It 'reads the version and converts the install date' {
+        $office = $programs | Where-Object Name -eq 'Contoso Office'
+        $office.Version | Should -Be '16.0'
+        $office.InstallDate | Should -Be ([datetime]'2026-01-10')
+    }
+
+    It 'leaves the version and the date empty when the installer did not store them' {
+        $tool = $programs | Where-Object Name -eq 'Archive Tool'
+        $tool.Version | Should -Be ''
+        $tool.InstallDate | Should -BeNullOrEmpty
+    }
+
+    It 'ignores an install date that is not a real date' {
+        ($programs | Where-Object Name -eq 'Broken Date').InstallDate | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-FileProductName' {
+    It 'returns the product name stored in a program file' {
+        $path = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        InModuleScope HelpdeskToolkit -Parameters @{ Path = $path } { Get-FileProductName -Path $Path } | Should -Match 'Windows'
+    }
+
+    It 'falls back to the file name when the file cannot be read' {
+        InModuleScope HelpdeskToolkit { Get-FileProductName -Path 'C:\NoSuchFolder\browser.exe' } | Should -Be 'browser'
+    }
+}
+
+Describe 'Test-IsAdministratorMember' {
+    It 'returns a boolean' {
+        InModuleScope HelpdeskToolkit { Test-IsAdministratorMember } | Should -BeOfType [bool]
+    }
+
+    It 'is true whenever the session is elevated' {
+        $elevated = InModuleScope HelpdeskToolkit { Test-IsAdministrator }
+        $member = InModuleScope HelpdeskToolkit { Test-IsAdministratorMember }
+        if ($elevated) {
+            $member | Should -BeTrue
+        }
+        else {
+            # Not elevated: the user may or may not be an administrator; both are valid.
+            $member | Should -BeIn @($true, $false)
+        }
+    }
+}
