@@ -39,6 +39,8 @@ Describe 'Get-SystemHealth' {
             [PSCustomObject]@{ SystemStabilityIndex = 8.74; TimeGenerated = (Get-Date).AddHours(-2) }
             [PSCustomObject]@{ SystemStabilityIndex = 8.86; TimeGenerated = (Get-Date).AddHours(-1) }
         }
+        # The tests run as a standard user unless a test says otherwise.
+        Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
         # 91H1 is a release of the test configuration that is supported for a long time.
         Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '91H1' }
     }
@@ -215,6 +217,63 @@ Describe 'Get-SystemHealth' {
         It 'says so when Windows keeps no stability data' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ReliabilityStabilityMetrics' } { }
             (Get-SystemHealth | Where-Object Check -eq 'Stability index').Value | Should -Be 'Not available'
+        }
+    }
+
+    Context 'without administrator rights' {
+        It 'marks <_> as "Requires admin" instead of trying to read it' -ForEach @('Last startup duration', 'User profiles') {
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { }
+            $result = Get-SystemHealth | Where-Object Check -eq $_
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Requires admin'
+            Should -Invoke -ModuleName HelpdeskToolkit Get-LastBootDuration -Times 0 -Exactly
+        }
+    }
+
+    Context 'with administrator rights' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { [PSCustomObject]@{ Seconds = 45; MeasuredAt = (Get-Date).AddDays(-2) } }
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserProfile' } {
+                [PSCustomObject]@{ LocalPath = 'C:\Users\m.horvat'; Special = $false }
+                [PSCustomObject]@{ LocalPath = 'C:\Users\support'; Special = $false }
+                [PSCustomObject]@{ LocalPath = 'C:\Windows\ServiceProfiles\LocalService'; Special = $true }
+            }
+            Mock -ModuleName HelpdeskToolkit Test-Path { $true }
+            Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 2GB; FileCount = 10; Complete = $true } }
+            Mock -ModuleName HelpdeskToolkit Get-FolderSize -ParameterFilter { $Path -like '*m.horvat' } { [PSCustomObject]@{ Bytes = 40GB; FileCount = 90000; Complete = $false } }
+        }
+
+        It 'reports a recent, normal startup duration as OK' {
+            $boot = Get-SystemHealth | Where-Object Check -eq 'Last startup duration'
+            $boot.Status | Should -Be 'OK'
+            $boot.Value | Should -Be ('45 seconds (measured {0:yyyy-MM-dd})' -f (Get-Date).AddDays(-2))
+            $boot.Allowed | Should -Be '0 - 120 seconds'
+        }
+
+        It 'is a Warning when a recent startup took longer than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { [PSCustomObject]@{ Seconds = 200; MeasuredAt = (Get-Date).AddDays(-1) } }
+            $boot = Get-SystemHealth | Where-Object Check -eq 'Last startup duration'
+            $boot.Status | Should -Be 'Warning'
+            $boot.Recommendation | Should -Match 'Startup apps'
+        }
+
+        It 'does not judge a measurement that is older than the configured number of days' {
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { [PSCustomObject]@{ Seconds = 200; MeasuredAt = (Get-Date).AddDays(-300) } }
+            $boot = Get-SystemHealth | Where-Object Check -eq 'Last startup duration'
+            $boot.Status | Should -Be 'Info'
+            $boot.Recommendation | Should -Be ''
+        }
+
+        It 'says so when Windows has no startup measurement' {
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { }
+            (Get-SystemHealth | Where-Object Check -eq 'Last startup duration').Value | Should -Be 'No measurement recorded'
+        }
+
+        It 'lists the user profiles by size and skips the profiles of Windows itself' {
+            $profiles = Get-SystemHealth | Where-Object Check -eq 'User profiles'
+            $profiles.Status | Should -Be 'Info'
+            $profiles.Value | Should -Be '2 profiles: m.horvat 40 GB or more, support 2 GB'
         }
     }
 

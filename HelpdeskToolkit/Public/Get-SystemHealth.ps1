@@ -19,8 +19,10 @@ function Get-SystemHealth {
         - More startup programs than the configured limit is a Warning, because they
           slow down sign-in.
 
-        Everything is read through CIM (WMI) and the registry, so no administrator
-        rights are needed and nothing on the system is changed.
+        Everything is read through CIM (WMI) and the registry and nothing on the system
+        is changed. Two results need administrator rights and are otherwise marked
+        "Requires admin": the duration of the last measured startup and the size of
+        every user profile.
     .EXAMPLE
         Get-SystemHealth
 
@@ -173,5 +175,71 @@ function Get-SystemHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Startup programs' -ErrorRecord $_
+    }
+
+    # Checks that Windows only allows for administrators.
+    if (-not (Test-IsAdministrator)) {
+        New-AdminRequiredResult -Category $category -Check 'Last startup duration'
+        New-AdminRequiredResult -Category $category -Check 'User profiles'
+        return
+    }
+
+    # How long Windows needed to start, the last time it measured it.
+    try {
+        $boot = Get-LastBootDuration
+        if (-not $boot) {
+            New-CheckResult -Category $category -Check 'Last startup duration' -Status Info -Value 'No measurement recorded'
+        }
+        else {
+            $value = '{0} seconds (measured {1:yyyy-MM-dd})' -f $boot.Seconds, $boot.MeasuredAt
+            $allowed = Format-AllowedRange -Warning $thresholds.Boot.WarningSeconds -Unit 'seconds'
+            $ageDays = ((Get-Date) - $boot.MeasuredAt).TotalDays
+
+            if ($ageDays -gt $thresholds.Boot.StaleDays) {
+                # An old measurement says little about the computer as it is today.
+                New-CheckResult -Category $category -Check 'Last startup duration' -Status Info -Value $value `
+                    -Allowed $allowed -Typical $thresholds.Boot.Typical
+            }
+            else {
+                $status = Get-ThresholdStatus -Value $boot.Seconds -Warning $thresholds.Boot.WarningSeconds
+                $recommendation = if ($status -ne 'OK') {
+                    'Windows starts slowly. Turn off startup programs that are not needed (Task Manager > Startup apps); if the system drive is a hard disk, replacing it with an SSD helps the most.'
+                }
+                else {
+                    ''
+                }
+                New-CheckResult -Category $category -Check 'Last startup duration' -Status $status -Value $value `
+                    -Recommendation $recommendation -Allowed $allowed -Typical $thresholds.Boot.Typical
+            }
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Last startup duration' -ErrorRecord $_
+    }
+
+    # Size of every user profile. "Special" profiles belong to Windows itself.
+    try {
+        $profiles = @(Get-CimInstance -ClassName Win32_UserProfile -ErrorAction Stop |
+                Where-Object { -not $_.Special -and $_.LocalPath -and (Test-Path -LiteralPath $_.LocalPath) })
+
+        $sizes = @(
+            foreach ($userProfile in $profiles) {
+                $size = Get-FolderSize -Path $userProfile.LocalPath -TimeoutMs $thresholds.Cleanup.ProfileTimeoutMs
+                [PSCustomObject]@{
+                    Name     = Split-Path -Path $userProfile.LocalPath -Leaf
+                    Bytes    = $size.Bytes
+                    Complete = $size.Complete
+                }
+            }
+        )
+
+        $text = @($sizes | Sort-Object -Property Bytes -Descending | ForEach-Object {
+                '{0} {1}{2}' -f $_.Name, (Format-Gigabyte -Bytes $_.Bytes), $(if (-not $_.Complete) { ' or more' })
+            })
+        $value = if ($text.Count -gt 0) { '{0} profiles: {1}' -f $text.Count, ($text -join ', ') } else { 'No user profiles found' }
+        New-CheckResult -Category $category -Check 'User profiles' -Status Info -Value $value
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'User profiles' -ErrorRecord $_
     }
 }
