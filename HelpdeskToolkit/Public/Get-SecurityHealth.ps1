@@ -6,10 +6,13 @@ function Get-SecurityHealth {
         - Defender real-time protection. When it is off because a third-party
           antivirus is registered in Windows Security Center, that is reported as
           information instead of a problem.
-        - Age of the antivirus definitions and time since the last quick scan.
+        - Age of the antivirus definitions, tamper protection and time since the last
+          quick scan.
         - State of the Domain, Private and Public firewall profiles.
         - User Account Control, Remote Desktop and whether the signed-in user is a
           local administrator.
+        - Local accounts (with a warning for an enabled Guest account) and folders
+          shared on the network.
         - Secure Boot state.
         - TPM presence and version, and BitLocker protection of the system drive.
           Windows only exposes these two to administrators, so without elevation
@@ -69,6 +72,15 @@ function Get-SecurityHealth {
                 -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.SignatureWarningDays -Critical $thresholds.SignatureCriticalDays -Unit 'days') `
                 -Typical $thresholds.Typical
+
+            # Tamper protection stops programs (and malware) from switching Defender off.
+            if ($defender.IsTamperProtected) {
+                New-CheckResult -Category $category -Check 'Tamper protection' -Status OK -Value 'Enabled'
+            }
+            else {
+                New-CheckResult -Category $category -Check 'Tamper protection' -Status Warning -Value 'Disabled' `
+                    -Recommendation 'Without tamper protection a program can switch off the antivirus. Turn it on in Windows Security > Virus & threat protection > Manage settings > Tamper Protection.'
+            }
 
             # Last quick scan. Defender reports 4294967295 when it has never scanned.
             $neverScanned = 4294967295
@@ -143,6 +155,56 @@ function Get-SecurityHealth {
     }
     else {
         New-CheckResult -Category $category -Check 'Account type' -Status OK -Value 'Standard user'
+    }
+
+    # Local accounts. The built-in accounts are recognized by the end of their security
+    # identifier (SID), because their names are translated and can be renamed.
+    try {
+        $accounts = @(Get-CimInstance -ClassName Win32_UserAccount -Filter 'LocalAccount = True' -ErrorAction Stop)
+
+        $enabled = @($accounts | Where-Object { -not $_.Disabled } | ForEach-Object { $_.Name })
+        New-CheckResult -Category $category -Check 'Local accounts' -Status Info `
+            -Value ('{0} enabled: {1}' -f $enabled.Count, $(if ($enabled.Count -gt 0) { $enabled -join ', ' } else { 'none' }))
+
+        $guest = $accounts | Where-Object { $_.SID -like '*-501' } | Select-Object -First 1
+        if ($guest -and -not $guest.Disabled) {
+            New-CheckResult -Category $category -Check 'Guest account' -Status Warning -Value 'Enabled' `
+                -Recommendation 'Anyone can sign in with the Guest account without a password. An administrator should disable it: Computer Management > Local Users and Groups > Users > Guest > "Account is disabled".'
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Guest account' -Status OK -Value 'Disabled'
+        }
+
+        $builtInAdministrator = $accounts | Where-Object { $_.SID -like '*-500' } | Select-Object -First 1
+        if ($builtInAdministrator -and -not $builtInAdministrator.Disabled) {
+            New-CheckResult -Category $category -Check 'Built-in Administrator account' -Status Info -Value 'Enabled' `
+                -Recommendation 'The built-in Administrator account is a well-known target and is not protected by UAC prompts. Use a separate administrator account and keep this one disabled.'
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Built-in Administrator account' -Status OK -Value 'Disabled'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Local accounts' -ErrorRecord $_
+    }
+
+    # Folders shared on the network. Type 0 is a disk share; names ending in $ are the
+    # hidden administrative shares that Windows creates itself.
+    try {
+        $shares = @(Get-CimInstance -ClassName Win32_Share -ErrorAction Stop |
+                Where-Object { $_.Type -eq 0 -and $_.Name -notlike '*$' } |
+                ForEach-Object { '{0} ({1})' -f $_.Name, $_.Path })
+
+        if ($shares.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Shared folders' -Status OK -Value 'None'
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Shared folders' -Status Info -Value ('{0}: {1}' -f $shares.Count, ($shares -join ', ')) `
+                -Recommendation 'These folders can be reached from other computers on the network. Stop sharing the ones that are no longer needed: right-click the folder > Properties > Sharing.'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Shared folders' -ErrorRecord $_
     }
 
     # Secure Boot

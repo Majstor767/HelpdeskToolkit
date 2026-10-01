@@ -15,11 +15,23 @@ Describe 'Get-SecurityHealth' {
                 AntivirusSignatureAge         = 1
                 AntivirusSignatureLastUpdated = [datetime]'2026-01-14 06:12'
                 QuickScanAge                  = 2
+                IsTamperProtected             = $true
             }
         }
         # Registry: UAC on (EnableLUA = 1), Remote Desktop off (fDenyTSConnections = 1).
         Mock -ModuleName HelpdeskToolkit Get-RegistryValue { 1 }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministratorMember { $false }
+        # Local accounts: the built-in ones are identified by the end of their SID.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserAccount' } {
+            [PSCustomObject]@{ Name = 'Administrator'; SID = 'S-1-5-21-1-2-3-500'; Disabled = $true }
+            [PSCustomObject]@{ Name = 'Guest'; SID = 'S-1-5-21-1-2-3-501'; Disabled = $true }
+            [PSCustomObject]@{ Name = 'm.horvat'; SID = 'S-1-5-21-1-2-3-1001'; Disabled = $false }
+        }
+        # Only the administrative shares that Windows creates itself.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Share' } {
+            [PSCustomObject]@{ Name = 'C$'; Path = 'C:\'; Type = 2147483648 }
+            [PSCustomObject]@{ Name = 'IPC$'; Path = ''; Type = 2147483651 }
+        }
         Mock -ModuleName HelpdeskToolkit Get-AntivirusProduct { 'Windows Defender' }
         Mock -ModuleName HelpdeskToolkit Get-FirewallProfileState {
             [PSCustomObject]@{ Name = 'Domain'; Enabled = $true }
@@ -42,6 +54,11 @@ Describe 'Get-SecurityHealth' {
             @{ Check = 'User Account Control'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Remote Desktop'; Status = 'OK'; Value = 'Disabled' }
             @{ Check = 'Account type'; Status = 'OK'; Value = 'Standard user' }
+            @{ Check = 'Tamper protection'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'Local accounts'; Status = 'Info'; Value = '1 enabled: m.horvat' }
+            @{ Check = 'Guest account'; Status = 'OK'; Value = 'Disabled' }
+            @{ Check = 'Built-in Administrator account'; Status = 'OK'; Value = 'Disabled' }
+            @{ Check = 'Shared folders'; Status = 'OK'; Value = 'None' }
             @{ Check = 'Firewall - Domain profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Private profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Public profile'; Status = 'OK'; Value = 'Enabled' }
@@ -62,7 +79,9 @@ Describe 'Get-SecurityHealth' {
         }
 
         It 'does not query the admin-only WMI classes at all' {
-            Should -Invoke -ModuleName HelpdeskToolkit Get-CimInstance -Times 0 -Exactly -Scope Context
+            Should -Invoke -ModuleName HelpdeskToolkit Get-CimInstance -Times 0 -Exactly -Scope Context -ParameterFilter {
+                $ClassName -in 'Win32_Tpm', 'Win32_EncryptableVolume'
+            }
         }
     }
 
@@ -98,7 +117,7 @@ Describe 'Get-SecurityHealth' {
         ) {
             Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
                 [PSCustomObject]@{
-                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 0
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 0; IsTamperProtected = $true
                     AntivirusSignatureAge = $Age; AntivirusSignatureLastUpdated = (Get-Date).AddDays(-$Age)
                 }
             }
@@ -114,7 +133,7 @@ Describe 'Get-SecurityHealth' {
         ) {
             Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
                 [PSCustomObject]@{
-                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = $Age
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = $Age; IsTamperProtected = $true
                     AntivirusSignatureAge = 0; AntivirusSignatureLastUpdated = Get-Date
                 }
             }
@@ -127,7 +146,7 @@ Describe 'Get-SecurityHealth' {
         It 'reports a computer that was never scanned as a Warning' {
             Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
                 [PSCustomObject]@{
-                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 4294967295
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 4294967295; IsTamperProtected = $true
                     AntivirusSignatureAge = 0; AntivirusSignatureLastUpdated = Get-Date
                 }
             }
@@ -193,6 +212,57 @@ Describe 'Get-SecurityHealth' {
             $account.Status | Should -Be 'Info'
             $account.Value | Should -Be 'Administrator'
             $account.Recommendation | Should -Match 'standard account'
+        }
+    }
+
+    Context 'tamper protection, local accounts and shared folders' {
+        It 'is a Warning when tamper protection is off' {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderStatus {
+                [PSCustomObject]@{
+                    RealTimeProtectionEnabled = $true; AntivirusEnabled = $true; QuickScanAge = 0; IsTamperProtected = $false
+                    AntivirusSignatureAge = 0; AntivirusSignatureLastUpdated = Get-Date
+                }
+            }
+            $tamper = Get-SecurityHealth | Where-Object Check -eq 'Tamper protection'
+            $tamper.Status | Should -Be 'Warning'
+            $tamper.Recommendation | Should -Match 'Tamper Protection'
+        }
+
+        It 'is a Warning when the Guest account is enabled' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserAccount' } {
+                [PSCustomObject]@{ Name = 'Gast'; SID = 'S-1-5-21-1-2-3-501'; Disabled = $false }
+                [PSCustomObject]@{ Name = 'm.horvat'; SID = 'S-1-5-21-1-2-3-1001'; Disabled = $false }
+            }
+            $results = Get-SecurityHealth
+            ($results | Where-Object Check -eq 'Guest account').Status | Should -Be 'Warning'
+            ($results | Where-Object Check -eq 'Local accounts').Value | Should -Be '2 enabled: Gast, m.horvat'
+        }
+
+        It 'reports an enabled built-in Administrator account as information with advice' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserAccount' } {
+                [PSCustomObject]@{ Name = 'Administrator'; SID = 'S-1-5-21-1-2-3-500'; Disabled = $false }
+            }
+            $administrator = Get-SecurityHealth | Where-Object Check -eq 'Built-in Administrator account'
+            $administrator.Status | Should -Be 'Info'
+            $administrator.Value | Should -Be 'Enabled'
+            $administrator.Recommendation | Should -Match 'UAC'
+        }
+
+        It 'lists folders the user shared, but not the hidden administrative shares' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Share' } {
+                [PSCustomObject]@{ Name = 'C$'; Path = 'C:\'; Type = 2147483648 }
+                [PSCustomObject]@{ Name = 'Scans'; Path = 'D:\Scans'; Type = 0 }
+                [PSCustomObject]@{ Name = 'Archive$'; Path = 'D:\Archive'; Type = 0 }
+            }
+            $shares = Get-SecurityHealth | Where-Object Check -eq 'Shared folders'
+            $shares.Status | Should -Be 'Info'
+            $shares.Value | Should -Be '1: Scans (D:\Scans)'
+            $shares.Recommendation | Should -Match 'Stop sharing'
+        }
+
+        It 'reports the accounts as unavailable when they cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserAccount' } { throw 'Query failed' }
+            (Get-SecurityHealth | Where-Object Check -eq 'Local accounts').Value | Should -Be 'Unavailable'
         }
     }
 
