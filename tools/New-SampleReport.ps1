@@ -40,7 +40,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'Signed-in user', 'Info', 'CONTOSO\m.horvat', '')
         , @('System', 'Uptime', 'Warning', '12 d 4 h 37 min', 'Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.')
         , @('System', 'Windows activation', 'OK', 'Activated', '')
-        , @('System', 'Startup programs', 'OK', '6 programs: Contoso VPN, OneDrive, SecurityHealth, Teams, Printer Assistant, Updater', '')
+        , @('System', 'Startup programs', 'OK', '12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more', '')
 
         , @('Specifications', 'Processor', 'Info', 'Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz', '')
         , @('Specifications', 'Memory', 'Info', '16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used', '')
@@ -118,11 +118,29 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Ping internet'                     = @((Format-AllowedRange -Warning $limits.Network.PingWarningMs -Unit 'ms'), $limits.Network.TypicalInternetPing)
     }
 
+    # Items behind the "Show N more" section, by check name.
+    $details = @{
+        'Startup programs' = @('Screenshot Tool', 'SecurityHealth', 'Teams', 'Touchpad Driver')
+    }
+
     $results = @(
         foreach ($row in $rows) {
             $reference = if ($references.ContainsKey($row[1])) { $references[$row[1]] } else { @('', '') }
+            $items = @()
+            if ($details.ContainsKey($row[1])) {
+                $items = $details[$row[1]]
+            }
+
+            # Services are described by their service name, the part in parentheses.
+            $description = if ($row[0] -eq 'Services' -and $row[1] -match '\((\w+)\)$') {
+                Get-CheckDescription -Key ('Service:{0}' -f $Matches[1])
+            }
+            else {
+                ''
+            }
+
             New-CheckResult -Category $row[0] -Check $row[1] -Status $row[2] -Value $row[3] -Recommendation $row[4] `
-                -Allowed $reference[0] -Typical $reference[1]
+                -Allowed $reference[0] -Typical $reference[1] -Details $items -Description $description
         }
     )
 

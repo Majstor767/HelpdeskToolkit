@@ -290,10 +290,61 @@ tbody tr:nth-child(even) {
 }
 
 .col-status { width: 120px; }
-.col-check { width: 32%; }
+.col-check { width: 36%; }
 
 .check {
     font-weight: 600;
+}
+
+.description {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+details {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+summary {
+    display: inline-block;
+    padding: 1px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--info);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::after {
+    content: " +";
+}
+
+details[open] summary::after {
+    content: " -";
+}
+
+summary:hover {
+    border-color: var(--info);
+}
+
+details ul {
+    margin: 8px 0 4px;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+}
+
+details li {
+    break-inside: avoid;
 }
 
 .value {
@@ -472,15 +523,15 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check check">Disk (C:) <span class="category-label">(Hardware)</span></td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Uptime <span class="category-label">(System)</span></td><td><div class="value">12 d 4 h 37 min</div><div class="reference"><span><b>Allowed:</b> 0 - 7 days</span><span><b>Typical:</b> 0 - 3 days</span></div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Memory usage <span class="category-label">(Hardware)</span></td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 40 - 70 %</span></div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Drive: Contoso HDD 500GB <span class="category-label">(Hardware)</span></td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Unexpected shutdowns <span class="category-label">(Event Log)</span></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">System log - critical events <span class="category-label">(Event Log)</span></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Pending restart <span class="category-label">(Windows Update)</span></td><td><div class="value">Yes (Windows Update)</div><div class="recommendation">Restart the computer to finish installing updates.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Firewall - Public profile <span class="category-label">(Security)</span></td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Print Spooler (Spooler) <span class="category-label">(Services)</span></td><td><div class="value">Stopped (start mode: Auto)</div><div class="recommendation">The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.</div></td></tr>
+<tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check"><div class="check">Disk (C:) <span class="category-label">(Hardware)</span></div></td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Uptime <span class="category-label">(System)</span></div></td><td><div class="value">12 d 4 h 37 min</div><div class="reference"><span><b>Allowed:</b> 0 - 7 days</span><span><b>Typical:</b> 0 - 3 days</span></div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Memory usage <span class="category-label">(Hardware)</span></div></td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 40 - 70 %</span></div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Drive: Contoso HDD 500GB <span class="category-label">(Hardware)</span></div></td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Unexpected shutdowns <span class="category-label">(Event Log)</span></div></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">System log - critical events <span class="category-label">(Event Log)</span></div></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Pending restart <span class="category-label">(Windows Update)</span></div></td><td><div class="value">Yes (Windows Update)</div><div class="recommendation">Restart the computer to finish installing updates.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Firewall - Public profile <span class="category-label">(Security)</span></div></td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Print Spooler (Spooler) <span class="category-label">(Services)</span></div></td><td><div class="value">Stopped (start mode: Auto)</div><div class="recommendation">The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-system">
@@ -488,15 +539,15 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Computer name</td><td><div class="value">FIN-LT-014</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Operating system</td><td><div class="value">Microsoft Windows 11 Pro 24H2 (build 26100)</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Windows installed</td><td><div class="value">2024-11-04</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Manufacturer and model</td><td><div class="value">Contoso Ltd. ProBook 450</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Domain or workgroup</td><td><div class="value">Domain: corp.contoso.example</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Signed-in user</td><td><div class="value">CONTOSO\m.horvat</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Uptime</td><td><div class="value">12 d 4 h 37 min</div><div class="reference"><span><b>Allowed:</b> 0 - 7 days</span><span><b>Typical:</b> 0 - 3 days</span></div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Windows activation</td><td><div class="value">Activated</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Startup programs</td><td><div class="value">6 programs: Contoso VPN, OneDrive, SecurityHealth, Teams, Printer Assistant, Updater</div><div class="reference"><span><b>Allowed:</b> 0 - 15</span><span><b>Typical:</b> 5 - 10</span></div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Computer name</div><div class="description">The name that identifies this computer on the network. Helpdesk uses it to find the right machine in the inventory and in remote support tools.</div></td><td><div class="value">FIN-LT-014</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Operating system</div><div class="description">The Windows edition, feature release and build. It decides which features and security updates the computer can receive.</div></td><td><div class="value">Microsoft Windows 11 Pro 24H2 (build 26100)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Windows installed</div><div class="description">The date this Windows installation was set up. An old installation tends to collect leftover software and settings.</div></td><td><div class="value">2024-11-04</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Manufacturer and model</div><div class="description">Who made the computer and which model it is. Needed to find drivers, spare parts and warranty information.</div></td><td><div class="value">Contoso Ltd. ProBook 450</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Domain or workgroup</div><div class="description">Whether the computer is managed centrally in a company domain or stands alone in a workgroup. It decides where user accounts and policies come from.</div></td><td><div class="value">Domain: corp.contoso.example</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Signed-in user</div><div class="description">The account that is using the computer right now. Problems are often tied to one user profile rather than to the whole machine.</div></td><td><div class="value">CONTOSO\m.horvat</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Uptime</div><div class="description">The time since Windows was last started. A restart clears the memory, finishes updates and resets drivers, so a long uptime is a common cause of slowness.</div></td><td><div class="value">12 d 4 h 37 min</div><div class="reference"><span><b>Allowed:</b> 0 - 7 days</span><span><b>Typical:</b> 0 - 3 days</span></div><div class="recommendation">Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Windows activation</div><div class="description">Activation confirms that this copy of Windows has a valid license. Without it Windows shows reminders and locks the personalization settings.</div></td><td><div class="value">Activated</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Startup programs</div><div class="description">Programs that start automatically when the user signs in. Each one makes sign-in slower and keeps using memory in the background.</div></td><td><div class="value">12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more</div><details><summary>Show 4 more</summary><ul><li>Screenshot Tool</li><li>SecurityHealth</li><li>Teams</li><li>Touchpad Driver</li></ul></details><div class="reference"><span><b>Allowed:</b> 0 - 15</span><span><b>Typical:</b> 5 - 10</span></div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-specifications">
@@ -504,12 +555,12 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Processor</td><td><div class="value">Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Memory</td><td><div class="value">16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Graphics</td><td><div class="value">Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Motherboard</td><td><div class="value">Contoso Ltd. 0A1B2C</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">BIOS</td><td><div class="value">Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Serial number</td><td><div class="value">CNT4012XYZ</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Processor</div><div class="description">The processor (CPU) executes every program. More cores and a higher clock speed let the computer do more work at the same time.</div></td><td><div class="value">Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Memory</div><div class="description">RAM is the short-term working memory of running programs. The module layout and the free slots show whether more memory can be added.</div></td><td><div class="value">16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Graphics</div><div class="description">The graphics adapter draws everything shown on the screen. The driver version matters when the picture flickers or video and games misbehave.</div></td><td><div class="value">Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Motherboard</div><div class="description">The main board that all other components plug into. Its model decides which processors, memory and expansion cards are supported.</div></td><td><div class="value">Contoso Ltd. 0A1B2C</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">BIOS</div><div class="description">The firmware that starts the hardware before Windows loads. An outdated version can cause compatibility and stability problems.</div></td><td><div class="value">Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Serial number</div><div class="description">The unique number the manufacturer gave this computer. It is used for warranty claims and asset tracking.</div></td><td><div class="value">CNT4012XYZ</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-hardware">
@@ -517,14 +568,14 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">CPU load</td><td><div class="value">23 % (Contoso Core 8 2.40GHz)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 5 - 30 % when idle</span></div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Memory usage</td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 40 - 70 %</span></div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Top memory consumers</td><td><div class="value">msedge (4.9 GB), Teams (2.1 GB), EXCEL (1.6 GB), OUTLOOK (1.2 GB), Memory Compression (0.9 GB)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Drive: Contoso NVMe 256GB</td><td><div class="value">SSD, NVMe, 238.5 GB, health: Healthy</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Drive: Contoso HDD 500GB</td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
-<tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check check">Disk (C:)</td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Disk (D:)</td><td><div class="value">61.4 % free (286.1 GB of 465.8 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Battery</td><td><div class="value">64 % (plugged in)</div><div class="reference"><span><b>Allowed:</b> 20 - 100 % (critical below 10 %)</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">CPU load</div><div class="description">How busy the processor was while the check ran. Constantly high load makes the whole computer slow and the fans loud.</div></td><td><div class="value">23 % (Contoso Core 8 2.40GHz)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 5 - 30 % when idle</span></div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Memory usage</div><div class="description">How much of the installed RAM is in use. When it is nearly full, Windows moves data to the much slower disk and everything starts to lag.</div></td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 40 - 70 %</span></div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Top memory consumers</div><div class="description">The programs that hold the most RAM right now. This is the first place to look when memory usage is high.</div></td><td><div class="value">msedge (4.9 GB), Teams (2.1 GB), EXCEL (1.6 GB), OUTLOOK (1.2 GB), Memory Compression (0.9 GB)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Drive: Contoso NVMe 256GB</div><div class="description">A physical SSD or hard disk and the health state it reports about itself. A drive that reports problems can fail and take the data with it.</div></td><td><div class="value">SSD, NVMe, 238.5 GB, health: Healthy</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Drive: Contoso HDD 500GB</div><div class="description">A physical SSD or hard disk and the health state it reports about itself. A drive that reports problems can fail and take the data with it.</div></td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
+<tr><td class="col-status"><span class="badge critical">Critical</span></td><td class="col-check"><div class="check">Disk (C:)</div><div class="description">A drive letter (partition) and its free space. Windows needs free space for updates, temporary files and virtual memory.</div></td><td><div class="value">3.1 % free (7.4 GB of 237.9 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div><div class="recommendation">The disk is almost full. Free up space now: Windows updates and applications can fail without free space.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Disk (D:)</div><div class="description">A drive letter (partition) and its free space. Windows needs free space for updates, temporary files and virtual memory.</div></td><td><div class="value">61.4 % free (286.1 GB of 465.8 GB)</div><div class="reference"><span><b>Allowed:</b> 15 - 100 % free (critical below 5 % free)</span><span><b>Typical:</b> 25 % free or more</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Battery</div><div class="description">The charge of the laptop battery and whether the charger is connected.</div></td><td><div class="value">64 % (plugged in)</div><div class="reference"><span><b>Allowed:</b> 20 - 100 % (critical below 10 %)</span></div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-event-log">
@@ -532,13 +583,13 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Unexpected shutdowns</td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">System log - critical events</td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">System log - errors</td><td><div class="value">31 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 - 50</span><span><b>Typical:</b> 0 - 20 per week</span></div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">System log - top sources</td><td><div class="value">Service Control Manager (14), Microsoft-Windows-DistributedCOM (11), disk (4), Microsoft-Windows-Kernel-Power (2), Netwtw14 (2)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Application log - critical events</td><td><div class="value">0 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Application log - errors</td><td><div class="value">12 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 - 50</span><span><b>Typical:</b> 0 - 20 per week</span></div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Application log - top sources</td><td><div class="value">Application Error (7), Application Hang (3), MsiInstaller (2)</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Unexpected shutdowns</div><div class="description">How often the computer went off without a proper shutdown (power loss, crash, forced power-off). It risks data loss and points to power or stability problems.</div></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">System log - critical events</div><div class="description">The most severe events recorded by Windows itself and its drivers, such as crashes and sudden power loss.</div></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div><div class="recommendation">Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; System and filter by level Critical.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">System log - errors</div><div class="description">Errors recorded by Windows components, drivers and services. A few are normal; many from one source point to a recurring problem.</div></td><td><div class="value">31 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 - 50</span><span><b>Typical:</b> 0 - 20 per week</span></div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">System log - top sources</div><div class="description">The components that logged the most errors. They show where to start looking in Event Viewer.</div></td><td><div class="value">Service Control Manager (14), Microsoft-Windows-DistributedCOM (11), disk (4), Microsoft-Windows-Kernel-Power (2), Netwtw14 (2)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Application log - critical events</div><div class="description">The most severe events recorded by installed programs.</div></td><td><div class="value">0 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 (critical above 4)</span><span><b>Typical:</b> 0</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Application log - errors</div><div class="description">Errors recorded by installed programs, for example crashes and hangs.</div></td><td><div class="value">12 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0 - 50</span><span><b>Typical:</b> 0 - 20 per week</span></div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Application log - top sources</div><div class="description">The programs that logged the most errors. They show which application is causing trouble.</div></td><td><div class="value">Application Error (7), Application Hang (3), MsiInstaller (2)</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-windows-update">
@@ -546,8 +597,8 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Last installed update</td><td><div class="value">KB5000001 on 2026-09-18 (12 days ago)</div><div class="reference"><span><b>Allowed:</b> 0 - 45 days</span><span><b>Typical:</b> 0 - 30 days</span></div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Pending restart</td><td><div class="value">Yes (Windows Update)</div><div class="recommendation">Restart the computer to finish installing updates.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Last installed update</div><div class="description">The most recent Windows update on this computer. Updates close security holes, so a long gap leaves the computer exposed.</div></td><td><div class="value">KB5000001 on 2026-09-18 (12 days ago)</div><div class="reference"><span><b>Allowed:</b> 0 - 45 days</span><span><b>Typical:</b> 0 - 30 days</span></div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Pending restart</div><div class="description">Whether Windows is waiting for a restart to finish installing updates. Until then the updates are not fully applied.</div></td><td><div class="value">Yes (Windows Update)</div><div class="recommendation">Restart the computer to finish installing updates.</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-security">
@@ -555,14 +606,14 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Defender real-time protection</td><td><div class="value">Enabled</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Defender definitions</td><td><div class="value">1 day old (updated 2026-09-29 06:12)</div><div class="reference"><span><b>Allowed:</b> 0 - 3 days (critical above 7 days)</span><span><b>Typical:</b> 0 - 1 days</span></div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Firewall - Domain profile</td><td><div class="value">Enabled</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Firewall - Private profile</td><td><div class="value">Enabled</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Firewall - Public profile</td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Secure Boot</td><td><div class="value">Enabled</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">TPM</td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">BitLocker (C:)</td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Defender real-time protection</div><div class="description">The part of Microsoft Defender Antivirus that scans files and programs the moment they are opened. Without it malware is not stopped in time.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Defender definitions</div><div class="description">The list of known threats the antivirus uses to recognize malware. It has to be updated often to catch new threats.</div></td><td><div class="value">1 day old (updated 2026-09-29 06:12)</div><div class="reference"><span><b>Allowed:</b> 0 - 3 days (critical above 7 days)</span><span><b>Typical:</b> 0 - 1 days</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Firewall - Domain profile</div><div class="description">The firewall rules used while the computer is connected to the company domain network. The firewall blocks unwanted incoming connections.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Firewall - Private profile</div><div class="description">The firewall rules used on networks marked as private, such as a home or small office network.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Firewall - Public profile</div><div class="description">The firewall rules used on public networks such as cafes and airports, where the protection matters most.</div></td><td><div class="value">Disabled</div><div class="recommendation">Turn on Windows Defender Firewall for this profile (Windows Security &gt; Firewall &amp; network protection), unless a third-party firewall is installed.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Secure Boot</div><div class="description">A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">TPM</div><div class="description">A security chip that stores encryption keys safely. BitLocker and Windows Hello rely on it, and Windows 11 requires version 2.0.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">BitLocker (C:)</div><div class="description">Full-disk encryption built into Windows. If the computer is lost or stolen, the data on the drive cannot be read without the key.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Run PowerShell as administrator to include this check.</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-network">
@@ -570,12 +621,12 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Adapter: Contoso Wi-Fi 6 AX200 160MHz</td><td><div class="value">IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Proxy</td><td><div class="value">Not configured</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Ping default gateway</td><td><div class="value">10.20.30.1 replied in 3 ms</div><div class="reference"><span><b>Typical:</b> under 5 ms</span></div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Ping internet</td><td><div class="value">1.1.1.1 replied in 18 ms</div><div class="reference"><span><b>Allowed:</b> 0 - 150 ms</span><span><b>Typical:</b> 10 - 50 ms</span></div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">DNS resolution</td><td><div class="value">microsoft.com -&gt; 203.0.113.25</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">HTTPS access</td><td><div class="value">https://www.microsoft.com reachable (HTTP 200)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Adapter: Contoso Wi-Fi 6 AX200 160MHz</div><div class="description">A network card (cable or Wi-Fi) and its settings: the IP address identifies the computer, the gateway is the router, DNS servers translate names and DHCP hands all of this out automatically.</div></td><td><div class="value">IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Proxy</div><div class="description">A server that web traffic can be routed through. A wrong or leftover proxy setting stops browsers from reaching the internet.</div></td><td><div class="value">Not configured</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Ping default gateway</div><div class="description">A test message sent to the router. A reply means the connection between the computer and the local network works.</div></td><td><div class="value">10.20.30.1 replied in 3 ms</div><div class="reference"><span><b>Typical:</b> under 5 ms</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Ping internet</div><div class="description">A test message sent to a public server. A reply means traffic gets past the router and out to the internet.</div></td><td><div class="value">1.1.1.1 replied in 18 ms</div><div class="reference"><span><b>Allowed:</b> 0 - 150 ms</span><span><b>Typical:</b> 10 - 50 ms</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">DNS resolution</div><div class="description">DNS translates names such as microsoft.com into IP addresses. If it fails, web sites do not open even though the connection itself works.</div></td><td><div class="value">microsoft.com -&gt; 203.0.113.25</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">HTTPS access</div><div class="description">A real web request over an encrypted connection. It confirms that the computer can actually reach web sites.</div></td><td><div class="value">https://www.microsoft.com reachable (HTTP 200)</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-services">
@@ -583,15 +634,15 @@ footer {
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">DHCP Client (Dhcp)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">DNS Client (Dnscache)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Windows Event Log (EventLog)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Workstation (LanmanWorkstation)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Windows Defender Firewall (mpssvc)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check check">Microsoft Defender Antivirus Service (WinDefend)</td><td><div class="value">Running (start mode: Auto)</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Windows Update (wuauserv)</td><td><div class="value">Stopped (start mode: Manual)</div></td></tr>
-<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check check">Background Intelligent Transfer Service (BITS)</td><td><div class="value">Stopped (start mode: Manual)</div></td></tr>
-<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check check">Print Spooler (Spooler)</td><td><div class="value">Stopped (start mode: Auto)</div><div class="recommendation">The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">DHCP Client (Dhcp)</div><div class="description">DHCP Client asks the router for an IP address and network settings. If it is stopped, the computer cannot join a network automatically.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">DNS Client (Dnscache)</div><div class="description">DNS Client translates names into IP addresses and remembers the answers. Without it web sites and network shares cannot be found by name.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Windows Event Log (EventLog)</div><div class="description">Windows Event Log records what happens on the system. Many other services and all troubleshooting tools depend on it.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Workstation (LanmanWorkstation)</div><div class="description">Workstation lets the computer connect to shared folders and printers on other computers.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Windows Defender Firewall (mpssvc)</div><div class="description">Windows Defender Firewall filters network traffic and blocks unwanted incoming connections.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Microsoft Defender Antivirus Service (WinDefend)</div><div class="description">Microsoft Defender Antivirus Service protects the computer from malware. It is stopped when another antivirus is installed.</div></td><td><div class="value">Running (start mode: Auto)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Windows Update (wuauserv)</div><div class="description">Windows Update finds, downloads and installs updates. It only runs when needed, so finding it stopped is normal.</div></td><td><div class="value">Stopped (start mode: Manual)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Background Intelligent Transfer Service (BITS)</div><div class="description">Background Intelligent Transfer Service downloads updates in the background using idle bandwidth. It only runs when needed.</div></td><td><div class="value">Stopped (start mode: Manual)</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Print Spooler (Spooler)</div><div class="description">Print Spooler manages print jobs and sends them to the printers. If it is stopped, nothing can be printed.</div></td><td><div class="value">Stopped (start mode: Auto)</div><div class="recommendation">The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.</div></td></tr>
 </tbody></table>
 </section>
 </div></main>
