@@ -96,9 +96,33 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Services', 'Print Spooler (Spooler)', 'Warning', 'Stopped (start mode: Auto)', 'The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.')
     )
 
+    # Allowed range and typical value of the measurements, by check name. They are
+    # taken from the real configuration so the sample shows the current limits.
+    $limits = Get-HealthThreshold
+    $references = @{
+        'Uptime'                            = @((Format-AllowedRange -Warning $limits.Uptime.WarningDays -Unit 'days'), $limits.Uptime.Typical)
+        'Startup programs'                  = @((Format-AllowedRange -Warning $limits.Startup.WarningProgramCount), $limits.Startup.Typical)
+        'CPU load'                          = @((Format-AllowedRange -Warning $limits.Cpu.WarningPercent -Critical $limits.Cpu.CriticalPercent -Unit '%'), $limits.Cpu.Typical)
+        'Memory usage'                      = @((Format-AllowedRange -Warning $limits.Memory.WarningPercent -Critical $limits.Memory.CriticalPercent -Unit '%'), $limits.Memory.Typical)
+        'Disk (C:)'                         = @((Format-AllowedRange -Warning $limits.Disk.WarningFreePercent -Critical $limits.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse), $limits.Disk.Typical)
+        'Disk (D:)'                         = @((Format-AllowedRange -Warning $limits.Disk.WarningFreePercent -Critical $limits.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse), $limits.Disk.Typical)
+        'Battery'                           = @((Format-AllowedRange -Warning $limits.Battery.WarningPercent -Critical $limits.Battery.CriticalPercent -Unit '%' -LowerIsWorse), '')
+        'Unexpected shutdowns'              = @((Format-AllowedRange -Warning $limits.EventLog.UnexpectedShutdownWarningAbove), $limits.EventLog.TypicalUnexpectedShutdowns)
+        'System log - critical events'      = @((Format-AllowedRange -Warning $limits.EventLog.CriticalEventWarningAbove -Critical $limits.EventLog.CriticalEventCriticalAbove), $limits.EventLog.TypicalCriticalEvents)
+        'Application log - critical events' = @((Format-AllowedRange -Warning $limits.EventLog.CriticalEventWarningAbove -Critical $limits.EventLog.CriticalEventCriticalAbove), $limits.EventLog.TypicalCriticalEvents)
+        'System log - errors'               = @((Format-AllowedRange -Warning $limits.EventLog.ErrorEventWarningAbove), $limits.EventLog.TypicalErrorEvents)
+        'Application log - errors'          = @((Format-AllowedRange -Warning $limits.EventLog.ErrorEventWarningAbove), $limits.EventLog.TypicalErrorEvents)
+        'Last installed update'             = @((Format-AllowedRange -Warning $limits.WindowsUpdate.WarningDaysSinceLastUpdate -Unit 'days'), $limits.WindowsUpdate.Typical)
+        'Defender definitions'              = @((Format-AllowedRange -Warning $limits.Defender.SignatureWarningDays -Critical $limits.Defender.SignatureCriticalDays -Unit 'days'), $limits.Defender.Typical)
+        'Ping default gateway'              = @('', $limits.Network.TypicalGatewayPing)
+        'Ping internet'                     = @((Format-AllowedRange -Warning $limits.Network.PingWarningMs -Unit 'ms'), $limits.Network.TypicalInternetPing)
+    }
+
     $results = @(
         foreach ($row in $rows) {
-            New-CheckResult -Category $row[0] -Check $row[1] -Status $row[2] -Value $row[3] -Recommendation $row[4]
+            $reference = if ($references.ContainsKey($row[1])) { $references[$row[1]] } else { @('', '') }
+            New-CheckResult -Category $row[0] -Check $row[1] -Status $row[2] -Value $row[3] -Recommendation $row[4] `
+                -Allowed $reference[0] -Typical $reference[1]
         }
     )
 
