@@ -20,14 +20,14 @@ problems it found and what to do about them.
 
 | Category | Checks |
 |---|---|
-| System | Computer name, Windows version and build, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, Windows activation, startup programs |
+| System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs |
 | Specifications | Processor, memory modules and free slots, graphics adapters, motherboard, BIOS/UEFI, serial number |
-| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, devices without a working driver, battery |
+| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, space that can be freed (temporary files, Downloads, Recycle Bin), page file, devices without a working driver, battery |
 | Software | Installed programs with versions, recently installed programs, application crashes per program, default browser |
 | Event Log | Unexpected shutdowns, blue screens, critical events and errors in the System and Application logs for the last N days, top sources |
 | Windows Update | Last installed update, pending restart, paused updates |
-| Security | Microsoft Defender real-time protection, definition age and last scan, firewall profiles, User Account Control, Remote Desktop, account type, Secure Boot, TPM\*, BitLocker\* |
-| Network | Adapters (IPv4, gateway, DNS, DHCP, MAC, link speed), proxy, ping to the gateway and to the internet, DNS resolution, HTTPS access |
+| Security | Microsoft Defender real-time protection, definition age, tamper protection and last scan, firewall profiles, User Account Control, Remote Desktop, account type, local accounts and the Guest account, shared folders, Secure Boot, TPM\*, BitLocker\* |
+| Network | Adapters (IPv4, gateway, DNS, DHCP, MAC, link speed), network profile, proxy, hosts file, mapped network drives, ping to the gateway and to the internet, DNS resolution, HTTPS access, clock accuracy |
 | Printers | Default printer, installed printers and offline ones, documents stuck in the print queue |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
@@ -164,7 +164,9 @@ Two data files control the behaviour; no code has to be changed:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   the limits for Warning and Critical (for example free disk space below 15 % and 5 %),
-  the targets of the connectivity tests and the list of monitored services.
+  the targets of the connectivity tests, the list of monitored services and the
+  end-of-support dates of the Windows versions (taken from the Microsoft lifecycle
+  pages; add a line when a new feature release appears).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):
   the explanation shown for every check.
 

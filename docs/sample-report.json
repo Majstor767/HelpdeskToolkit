@@ -6,10 +6,10 @@
     "IsElevated":  false,
     "EventLogDays":  7,
     "Summary":  {
-                    "OK":  33,
-                    "Warning":  9,
+                    "OK":  42,
+                    "Warning":  11,
                     "Critical":  1,
-                    "Info":  27
+                    "Info":  31
                 },
     "Results":  [
                     {
@@ -37,6 +37,19 @@
                         "Allowed":  "",
                         "Typical":  "",
                         "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Windows support",
+                        "Description":  "Whether Microsoft still releases security updates for this Windows version. A version that is out of support stays vulnerable to every newly found security hole.",
+                        "Status":  "Warning",
+                        "Value":  "Supported until 2026-10-13 (13 days left)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Support for this Windows version ends soon. Install the newest feature update: Settings \u003e Windows Update."
                     },
                     {
                         "Category":  "System",
@@ -115,6 +128,19 @@
                         "Allowed":  "0 - 7 days",
                         "Typical":  "0 - 3 days",
                         "Recommendation":  "Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime."
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Stability index",
+                        "Description":  "The score Windows itself keeps in Reliability Monitor, from 1 (unstable) to 10 (stable). It drops after crashes, hangs and failed installations and recovers while the computer runs without problems.",
+                        "Status":  "OK",
+                        "Value":  "7.4 of 10",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "5 - 10 (critical below 3)",
+                        "Typical":  "8 - 10",
+                        "Recommendation":  ""
                     },
                     {
                         "Category":  "System",
@@ -312,6 +338,58 @@
                                     ],
                         "Allowed":  "15 - 100 % free (critical below 5 % free)",
                         "Typical":  "25 % free or more",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Temporary files",
+                        "Description":  "Files that programs left in the temporary folder of the user. They are safe to remove and often the quickest way to free space on a full disk.",
+                        "Status":  "Warning",
+                        "Value":  "6.8 GB",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 5 GB",
+                        "Typical":  "",
+                        "Recommendation":  "Temporary files take up a lot of space. Remove them in Settings \u003e System \u003e Storage \u003e Temporary files."
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Downloads folder",
+                        "Description":  "Everything the user has downloaded and never moved or deleted. Old installers and duplicates here are a common reason for a full disk.",
+                        "Status":  "Info",
+                        "Value":  "11.2 GB in 348 files",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Recycle Bin",
+                        "Description":  "Deleted files still take up disk space until the Recycle Bin is emptied.",
+                        "Status":  "OK",
+                        "Value":  "1.3 GB",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 10 GB",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Page file",
+                        "Description":  "A file on the disk that Windows uses as extra memory when the RAM is full. Heavy use means the computer is short of memory and slow.",
+                        "Status":  "OK",
+                        "Value":  "34 % (1632 MB of 4800 MB used)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 80 %",
+                        "Typical":  "0 - 30 %",
                         "Recommendation":  ""
                     },
                     {
@@ -566,6 +644,19 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "Tamper protection",
+                        "Description":  "A Defender setting that stops programs, including malware, from switching the antivirus off or changing its settings.",
+                        "Status":  "OK",
+                        "Value":  "Enabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Defender last scan",
                         "Description":  "When Microsoft Defender last scanned the computer for malware that is already on it. Real-time protection only checks files as they are opened.",
                         "Status":  "OK",
@@ -657,6 +748,58 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "Local accounts",
+                        "Description":  "The user accounts that exist on this computer itself (not in a company domain) and can sign in.",
+                        "Status":  "Info",
+                        "Value":  "1 enabled: support",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Guest account",
+                        "Description":  "A built-in account without a password, meant for visitors. Left enabled, it lets anyone use the computer.",
+                        "Status":  "OK",
+                        "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Built-in Administrator account",
+                        "Description":  "The administrator account every Windows installation has. It is disabled by default because it is a well-known target for attacks.",
+                        "Status":  "OK",
+                        "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Shared folders",
+                        "Description":  "Folders on this computer that other computers on the network can open.",
+                        "Status":  "OK",
+                        "Value":  "None",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Secure Boot",
                         "Description":  "A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.",
                         "Status":  "OK",
@@ -709,10 +852,49 @@
                     },
                     {
                         "Category":  "Network",
+                        "Check":  "Network profile",
+                        "Description":  "How Windows classifies each connected network. Public hides the computer and uses the strictest firewall rules; Private is for a trusted home or office network; Domain is a company network.",
+                        "Status":  "Info",
+                        "Value":  "Wi-Fi: Domain (corp.contoso.example)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
                         "Check":  "Proxy",
                         "Description":  "A server that web traffic can be routed through. A wrong or leftover proxy setting stops browsers from reaching the internet.",
                         "Status":  "Info",
                         "Value":  "Not configured",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
+                        "Check":  "Hosts file",
+                        "Description":  "A local list that maps names to IP addresses and is consulted before DNS. An entry there can redirect or block a web site on this computer only.",
+                        "Status":  "OK",
+                        "Value":  "No custom entries",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
+                        "Check":  "Mapped network drives",
+                        "Description":  "Shared folders on a server that appear as a drive letter. They are reconnected at every sign-in.",
+                        "Status":  "Info",
+                        "Value":  "H: -\u003e \\\\fs01.corp.contoso.example\\home\\m.horvat, S: -\u003e \\\\fs01.corp.contoso.example\\shared",
                         "Details":  [
 
                                     ],
@@ -770,6 +952,19 @@
                                     ],
                         "Allowed":  "",
                         "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
+                        "Check":  "Clock accuracy",
+                        "Description":  "How far the clock of the computer is from internet time. A wrong clock causes certificate errors in the browser and failed sign-ins.",
+                        "Status":  "OK",
+                        "Value":  "Differs from internet time by 1 second",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 120 seconds",
+                        "Typical":  "0 - 5 seconds",
                         "Recommendation":  ""
                     },
                     {

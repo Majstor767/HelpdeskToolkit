@@ -40,12 +40,14 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
     $rows = @(
         , @('System', 'Computer name', 'Info', 'FIN-LT-014', '')
         , @('System', 'Operating system', 'Info', 'Microsoft Windows 11 Pro 24H2 (build 26100)', '')
+        , @('System', 'Windows support', 'Warning', 'Supported until 2026-10-13 (13 days left)', 'Support for this Windows version ends soon. Install the newest feature update: Settings > Windows Update.')
         , @('System', 'Windows installed', 'Info', '2024-11-04', '')
         , @('System', 'Manufacturer and model', 'Info', 'Contoso Ltd. ProBook 450', '')
         , @('System', 'Domain or workgroup', 'Info', 'Domain: corp.contoso.example', '')
         , @('System', 'Signed-in user', 'Info', 'CONTOSO\m.horvat', '')
         , @('System', 'Time zone', 'Info', '(UTC+01:00) Sarajevo, Skopje, Warsaw, Zagreb', '')
         , @('System', 'Uptime', 'Warning', '12 d 4 h 37 min', 'Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.')
+        , @('System', 'Stability index', 'OK', '7.4 of 10', '')
         , @('System', 'Windows activation', 'OK', 'Activated', '')
         , @('System', 'Startup programs', 'OK', '12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more', '')
 
@@ -63,6 +65,10 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Drive: Contoso HDD 500GB', 'Warning', 'HDD, SATA, 465.8 GB, health: Warning', 'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.')
         , @('Hardware', 'Disk (C:)', 'Critical', '3.1 % free (7.4 GB of 237.9 GB)', 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.')
         , @('Hardware', 'Disk (D:)', 'OK', '61.4 % free (286.1 GB of 465.8 GB)', '')
+        , @('Hardware', 'Temporary files', 'Warning', '6.8 GB', 'Temporary files take up a lot of space. Remove them in Settings > System > Storage > Temporary files.')
+        , @('Hardware', 'Downloads folder', 'Info', '11.2 GB in 348 files', '')
+        , @('Hardware', 'Recycle Bin', 'OK', '1.3 GB', '')
+        , @('Hardware', 'Page file', 'OK', '34 % (1632 MB of 4800 MB used)', '')
         , @('Hardware', 'Devices with problems', 'OK', 'None', '')
         , @('Hardware', 'Battery', 'OK', '64 % (plugged in)', '')
 
@@ -86,6 +92,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
 
         , @('Security', 'Defender real-time protection', 'OK', 'Enabled', '')
         , @('Security', 'Defender definitions', 'OK', '1 day old (updated 2026-09-29 06:12)', '')
+        , @('Security', 'Tamper protection', 'OK', 'Enabled', '')
         , @('Security', 'Defender last scan', 'OK', '3 days ago', '')
         , @('Security', 'Firewall - Domain profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Private profile', 'OK', 'Enabled', '')
@@ -93,16 +100,24 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Security', 'User Account Control', 'OK', 'Enabled', '')
         , @('Security', 'Remote Desktop', 'OK', 'Disabled', '')
         , @('Security', 'Account type', 'OK', 'Standard user', '')
+        , @('Security', 'Local accounts', 'Info', '1 enabled: support', '')
+        , @('Security', 'Guest account', 'OK', 'Disabled', '')
+        , @('Security', 'Built-in Administrator account', 'OK', 'Disabled', '')
+        , @('Security', 'Shared folders', 'OK', 'None', '')
         , @('Security', 'Secure Boot', 'OK', 'Enabled', '')
         , @('Security', 'TPM', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
         , @('Security', 'BitLocker (C:)', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
 
         , @('Network', 'Adapter: Contoso Wi-Fi 6 AX200 160MHz', 'Info', 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 867 Mbps', '')
+        , @('Network', 'Network profile', 'Info', 'Wi-Fi: Domain (corp.contoso.example)', '')
         , @('Network', 'Proxy', 'Info', 'Not configured', '')
+        , @('Network', 'Hosts file', 'OK', 'No custom entries', '')
+        , @('Network', 'Mapped network drives', 'Info', 'H: -> \\fs01.corp.contoso.example\home\m.horvat, S: -> \\fs01.corp.contoso.example\shared', '')
         , @('Network', 'Ping default gateway', 'OK', '10.20.30.1 replied in 3 ms', '')
         , @('Network', 'Ping internet', 'OK', '1.1.1.1 replied in 18 ms', '')
         , @('Network', 'DNS resolution', 'OK', 'microsoft.com -> 203.0.113.25', '')
         , @('Network', 'HTTPS access', 'OK', 'https://www.microsoft.com reachable (HTTP 200)', '')
+        , @('Network', 'Clock accuracy', 'OK', 'Differs from internet time by 1 second', '')
 
         , @('Printers', 'Default printer', 'Info', 'Contoso LaserJet 400 (2nd floor)', '')
         , @('Printers', 'Installed printers', 'Info', '3 printers: Contoso LaserJet 400 (2nd floor), Microsoft Print to PDF, OneNote (Desktop)', '')
@@ -142,6 +157,11 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Application crashes'               = @((Format-AllowedRange -Warning $limits.Software.CrashWarningAbove), $limits.Software.TypicalCrashes)
         'Blue screens'                      = @((Format-AllowedRange -Warning $limits.EventLog.BlueScreenWarningAbove), $limits.EventLog.TypicalBlueScreens)
         'Defender last scan'                = @((Format-AllowedRange -Warning $limits.Defender.ScanWarningDays -Unit 'days'), $limits.Defender.TypicalScan)
+        'Stability index'                   = @((Format-AllowedRange -Warning $limits.Stability.WarningIndex -Critical $limits.Stability.CriticalIndex -LowerIsWorse -Maximum 10), $limits.Stability.Typical)
+        'Temporary files'                   = @((Format-AllowedRange -Warning $limits.Cleanup.TempWarningGb -Unit 'GB'), '')
+        'Recycle Bin'                       = @((Format-AllowedRange -Warning $limits.Cleanup.RecycleBinWarningGb -Unit 'GB'), '')
+        'Page file'                         = @((Format-AllowedRange -Warning $limits.PageFile.WarningPercent -Unit '%'), $limits.PageFile.Typical)
+        'Clock accuracy'                    = @((Format-AllowedRange -Warning $limits.Network.ClockWarningSeconds -Unit 'seconds'), $limits.Network.TypicalClock)
     }
 
     # Items behind the "Show N more" section, by check name.

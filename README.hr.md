@@ -22,14 +22,14 @@ Sučelje i izvještaj su na engleskom jeziku.
 
 | Kategorija | Provjere |
 |---|---|
-| System | Ime računala, verzija i build Windowsa, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, aktivacija Windowsa, programi koji se pokreću sa sustavom |
+| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom |
 | Specifications | Procesor, memorijski moduli i slobodni utori, grafičke kartice, matična ploča, BIOS/UEFI, serijski broj |
-| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, uređaji bez ispravnog drivera, baterija |
+| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), page file, uređaji bez ispravnog drivera, baterija |
 | Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, zadani preglednik |
 | Event Log | Neočekivana gašenja, plavi ekrani, kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
 | Windows Update | Zadnje instalirano ažuriranje, čeka li se restart, jesu li ažuriranja pauzirana |
-| Security | Zaštita u stvarnom vremenu, starost definicija i zadnje skeniranje Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, Secure Boot, TPM\*, BitLocker\* |
-| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), proxy, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup |
+| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena i zadnje skeniranje Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, lokalni računi i račun Guest, dijeljene mape, Secure Boot, TPM\*, BitLocker\* |
+| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), mrežni profil, proxy, hosts datoteka, mapirani mrežni diskovi, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup, točnost sata |
 | Printers | Zadani pisač, instalirani pisači i oni koji su offline, dokumenti zaglavljeni u redu za ispis |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
@@ -166,7 +166,9 @@ Ponašanje određuju dvije podatkovne datoteke; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
-  odredišta mrežnih testova i popis praćenih servisa.
+  odredišta mrežnih testova, popis praćenih servisa i datumi kraja podrške za verzije
+  Windowsa (preuzeti s Microsoftovih stranica o životnom ciklusu; kad izađe nova
+  verzija, dodaje se jedan redak).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):
   objašnjenje koje se prikazuje uz svaku provjeru.
 
