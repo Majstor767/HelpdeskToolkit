@@ -3,9 +3,10 @@ function Show-PCHealthCheck {
     .SYNOPSIS
         Opens the HelpdeskToolkit window for running the health check with the mouse.
     .DESCRIPTION
-        Shows a window with a "Run check" button, the count of results per status and
-        the list of all checks. Selecting a row explains what the check means and shows
-        its allowed range, typical value and recommendation. The report can be opened
+        Shows a window with a "Run check" button and a list of categories (System,
+        Hardware, Network and so on). The Overview page lists every problem with its
+        recommended fix; choosing a category shows all of its checks, each with an
+        explanation, the allowed range and the typical value. The report can be opened
         in the browser as HTML or saved as HTML or JSON.
 
         The window runs exactly the same checks as Invoke-PCHealthCheck; it only
@@ -58,12 +59,8 @@ function Show-PCHealthCheck {
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
 
-    $controls.ProblemsOnlyCheckBox.Add_Click({ Show-WindowResultList -Gui $script:HealthCheckWindow })
-
-    $controls.ResultsGrid.Add_SelectionChanged({
-            $state = $script:HealthCheckWindow
-            Show-WindowResultDetail -Gui $state -Result $state.Controls.ResultsGrid.SelectedItem
-        })
+    # Choosing an entry in the category list shows that page on the right.
+    $controls.CategoryList.Add_SelectionChanged({ Show-WindowPage -Gui $script:HealthCheckWindow })
 
     # Saves the report as HTML in the output folder and opens it in the browser.
     $controls.OpenReportButton.Add_Click({

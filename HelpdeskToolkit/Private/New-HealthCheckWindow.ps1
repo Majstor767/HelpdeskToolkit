@@ -39,7 +39,11 @@ function New-HealthCheckWindow {
     $controls = @{}
     foreach ($node in $xaml.SelectNodes('//*[@x:Name]', $namespaces)) {
         $name = $node.GetAttribute('Name', $xamlNamespace)
-        $controls[$name] = $window.FindName($name)
+        $element = $window.FindName($name)
+        # Names inside a template belong to that template and cannot be found on the window.
+        if ($element) {
+            $controls[$name] = $element
+        }
     }
 
     @{

@@ -2,11 +2,14 @@
     Layout of the HelpdeskToolkit window. It only describes how the window looks;
     what the buttons do is wired up in Show-PCHealthCheck. Controls that the code
     needs carry an x:Name.
+
+    Structure: a header with the options and the Run button, a list of categories on
+    the left, and on the right the results of the selected category as cards.
 -->
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="HelpdeskToolkit - PC Health Check"
-        Width="1100" Height="860" MinWidth="860" MinHeight="620"
+        Width="1180" Height="860" MinWidth="900" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Background="#F3F5F8" FontFamily="Segoe UI" FontSize="13"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
@@ -19,7 +22,7 @@
         <SolidColorBrush x:Key="BorderBrush" Color="#DDE3EA"/>
         <SolidColorBrush x:Key="TextBrush" Color="#18212F"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#5A6677"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#2B5EA8"/>
+        <SolidColorBrush x:Key="NeutralBrush" Color="#C3CCD8"/>
         <SolidColorBrush x:Key="OkBrush" Color="#1B7A48"/>
         <SolidColorBrush x:Key="OkBackBrush" Color="#E4F4EA"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#8A5A00"/>
@@ -31,8 +34,6 @@
 
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="MinWidth" Value="96"/>
-            <Setter Property="Margin" Value="8,0,0,0"/>
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
             <Setter Property="BorderBrush" Value="#B8C2CF"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -46,7 +47,6 @@
 
         <Style x:Key="Tile" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1,4,1,1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,8"/>
@@ -64,16 +64,29 @@
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
         </Style>
 
-        <Style x:Key="DetailLabel" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
-            <Setter Property="Margin" Value="0,0,8,3"/>
-        </Style>
-
-        <Style x:Key="DetailValue" TargetType="TextBlock">
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,3"/>
+        <!-- One entry of the category list on the left. -->
+        <Style x:Key="NavItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="NavBackground" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavBackground" Property="Background" Value="#EEF2F7"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="NavBackground" Property="Background" Value="#DCE7F7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -89,7 +102,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <CheckBox x:Name="SkipNetworkCheckBox" Content="Skip network tests" Foreground="White" VerticalAlignment="Center" Margin="0,0,18,0"/>
-                    <TextBlock Text="Event log period" Foreground="{StaticResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="History period" Foreground="{StaticResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="DaysComboBox" Width="92" VerticalAlignment="Center" SelectedIndex="0">
                         <ComboBoxItem Content="7 days" Tag="7"/>
                         <ComboBoxItem Content="14 days" Tag="14"/>
@@ -109,111 +122,47 @@
             </DockPanel>
         </Border>
 
-        <Grid Margin="20,14,20,12">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="232"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Overall verdict, shown after a run -->
-            <Border x:Name="VerdictBorder" Grid.Row="0" CornerRadius="6" Padding="14,9" Margin="0,0,0,12" BorderThickness="4,0,0,0" Visibility="Collapsed">
-                <TextBlock x:Name="VerdictText" FontSize="14" TextWrapping="Wrap"/>
-            </Border>
-
-            <!-- Count per status -->
-            <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,-10,12">
-                <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource CriticalBrush}">
-                    <StackPanel>
-                        <TextBlock x:Name="CriticalCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource CriticalBrush}"/>
-                        <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}"/>
+            <!-- Left: categories, and the report buttons below them -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <DockPanel Margin="10,12">
+                    <StackPanel DockPanel.Dock="Bottom" Margin="2,10,2,0">
+                        <Button x:Name="OpenReportButton" Content="Open HTML report" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
+                        <Button x:Name="SaveAsButton" Content="Save as..." Style="{StaticResource ActionButton}" IsEnabled="False"/>
                     </StackPanel>
-                </Border>
-                <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource WarningBrush}">
-                    <StackPanel>
-                        <TextBlock x:Name="WarningCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource WarningBrush}"/>
-                        <TextBlock Text="WARNING" Style="{StaticResource TileLabel}"/>
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource OkBrush}">
-                    <StackPanel>
-                        <TextBlock x:Name="OkCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource OkBrush}"/>
-                        <TextBlock Text="OK" Style="{StaticResource TileLabel}"/>
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource InfoBrush}">
-                    <StackPanel>
-                        <TextBlock x:Name="InfoCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource InfoBrush}"/>
-                        <TextBlock Text="INFO" Style="{StaticResource TileLabel}"/>
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
-
-            <!-- Filter on the left, report buttons on the right -->
-            <DockPanel Grid.Row="2" Margin="0,0,0,10">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button x:Name="OpenReportButton" Content="Open HTML report" Style="{StaticResource ActionButton}" IsEnabled="False"/>
-                    <Button x:Name="SaveAsButton" Content="Save as..." Style="{StaticResource ActionButton}" IsEnabled="False"/>
-                </StackPanel>
-                <CheckBox x:Name="ProblemsOnlyCheckBox" Content="Show problems only" VerticalAlignment="Center" IsEnabled="False"/>
-            </DockPanel>
-
-            <!-- Results -->
-            <Grid Grid.Row="3">
-                <DataGrid x:Name="ResultsGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource BorderBrush}"
-                          Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
-                          RowBackground="#FFFFFF" AlternatingRowBackground="#F8FAFC"
-                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" CanUserReorderColumns="False"
-                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Padding" Value="10,7"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
-                    <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                        </Style>
-                    </DataGrid.CellStyle>
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Status" Width="110">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="9" Padding="9,1" Margin="10,6" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock DockPanel.Dock="Top" Text="CATEGORIES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="12,2,0,6"/>
+                    <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
+                             ItemContainerStyle="{StaticResource NavItem}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <!-- Number of problems in the category; hidden when there are none -->
+                                    <Border DockPanel.Dock="Right" CornerRadius="9" Padding="7,0" MinWidth="22" VerticalAlignment="Center">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                                <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="OK">
-                                                        <Setter Property="Background" Value="{StaticResource OkBackBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                        <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                    <DataTrigger Binding="{Binding Worst}" Value="Critical">
                                                         <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Badge}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold">
+                                        <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Status}" Value="OK">
-                                                            <Setter Property="Foreground" Value="{StaticResource OkBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                            <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                        <DataTrigger Binding="{Binding Worst}" Value="Critical">
                                                             <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -221,71 +170,217 @@
                                             </TextBlock.Style>
                                         </TextBlock>
                                     </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="130">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Margin" Value="10,7"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Check" Binding="{Binding Check}" Width="270">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Margin" Value="10,7"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Setter Property="TextWrapping" Value="Wrap"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Result" Binding="{Binding Value}" Width="*">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Margin" Value="10,7"/>
-                                    <Setter Property="TextWrapping" Value="Wrap"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
-            </Grid>
-
-            <!-- Details of the selected check -->
-            <Border Grid.Row="4" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,10,0,0" Height="176">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock x:Name="DetailTitle" Text="Select a row to see what the check means." FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                        <TextBlock x:Name="DetailDescription" Style="{StaticResource DetailValue}" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Name="DetailResultLabel" Grid.Row="0" Grid.Column="0" Text="Result" Style="{StaticResource DetailLabel}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailResult" Grid.Row="0" Grid.Column="1" Style="{StaticResource DetailValue}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailAllowedLabel" Grid.Row="1" Grid.Column="0" Text="Allowed" Style="{StaticResource DetailLabel}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailAllowed" Grid.Row="1" Grid.Column="1" Style="{StaticResource DetailValue}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailTypicalLabel" Grid.Row="2" Grid.Column="0" Text="Typical" Style="{StaticResource DetailLabel}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailTypical" Grid.Row="2" Grid.Column="1" Style="{StaticResource DetailValue}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailMoreLabel" Grid.Row="3" Grid.Column="0" Text="More" Style="{StaticResource DetailLabel}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailMore" Grid.Row="3" Grid.Column="1" Style="{StaticResource DetailValue}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailRecommendationLabel" Grid.Row="4" Grid.Column="0" Text="Recommendation" Style="{StaticResource DetailLabel}" Visibility="Collapsed"/>
-                            <TextBlock x:Name="DetailRecommendation" Grid.Row="4" Grid.Column="1" Style="{StaticResource DetailValue}" Visibility="Collapsed"/>
-                        </Grid>
-                    </StackPanel>
-                </ScrollViewer>
+                                    <!-- Dot in the color of the worst status in the category -->
+                                    <Ellipse Width="9" Height="9" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="{StaticResource NeutralBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Worst}" Value="OK">
+                                                        <Setter Property="Fill" Value="{StaticResource OkBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Worst}" Value="Info">
+                                                        <Setter Property="Fill" Value="{StaticResource InfoBrush}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Worst}" Value="Warning">
+                                                        <Setter Property="Fill" Value="#D48A00"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Worst}" Value="Critical">
+                                                        <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}"/>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
             </Border>
+
+            <!-- Right: the selected page -->
+            <Grid Grid.Column="1" Margin="20,16,20,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                    <TextBlock x:Name="PageTitle" Text="Overview" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock x:Name="PageSubtitle" Text="Click Run check to examine this computer." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Shown on the Overview page only: verdict and count per status -->
+                <StackPanel x:Name="OverviewPanel" Grid.Row="1">
+                    <Border x:Name="VerdictBorder" CornerRadius="6" Padding="14,9" Margin="0,0,0,12" BorderThickness="4,0,0,0" Visibility="Collapsed">
+                        <TextBlock x:Name="VerdictText" FontSize="14" TextWrapping="Wrap"/>
+                    </Border>
+                    <UniformGrid Columns="4" Margin="0,0,-10,14">
+                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource CriticalBrush}">
+                            <StackPanel>
+                                <TextBlock x:Name="CriticalCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource CriticalBrush}"/>
+                                <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource WarningBrush}">
+                            <StackPanel>
+                                <TextBlock x:Name="WarningCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource WarningBrush}"/>
+                                <TextBlock Text="WARNING" Style="{StaticResource TileLabel}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource OkBrush}">
+                            <StackPanel>
+                                <TextBlock x:Name="OkCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource OkBrush}"/>
+                                <TextBlock Text="OK" Style="{StaticResource TileLabel}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource InfoBrush}">
+                            <StackPanel>
+                                <TextBlock x:Name="InfoCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource InfoBrush}"/>
+                                <TextBlock Text="INFO" Style="{StaticResource TileLabel}"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+
+                <!-- The results of the page, one card per check -->
+                <Grid Grid.Row="2">
+                    <ScrollViewer x:Name="ResultScroll" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ResultItems" Margin="0,0,6,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="92"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Status badge -->
+                                            <Border Grid.Column="0" CornerRadius="9" Padding="9,1" Margin="0,2,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="OK">
+                                                                <Setter Property="Background" Value="{StaticResource OkBackBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                                <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                                <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="OK">
+                                                                    <Setter Property="Foreground" Value="{StaticResource OkBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                                    <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1">
+                                                <!-- Check name, with the category on the Overview page -->
+                                                <DockPanel>
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Category}" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Check}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                </DockPanel>
+
+                                                <!-- What was found -->
+                                                <TextBlock Text="{Binding Value}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+
+                                                <!-- The rest of a long list, opened on click -->
+                                                <Expander Header="{Binding MoreHeader}" Foreground="{StaticResource InfoBrush}" Margin="0,4,0,0">
+                                                    <Expander.Style>
+                                                        <Style TargetType="Expander">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding More}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Expander.Style>
+                                                    <TextBlock Text="{Binding More}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="2,4,0,2"/>
+                                                </Expander>
+
+                                                <!-- Allowed range and typical value of a measurement -->
+                                                <TextBlock Text="{Binding Reference}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Reference}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+
+                                                <!-- What the checked thing is -->
+                                                <TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Description}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+
+                                                <!-- What to do about it -->
+                                                <Border CornerRadius="5" Padding="10,7" Margin="0,8,0,2">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                                                    <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                                                    <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Recommendation}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                        <TextBlock Text="{Binding Recommendation}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Grid>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>

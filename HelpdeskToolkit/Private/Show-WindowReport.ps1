@@ -3,8 +3,10 @@ function Show-WindowReport {
     .SYNOPSIS
         Displays a finished health report in the application window.
     .DESCRIPTION
-        Fills in the verdict, the count per status and the result list, and enables
-        the controls that need a report (filter, Open HTML report, Save as).
+        Fills in the verdict and the count per status, builds the category list on the
+        left and opens the Overview page. Every entry of the list carries the worst
+        status of its category (shown as a colored dot) and the number of problems in
+        it, so the user sees at a glance where to look.
     #>
     [CmdletBinding()]
     param(
@@ -19,6 +21,7 @@ function Show-WindowReport {
     $controls = $Gui.Controls
     $window = $Gui.Window
     $summary = $Report.Summary
+    $results = @($Report.Results)
     $Gui.Report = $Report
 
     $controls.CriticalCount.Text = [string]$summary.Critical
@@ -49,15 +52,38 @@ function Show-WindowReport {
 
     $controls.ComputerText.Text = 'Computer: {0}  |  checked {1}  |  {2} s' -f $Report.ComputerName, $Report.GeneratedAt, [string]$Report.DurationSeconds
 
-    $status = 'Check finished: {0} results.' -f @($Report.Results).Count
+    $status = 'Check finished: {0} results.' -f $results.Count
     if (-not $Report.IsElevated) {
         $status += ' Run without administrator rights: checks marked "Requires admin" were skipped.'
     }
     $controls.StatusText.Text = $status
 
-    $controls.ProblemsOnlyCheckBox.IsEnabled = $true
     $controls.OpenReportButton.IsEnabled = $true
     $controls.SaveAsButton.IsEnabled = $true
 
-    Show-WindowResultList -Gui $Gui
+    # Category list: Overview first, then the categories in the order they ran.
+    $statusOrder = @('Critical', 'Warning', 'OK', 'Info')
+    $newEntry = {
+        param($EntryName, $EntryResults)
+
+        $statuses = @($EntryResults | ForEach-Object { $_.Status })
+        $worst = $statusOrder | Where-Object { $statuses -contains $_ } | Select-Object -First 1
+        $problems = @($EntryResults | Where-Object { $_.Status -in 'Critical', 'Warning' }).Count
+
+        [PSCustomObject]@{
+            Name  = $EntryName
+            Worst = if ($worst) { $worst } else { 'None' }
+            Badge = if ($problems -gt 0) { [string]$problems } else { '' }
+        }
+    }
+
+    $entries = @(& $newEntry 'Overview' $results)
+    foreach ($category in @($results | ForEach-Object { $_.Category } | Select-Object -Unique)) {
+        $entries += & $newEntry $category @($results | Where-Object { $_.Category -eq $category })
+    }
+
+    $controls.CategoryList.ItemsSource = $entries
+    $controls.CategoryList.SelectedIndex = 0
+
+    Show-WindowPage -Gui $Gui -Name 'Overview'
 }

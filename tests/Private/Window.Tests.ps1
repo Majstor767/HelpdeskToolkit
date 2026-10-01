@@ -23,7 +23,7 @@ BeforeAll {
     $testResults = @(
         New-TestResult -Category 'System' -Check 'Uptime' -Status OK -Value '1 d' -Description 'Time since start.' -Allowed '0 - 7 days' -Typical '0 - 3 days'
         New-TestResult -Category 'System' -Check 'Startup programs' -Status Warning -Value '10 programs and 2 more' -Details 'Extra One', 'Extra Two' -Recommendation 'Disable some.'
-        New-TestResult -Category 'Hardware' -Check 'Disk (C:)' -Status Critical -Value '2 % free'
+        New-TestResult -Category 'Hardware' -Check 'Disk (C:)' -Status Critical -Value '2 % free' -Recommendation 'Free up space.'
         New-TestResult -Category 'Network' -Check 'Proxy' -Status Info -Value 'Not configured'
     )
 }
@@ -40,9 +40,9 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
 
     It 'exposes the control <_> that the code relies on' -ForEach @(
         'RunButton', 'SkipNetworkCheckBox', 'DaysComboBox', 'ProgressBar', 'StatusText', 'ComputerText'
+        'CategoryList', 'PageTitle', 'PageSubtitle', 'OverviewPanel', 'ResultItems', 'ResultScroll', 'EmptyText'
         'VerdictBorder', 'VerdictText', 'CriticalCount', 'WarningCount', 'OkCount', 'InfoCount'
-        'ProblemsOnlyCheckBox', 'OpenReportButton', 'SaveAsButton', 'ResultsGrid', 'EmptyText'
-        'DetailTitle', 'DetailDescription', 'DetailResult', 'DetailAllowed', 'DetailTypical', 'DetailMore', 'DetailRecommendation'
+        'OpenReportButton', 'SaveAsButton'
     ) {
         $gui.Controls[$_] | Should -Not -BeNullOrEmpty
     }
@@ -50,14 +50,58 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
     It 'starts with the report buttons disabled, because there is nothing to save yet' {
         $gui.Controls.OpenReportButton.IsEnabled | Should -BeFalse
         $gui.Controls.SaveAsButton.IsEnabled | Should -BeFalse
-        $gui.Controls.ProblemsOnlyCheckBox.IsEnabled | Should -BeFalse
     }
 
-    It 'offers event log periods that Get-PCHealthReport accepts' {
+    It 'starts with an empty category list and a hint' {
+        $gui.Controls.CategoryList.Items.Count | Should -Be 0
+        $gui.Controls.PageSubtitle.Text | Should -Match 'Run check'
+    }
+
+    It 'offers history periods that Get-PCHealthReport accepts' {
         foreach ($item in $gui.Controls.DaysComboBox.Items) {
             [int]$item.Tag | Should -BeGreaterThan 0
             [int]$item.Tag | Should -BeLessOrEqual 365
         }
+    }
+
+    It 'uses the application icon' {
+        $gui.Window.Icon | Should -Not -BeNullOrEmpty
+    }
+}
+
+Describe 'ConvertTo-WindowItem' {
+    It 'combines the allowed range and the typical value into one line' {
+        $item = InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[0] } { ConvertTo-WindowItem -Result $Result }
+        $item.Reference | Should -Be 'Allowed: 0 - 7 days   |   Typical: 0 - 3 days'
+        $item.Description | Should -Be 'Time since start.'
+    }
+
+    It 'leaves the optional texts empty, so the card hides those lines' {
+        $item = InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[3] } { ConvertTo-WindowItem -Result $Result }
+        $item.Reference | Should -Be ''
+        $item.More | Should -Be ''
+        $item.MoreHeader | Should -Be ''
+        $item.Recommendation | Should -Be ''
+    }
+
+    It 'puts the remaining items of a long list behind a "Show N more" section' {
+        $item = InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[1] } { ConvertTo-WindowItem -Result $Result }
+        $item.MoreHeader | Should -Be 'Show 2 more'
+        $item.More | Should -Be "Extra One`nExtra Two"
+    }
+
+    It 'labels the recommendation of a problem as a recommended fix' {
+        $problem = InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[2] } { ConvertTo-WindowItem -Result $Result }
+        $problem.RecommendationLabel | Should -Be 'RECOMMENDED FIX'
+        $problem.Recommendation | Should -Be 'Free up space.'
+
+        $advice = New-TestResult -Status Info -Recommendation 'Consider it.'
+        (InModuleScope HelpdeskToolkit -Parameters @{ Result = $advice } { ConvertTo-WindowItem -Result $Result }).RecommendationLabel | Should -Be 'ADVICE'
+    }
+
+    It 'shows the category only when asked to' {
+        (InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[2] } { ConvertTo-WindowItem -Result $Result }).Category | Should -Be ''
+        (InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[2] } { ConvertTo-WindowItem -Result $Result -ShowCategory }).Category | Should -Be 'Hardware'
     }
 }
 
@@ -80,15 +124,31 @@ Describe 'Show-WindowReport' -Skip:(-not $isSta) {
         $gui.Controls.VerdictText.Text | Should -Be 'Action required. 1 critical problem and 1 warning found.'
     }
 
-    It 'lists all results' {
-        @($gui.Controls.ResultsGrid.ItemsSource).Count | Should -Be 4
-        $gui.Controls.EmptyText.Visibility | Should -Be 'Collapsed'
+    It 'lists Overview and then every category in the order it ran' {
+        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'System', 'Hardware', 'Network')
     }
 
-    It 'enables the controls that need a report' {
+    It 'marks every entry with the worst status and the number of problems' {
+        $entries = @($gui.Controls.CategoryList.ItemsSource)
+        ($entries | Where-Object Name -eq 'Overview').Worst | Should -Be 'Critical'
+        ($entries | Where-Object Name -eq 'Overview').Badge | Should -Be '2'
+        ($entries | Where-Object Name -eq 'System').Worst | Should -Be 'Warning'
+        ($entries | Where-Object Name -eq 'System').Badge | Should -Be '1'
+        ($entries | Where-Object Name -eq 'Network').Worst | Should -Be 'Info'
+        ($entries | Where-Object Name -eq 'Network').Badge | Should -Be ''
+    }
+
+    It 'opens the Overview page with the problems, critical first' {
+        $gui.Controls.CategoryList.SelectedIndex | Should -Be 0
+        $gui.Controls.PageTitle.Text | Should -Be 'Overview'
+        $gui.Controls.OverviewPanel.Visibility | Should -Be 'Visible'
+        @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Disk (C:)', 'Startup programs')
+        @($gui.Controls.ResultItems.ItemsSource).Category | Should -Be @('Hardware', 'System')
+    }
+
+    It 'enables the report buttons' {
         $gui.Controls.OpenReportButton.IsEnabled | Should -BeTrue
         $gui.Controls.SaveAsButton.IsEnabled | Should -BeTrue
-        $gui.Controls.ProblemsOnlyCheckBox.IsEnabled | Should -BeTrue
     }
 
     It 'mentions the skipped checks when the run was not elevated' {
@@ -102,69 +162,50 @@ Describe 'Show-WindowReport' -Skip:(-not $isSta) {
 
         $okGui.Controls.VerdictText.Text | Should -Be 'No problems found. All checks passed.'
         $okGui.Controls.StatusText.Text | Should -Not -Match 'Requires admin'
+        $okGui.Controls.EmptyText.Visibility | Should -Be 'Visible'
+        $okGui.Controls.EmptyText.Text | Should -Be 'No problems found.'
+        @($okGui.Controls.CategoryList.ItemsSource)[0].Badge | Should -Be ''
     }
 }
 
-Describe 'Show-WindowResultList' -Skip:(-not $isSta) {
+Describe 'Show-WindowPage' -Skip:(-not $isSta) {
     BeforeAll {
         $gui = New-TestWindow
-        $gui.Report = New-TestReport -Result $testResults
+        $report = New-TestReport -Result $testResults
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Report = $report } { Show-WindowReport -Gui $Gui -Report $Report }
     }
 
-    It 'shows only problems, critical first, when the filter is on' {
-        $gui.Controls.ProblemsOnlyCheckBox.IsChecked = $true
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResultList -Gui $Gui }
+    It 'shows every check of the chosen category, not only the problems' {
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'System' }
 
-        $shown = @($gui.Controls.ResultsGrid.ItemsSource)
-        $shown.Check | Should -Be @('Disk (C:)', 'Startup programs')
+        $gui.Controls.PageTitle.Text | Should -Be 'System'
+        $gui.Controls.PageSubtitle.Text | Should -Be '1 Warning, 1 OK'
+        @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Uptime', 'Startup programs')
     }
 
-    It 'shows everything again when the filter is off' {
-        $gui.Controls.ProblemsOnlyCheckBox.IsChecked = $false
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResultList -Gui $Gui }
-
-        @($gui.Controls.ResultsGrid.ItemsSource).Count | Should -Be 4
+    It 'hides the verdict and the status counts on a category page' {
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'Network' }
+        $gui.Controls.OverviewPanel.Visibility | Should -Be 'Collapsed'
+        $gui.Controls.EmptyText.Visibility | Should -Be 'Collapsed'
     }
 
-    It 'says that there are no problems when the filter leaves nothing to show' {
-        $gui.Report = New-TestReport -Result @(New-TestResult -Status OK)
-        $gui.Controls.ProblemsOnlyCheckBox.IsChecked = $true
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResultList -Gui $Gui }
-
-        $gui.Controls.EmptyText.Visibility | Should -Be 'Visible'
-        $gui.Controls.EmptyText.Text | Should -Be 'No problems found.'
-    }
-}
-
-Describe 'Show-WindowResultDetail' -Skip:(-not $isSta) {
-    BeforeAll {
-        $gui = New-TestWindow
+    It 'shows the page of the entry selected in the category list when no name is given' {
+        $gui.Controls.CategoryList.SelectedIndex = 2
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui }
+        $gui.Controls.PageTitle.Text | Should -Be 'Hardware'
+        @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Disk (C:)')
     }
 
-    It 'shows the description, reference values, extra items and recommendation of a result' {
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Result = $testResults[1] } { Show-WindowResultDetail -Gui $Gui -Result $Result }
-
-        $gui.Controls.DetailTitle.Text | Should -Be 'System - Startup programs'
-        $gui.Controls.DetailResult.Text | Should -Be '10 programs and 2 more'
-        $gui.Controls.DetailMore.Text | Should -Be 'Extra One, Extra Two'
-        $gui.Controls.DetailRecommendation.Text | Should -Be 'Disable some.'
-        $gui.Controls.DetailMore.Visibility | Should -Be 'Visible'
+    It 'returns to the Overview with the verdict and the status counts' {
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'Overview' }
+        $gui.Controls.OverviewPanel.Visibility | Should -Be 'Visible'
+        $gui.Controls.PageSubtitle.Text | Should -Match '^These 2 results need attention'
     }
 
-    It 'hides the rows a result has no value for' {
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Result = $testResults[3] } { Show-WindowResultDetail -Gui $Gui -Result $Result }
-
-        $gui.Controls.DetailResult.Visibility | Should -Be 'Visible'
-        $gui.Controls.DetailAllowed.Visibility | Should -Be 'Collapsed'
-        $gui.Controls.DetailAllowedLabel.Visibility | Should -Be 'Collapsed'
-        $gui.Controls.DetailRecommendation.Visibility | Should -Be 'Collapsed'
-    }
-
-    It 'returns to the hint when the selection is cleared' {
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResultDetail -Gui $Gui -Result $null }
-
-        $gui.Controls.DetailTitle.Text | Should -Match 'Select a row'
-        $gui.Controls.DetailResult.Visibility | Should -Be 'Collapsed'
+    It 'does nothing before the first check has run' {
+        $emptyGui = New-TestWindow
+        { InModuleScope HelpdeskToolkit -Parameters @{ Gui = $emptyGui } { Show-WindowPage -Gui $Gui -Name 'System' } } | Should -Not -Throw
+        $emptyGui.Controls.PageTitle.Text | Should -Be 'Overview'
     }
 }
 
@@ -199,6 +240,7 @@ Describe 'Receive-WindowCheck' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Receive-WindowCheck -Gui $Gui }
 
         $gui.Controls.OkCount.Text | Should -Be '1'
+        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'System')
         $gui.Controls.RunButton.IsEnabled | Should -BeTrue
         $gui.Controls.RunButton.Content | Should -Be 'Run check'
         $gui.Worker | Should -BeNullOrEmpty
