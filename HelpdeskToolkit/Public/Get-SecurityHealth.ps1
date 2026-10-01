@@ -62,7 +62,7 @@ function Get-SecurityHealth {
                 ''
             }
             New-CheckResult -Category $category -Check 'Defender definitions' -Status $status `
-                -Value ('{0} days old (updated {1:yyyy-MM-dd HH:mm})' -f $age, $defender.AntivirusSignatureLastUpdated) `
+                -Value ('{0} {1} old (updated {2:yyyy-MM-dd HH:mm})' -f $age, $(if ($age -eq 1) { 'day' } else { 'days' }), $defender.AntivirusSignatureLastUpdated) `
                 -Recommendation $recommendation
         }
     }
