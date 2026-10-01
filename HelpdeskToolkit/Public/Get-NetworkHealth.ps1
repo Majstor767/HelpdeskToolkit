@@ -15,6 +15,12 @@ function Get-NetworkHealth {
         3. resolve a host name       - is DNS working?
         4. HTTPS request             - can the computer actually reach a web site?
 
+        The answer to the HTTPS request also carries the time of the server, which is
+        used to check how accurate the clock of the computer is.
+
+        Also reported: the network profile of each connection (Public, Private or
+        Domain), active entries in the hosts file and permanently mapped network drives.
+
         The test targets are defined in Config\Thresholds.psd1. No administrator
         rights are needed.
     .PARAMETER SkipConnectivity
@@ -111,7 +117,44 @@ function Get-NetworkHealth {
         New-FailureResult -Category $category -Check 'Network adapters' -ErrorRecord $_
     }
 
+    # Network profile: decides which firewall profile applies to each connection.
+    try {
+        $categoryNames = @{ 0 = 'Public'; 1 = 'Private'; 2 = 'Domain' }
+        $profiles = @(Get-CimInstance -Namespace 'root/StandardCimv2' -ClassName MSFT_NetConnectionProfile -ErrorAction Stop |
+                ForEach-Object { '{0}: {1} ({2})' -f $_.InterfaceAlias, $categoryNames[[int]$_.NetworkCategory], $_.Name })
+        $profileValue = if ($profiles.Count -gt 0) { $profiles -join ', ' } else { 'Not connected' }
+        New-CheckResult -Category $category -Check 'Network profile' -Status Info -Value $profileValue
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Network profile' -ErrorRecord $_
+    }
+
     New-CheckResult -Category $category -Check 'Proxy' -Status Info -Value (Get-ProxySetting)
+
+    # Hosts file: an entry there overrides DNS for that name.
+    try {
+        $hostEntries = @(Get-HostsFileEntry)
+        if ($hostEntries.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Hosts file' -Status OK -Value 'No custom entries'
+        }
+        else {
+            $shown = 3
+            $remaining = @($hostEntries | Select-Object -Skip $shown)
+            $value = '{0} custom entries: {1}' -f $hostEntries.Count, (($hostEntries | Select-Object -First $shown) -join ', ')
+            if ($remaining.Count -gt 0) {
+                $value = '{0} and {1} more' -f $value, $remaining.Count
+            }
+            New-CheckResult -Category $category -Check 'Hosts file' -Status Info -Value $value -Details $remaining `
+                -Recommendation 'These names are not looked up in DNS but sent to the address written in the hosts file. If one of these sites does not open or shows the wrong content, remove its line from C:\Windows\System32\drivers\etc\hosts (needs administrator rights).'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Hosts file' -ErrorRecord $_
+    }
+
+    $mappedDrives = @(Get-MappedDrive)
+    $mappedValue = if ($mappedDrives.Count -gt 0) { $mappedDrives -join ', ' } else { 'None' }
+    New-CheckResult -Category $category -Check 'Mapped network drives' -Status Info -Value $mappedValue
 
     if ($SkipConnectivity) {
         New-CheckResult -Category $category -Check 'Connectivity tests' -Status Info -Value 'Skipped'
@@ -173,6 +216,29 @@ function Get-NetworkHealth {
     if ($https.Success) {
         New-CheckResult -Category $category -Check 'HTTPS access' -Status OK `
             -Value ('{0} reachable ({1})' -f $settings.HttpsTestUrl, $https.Detail)
+
+        # Clock accuracy. Every web server states its current time in the answer, so the
+        # request that was just made also tells how far the clock of this computer is off.
+        if ($https.ServerTime) {
+            $difference = [math]::Abs(([datetime]::UtcNow - $https.ServerTime).TotalSeconds)
+            $status = Get-ThresholdStatus -Value $difference -Warning $settings.ClockWarningSeconds
+            $differenceText = if ($difference -lt 60) {
+                $seconds = [int][math]::Round($difference)
+                '{0} second{1}' -f $seconds, $(if ($seconds -ne 1) { 's' })
+            }
+            else {
+                '{0} minutes' -f [string][math]::Round($difference / 60, 1)
+            }
+            $recommendation = if ($status -ne 'OK') {
+                'The clock of the computer is wrong, which breaks sign-in to company services and causes certificate errors in the browser. Open Settings > Time & language > Date & time and choose "Sync now".'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'Clock accuracy' -Status $status `
+                -Value ('Differs from internet time by {0}' -f $differenceText) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $settings.ClockWarningSeconds -Unit 'seconds') -Typical $settings.TypicalClock
+        }
     }
     else {
         New-CheckResult -Category $category -Check 'HTTPS access' -Status Critical `

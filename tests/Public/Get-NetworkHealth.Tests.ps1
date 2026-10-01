@@ -23,10 +23,16 @@ Describe 'Get-NetworkHealth' {
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_NetworkAdapter' } {
             [PSCustomObject]@{ InterfaceIndex = 7; Speed = 1000000000 }
         }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_NetConnectionProfile' } {
+            [PSCustomObject]@{ InterfaceAlias = 'Ethernet'; NetworkCategory = 1; Name = 'Office' }
+        }
+        Mock -ModuleName HelpdeskToolkit Get-HostsFileEntry { }
+        Mock -ModuleName HelpdeskToolkit Get-MappedDrive { }
         Mock -ModuleName HelpdeskToolkit Get-ProxySetting { 'Not configured' }
         Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $true; AverageMs = 12; Text = '12 ms' } }
         Mock -ModuleName HelpdeskToolkit Resolve-HostAddress { '203.0.113.25' }
-        Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 200' } }
+        # The server time is two seconds behind the clock of the computer.
+        Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 200'; ServerTime = [datetime]::UtcNow.AddSeconds(-2) } }
     }
 
     Context 'with a working connection' {
@@ -51,6 +57,17 @@ Describe 'Get-NetworkHealth' {
             $result.Value | Should -Be $Value
         }
 
+        It 'reports <Check> as <Status> with value "<Value>"' -ForEach @(
+            @{ Check = 'Network profile'; Status = 'Info'; Value = 'Ethernet: Private (Office)' }
+            @{ Check = 'Hosts file'; Status = 'OK'; Value = 'No custom entries' }
+            @{ Check = 'Mapped network drives'; Status = 'Info'; Value = 'None' }
+            @{ Check = 'Clock accuracy'; Status = 'OK'; Value = 'Differs from internet time by 2 seconds' }
+        ) {
+            $result = $results | Where-Object Check -eq $Check
+            $result.Status | Should -Be $Status
+            $result.Value | Should -Be $Value
+        }
+
         It 'reports the proxy setting' {
             ($results | Where-Object Check -eq 'Proxy').Value | Should -Be 'Not configured'
         }
@@ -64,6 +81,58 @@ Describe 'Get-NetworkHealth' {
             $ping = $results | Where-Object Check -eq 'Ping internet'
             $ping.Allowed | Should -Be '0 - 150 ms'
             $ping.Typical | Should -Be 'typical internet'
+        }
+    }
+
+    Context 'network profile, hosts file and mapped drives' {
+        It 'names the profile of every connection' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_NetConnectionProfile' } {
+                [PSCustomObject]@{ InterfaceAlias = 'Wi-Fi'; NetworkCategory = 0; Name = 'CafeGuest' }
+                [PSCustomObject]@{ InterfaceAlias = 'Ethernet'; NetworkCategory = 2; Name = 'corp.test.example' }
+            }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Network profile').Value |
+                Should -Be 'Wi-Fi: Public (CafeGuest), Ethernet: Domain (corp.test.example)'
+        }
+
+        It 'says "Not connected" when no network is connected' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_NetConnectionProfile' } { }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Network profile').Value | Should -Be 'Not connected'
+        }
+
+        It 'lists entries of the hosts file with advice, the first three in the value' {
+            Mock -ModuleName HelpdeskToolkit Get-HostsFileEntry { '10.0.0.5 intranet', '127.0.0.1 ads.test.example', '10.0.0.6 wiki', '10.0.0.7 mail' }
+            $hosts = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Hosts file'
+            $hosts.Status | Should -Be 'Info'
+            $hosts.Value | Should -Be '4 custom entries: 10.0.0.5 intranet, 127.0.0.1 ads.test.example, 10.0.0.6 wiki and 1 more'
+            $hosts.Details | Should -Be @('10.0.0.7 mail')
+            $hosts.Recommendation | Should -Match 'hosts'
+        }
+
+        It 'lists mapped network drives' {
+            Mock -ModuleName HelpdeskToolkit Get-MappedDrive { 'S: -> \\fileserver\shared', 'Z: -> \\fileserver\home' }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Mapped network drives').Value |
+                Should -Be 'S: -> \\fileserver\shared, Z: -> \\fileserver\home'
+        }
+    }
+
+    Context 'clock accuracy' {
+        It 'is a Warning when the clock is off by more than the limit' {
+            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 200'; ServerTime = [datetime]::UtcNow.AddMinutes(-7) } }
+            $clock = Get-NetworkHealth | Where-Object Check -eq 'Clock accuracy'
+            $clock.Status | Should -Be 'Warning'
+            $clock.Value | Should -Be 'Differs from internet time by 7 minutes'
+            $clock.Allowed | Should -Be '0 - 120 seconds'
+            $clock.Recommendation | Should -Match 'Sync now'
+        }
+
+        It 'treats a clock that runs ahead the same as one that runs behind' {
+            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 200'; ServerTime = [datetime]::UtcNow.AddMinutes(10) } }
+            (Get-NetworkHealth | Where-Object Check -eq 'Clock accuracy').Status | Should -Be 'Warning'
+        }
+
+        It 'is left out when the server did not report its time' {
+            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 403'; ServerTime = $null } }
+            Get-NetworkHealth | Where-Object Check -eq 'Clock accuracy' | Should -BeNullOrEmpty
         }
     }
 
@@ -146,7 +215,7 @@ Describe 'Get-NetworkHealth' {
         BeforeAll {
             Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $false; AverageMs = $null; Text = '' } }
             Mock -ModuleName HelpdeskToolkit Resolve-HostAddress { }
-            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $false; Detail = 'Connection timed out' } }
+            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $false; Detail = 'Connection timed out'; ServerTime = $null } }
             $results = Get-NetworkHealth
         }
 

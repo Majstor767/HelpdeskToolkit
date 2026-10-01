@@ -291,3 +291,120 @@ Describe 'Test-IsAdministratorMember' {
         }
     }
 }
+
+Describe 'Test-HttpsEndpoint server time' {
+    It 'returns the time from the Date header in UTC' {
+        Mock -ModuleName HelpdeskToolkit Invoke-WebRequest {
+            [PSCustomObject]@{ StatusCode = 200; Headers = @{ Date = 'Thu, 15 Jan 2026 10:30:00 GMT' } }
+        }
+        $result = InModuleScope HelpdeskToolkit { Test-HttpsEndpoint -Uri 'https://test.example' }
+        $result.ServerTime | Should -Be ([datetime]::new(2026, 1, 15, 10, 30, 0, [System.DateTimeKind]::Utc))
+        $result.ServerTime.Kind | Should -Be 'Utc'
+    }
+
+    It 'accepts the header as a list of strings, as PowerShell 7 returns it' {
+        Mock -ModuleName HelpdeskToolkit Invoke-WebRequest {
+            [PSCustomObject]@{ StatusCode = 200; Headers = @{ Date = [string[]]@('Thu, 15 Jan 2026 10:30:00 GMT') } }
+        }
+        (InModuleScope HelpdeskToolkit { Test-HttpsEndpoint -Uri 'https://test.example' }).ServerTime.Hour | Should -Be 10
+    }
+
+    It 'returns no server time when the header is missing or unreadable' {
+        Mock -ModuleName HelpdeskToolkit Invoke-WebRequest { [PSCustomObject]@{ StatusCode = 200; Headers = @{ Date = 'not a date' } } }
+        $result = InModuleScope HelpdeskToolkit { Test-HttpsEndpoint -Uri 'https://test.example' }
+        $result.Success | Should -BeTrue
+        $result.ServerTime | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-FolderSize' {
+    BeforeAll {
+        # A small folder tree with known sizes: 1000 + 2000 + 500 bytes in 3 files.
+        $folder = Join-Path -Path $TestDrive -ChildPath 'sizes'
+        New-Item -Path (Join-Path -Path $folder -ChildPath 'sub\deeper') -ItemType Directory -Force | Out-Null
+        [System.IO.File]::WriteAllBytes((Join-Path -Path $folder -ChildPath 'a.bin'), (New-Object -TypeName byte[] -ArgumentList 1000))
+        [System.IO.File]::WriteAllBytes((Join-Path -Path $folder -ChildPath 'sub\b.bin'), (New-Object -TypeName byte[] -ArgumentList 2000))
+        [System.IO.File]::WriteAllBytes((Join-Path -Path $folder -ChildPath 'sub\deeper\c.bin'), (New-Object -TypeName byte[] -ArgumentList 500))
+    }
+
+    It 'adds up the files of the folder and all subfolders' {
+        $size = InModuleScope HelpdeskToolkit -Parameters @{ Path = $folder } { Get-FolderSize -Path $Path }
+        $size.Bytes | Should -Be 3500
+        $size.FileCount | Should -Be 3
+        $size.Complete | Should -BeTrue
+    }
+
+    It 'returns zero for a folder that does not exist' {
+        $size = InModuleScope HelpdeskToolkit { Get-FolderSize -Path 'C:\NoSuchFolder\Nowhere' }
+        $size.Bytes | Should -Be 0
+        $size.Complete | Should -BeTrue
+    }
+
+    It 'stops at the time limit and says the result is incomplete' {
+        $size = InModuleScope HelpdeskToolkit -Parameters @{ Path = $folder } { Get-FolderSize -Path $Path -TimeoutMs 0 }
+        $size.Complete | Should -BeFalse
+    }
+}
+
+Describe 'Get-RecycleBinSize' {
+    It 'adds up the Recycle Bin folders of all fixed drives' {
+        Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 100; FileCount = 1; Complete = $true } }
+        $drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::Fixed -and $_.IsReady }).Count
+
+        $bin = InModuleScope HelpdeskToolkit { Get-RecycleBinSize }
+        $bin.Bytes | Should -Be (100 * $drives)
+        $bin.Complete | Should -BeTrue
+        Should -Invoke -ModuleName HelpdeskToolkit Get-FolderSize -Times $drives -Exactly -ParameterFilter { $Path -like '*$Recycle.Bin\S-1-*' }
+    }
+
+    It 'is incomplete when one drive could not be measured in time' {
+        Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 100; FileCount = 1; Complete = $false } }
+        (InModuleScope HelpdeskToolkit { Get-RecycleBinSize }).Complete | Should -BeFalse
+    }
+}
+
+Describe 'Get-HostsFileEntry' {
+    BeforeAll {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $true }
+    }
+
+    It 'returns only active entries, with single spaces' {
+        Mock -ModuleName HelpdeskToolkit Get-Content {
+            '# Copyright (c) Microsoft Corp.'
+            ''
+            '   # 127.0.0.1 localhost'
+            "10.0.0.5`t`tintranet.test.example"
+            '  127.0.0.1    ads.test.example  '
+        }
+        InModuleScope HelpdeskToolkit { Get-HostsFileEntry } | Should -Be @('10.0.0.5 intranet.test.example', '127.0.0.1 ads.test.example')
+    }
+
+    It 'returns nothing for the file as Windows ships it (comments only)' {
+        Mock -ModuleName HelpdeskToolkit Get-Content { '# comment'; '#'; '' }
+        @(InModuleScope HelpdeskToolkit { Get-HostsFileEntry }).Count | Should -Be 0
+    }
+
+    It 'returns nothing when the file does not exist' {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $false }
+        @(InModuleScope HelpdeskToolkit { Get-HostsFileEntry }).Count | Should -Be 0
+    }
+}
+
+Describe 'Get-MappedDrive' {
+    It 'returns every mapped drive with its network path' {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $true }
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem {
+            foreach ($drive in @{ Letter = 'z'; Target = '\\fileserver\home' }, @{ Letter = 's'; Target = '\\fileserver\shared' }) {
+                $key = [PSCustomObject]@{ PSChildName = $drive.Letter; Target = $drive.Target }
+                $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { $this.Target }
+                $key
+            }
+        }
+        InModuleScope HelpdeskToolkit { Get-MappedDrive } | Should -Be @('Z: -> \\fileserver\home', 'S: -> \\fileserver\shared')
+    }
+
+    It 'returns nothing when no drive is mapped' {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $false }
+        @(InModuleScope HelpdeskToolkit { Get-MappedDrive }).Count | Should -Be 0
+    }
+}
