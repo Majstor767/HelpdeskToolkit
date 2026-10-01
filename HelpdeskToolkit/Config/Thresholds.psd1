@@ -11,6 +11,42 @@
         Typical     = '0 - 3 days'
     }
 
+    WindowsSupport = @{
+        # Last day on which Microsoft releases security updates for a Windows version.
+        # Source: the Windows lifecycle pages on learn.microsoft.com/lifecycle, read on
+        # 2026-10-01. Add a line when Microsoft publishes a new feature release.
+        Windows10End         = '2025-10-14'
+        # Home, Pro, Pro Education and Pro for Workstations
+        HomePro              = @{
+            '21H2' = '2023-10-10'
+            '22H2' = '2024-10-08'
+            '23H2' = '2025-11-11'
+            '24H2' = '2026-10-13'
+            '25H2' = '2027-10-12'
+            '26H1' = '2028-03-14'
+            '26H2' = '2028-10-09'
+        }
+        # Enterprise and Education
+        Enterprise           = @{
+            '21H2' = '2024-10-08'
+            '22H2' = '2025-10-14'
+            '23H2' = '2026-11-10'
+            '24H2' = '2027-10-12'
+            '25H2' = '2028-10-10'
+            '26H1' = '2029-03-13'
+            '26H2' = '2029-10-08'
+        }
+        # Fewer days than this until the end of support = Warning.
+        WarningDaysBeforeEnd = 90
+    }
+
+    Stability     = @{
+        # Stability index of Reliability Monitor (1 = unstable, 10 = stable) below these values.
+        WarningIndex  = 5
+        CriticalIndex = 3
+        Typical       = '8 - 10'
+    }
+
     Startup       = @{
         # More programs than this starting with Windows = Warning.
         WarningProgramCount = 15
@@ -36,6 +72,21 @@
         WarningFreePercent  = 15
         CriticalFreePercent = 5
         Typical             = '25 % free or more'
+    }
+
+    Cleanup       = @{
+        # Space that could be freed: more gigabytes than this = Warning.
+        TempWarningGb       = 5
+        RecycleBinWarningGb = 10
+        # Counting stops after this many milliseconds per folder, so a huge folder
+        # cannot hold up the whole check; the size is then reported as "or more".
+        TimeoutMs           = 3000
+    }
+
+    PageFile      = @{
+        # Page file usage above this percentage = Warning.
+        WarningPercent = 80
+        Typical        = '0 - 30 %'
     }
 
     Battery       = @{
@@ -101,6 +152,10 @@
         PingWarningMs       = 150
         TypicalGatewayPing  = 'under 5 ms'
         TypicalInternetPing = '10 - 50 ms'
+        # Clock differing from internet time by more than this many seconds = Warning.
+        # Sign-in in a domain fails when the difference exceeds 5 minutes.
+        ClockWarningSeconds = 120
+        TypicalClock        = '0 - 5 seconds'
     }
 
     # Services (by service name) whose state is reported in the Services category.

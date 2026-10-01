@@ -24,6 +24,23 @@ function Set-TestThreshold {
 
     InModuleScope HelpdeskToolkit {
         $script:Thresholds = @{
+            # End-of-support dates relative to today, so the tests never go out of date:
+            # release 90H1 ended, 90H2 ends soon, 91H1 is supported for a long time.
+            WindowsSupport = @{
+                Windows10End         = (Get-Date).AddDays(-100).ToString('yyyy-MM-dd')
+                HomePro              = @{
+                    '90H1' = (Get-Date).AddDays(-10).ToString('yyyy-MM-dd')
+                    '90H2' = (Get-Date).AddDays(30).ToString('yyyy-MM-dd')
+                    '91H1' = (Get-Date).AddDays(400).ToString('yyyy-MM-dd')
+                }
+                Enterprise           = @{
+                    '90H1' = (Get-Date).AddDays(355).ToString('yyyy-MM-dd')
+                }
+                WarningDaysBeforeEnd = 90
+            }
+            Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
+            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; TimeoutMs = 3000 }
+            PageFile      = @{ WarningPercent = 80; Typical = 'typical page file' }
             Uptime        = @{ WarningDays = 7; Typical = 'typical uptime' }
             Startup       = @{ WarningProgramCount = 15; Typical = 'typical startup' }
             Cpu           = @{ WarningPercent = 85; CriticalPercent = 95; Typical = 'typical cpu' }
@@ -58,6 +75,8 @@ function Set-TestThreshold {
                 PingWarningMs       = 150
                 TypicalGatewayPing  = 'typical gateway'
                 TypicalInternetPing = 'typical internet'
+                ClockWarningSeconds = 120
+                TypicalClock        = 'typical clock'
             }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }
