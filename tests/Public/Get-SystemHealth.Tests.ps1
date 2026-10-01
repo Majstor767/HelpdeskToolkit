@@ -16,6 +16,7 @@ Describe 'Get-SystemHealth' {
                 BuildNumber    = '26100'
                 LastBootUpTime = (Get-Date).AddDays(-2).AddHours(-3)
                 InstallDate    = [datetime]'2024-11-04'
+                ProductType    = 1
             }
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' } {
@@ -34,7 +35,12 @@ Describe 'Get-SystemHealth' {
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_StartupCommand' } {
             'OneDrive', 'Teams', 'Updater' | ForEach-Object { [PSCustomObject]@{ Name = $_ } }
         }
-        Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '24H2' }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ReliabilityStabilityMetrics' } {
+            [PSCustomObject]@{ SystemStabilityIndex = 8.74; TimeGenerated = (Get-Date).AddHours(-2) }
+            [PSCustomObject]@{ SystemStabilityIndex = 8.86; TimeGenerated = (Get-Date).AddHours(-1) }
+        }
+        # 91H1 is a release of the test configuration that is supported for a long time.
+        Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '91H1' }
     }
 
     Context 'on a healthy computer' {
@@ -49,7 +55,7 @@ Describe 'Get-SystemHealth' {
 
         It 'reports <Check> as "<Value>"' -ForEach @(
             @{ Check = 'Computer name'; Value = 'TEST-PC-01' }
-            @{ Check = 'Operating system'; Value = 'Microsoft Windows 11 Pro 24H2 (build 26100)' }
+            @{ Check = 'Operating system'; Value = 'Microsoft Windows 11 Pro 91H1 (build 26100)' }
             @{ Check = 'Windows installed'; Value = '2024-11-04' }
             @{ Check = 'Manufacturer and model'; Value = 'Contoso Book 5' }
             @{ Check = 'Domain or workgroup'; Value = 'Workgroup: WORKGROUP' }
@@ -86,6 +92,7 @@ Describe 'Get-SystemHealth' {
                     BuildNumber    = '26100'
                     LastBootUpTime = (Get-Date).AddDays(-10)
                     InstallDate    = $null
+                    ProductType    = 1
                 }
             }
             $results = Get-SystemHealth
@@ -169,6 +176,45 @@ Describe 'Get-SystemHealth' {
         It 'removes generated suffixes from program names' {
             $startup.Value | Should -Match 'BrowserAutoLaunch,'
             $startup.Value | Should -Not -Match '0123456789ABCDEF'
+        }
+    }
+
+    Context 'Windows support and stability' {
+        It 'reports a supported Windows version as OK' {
+            $support = Get-SystemHealth | Where-Object Check -eq 'Windows support'
+            $support.Status | Should -Be 'OK'
+            $support.Value | Should -Match '^Supported until \d{4}-\d{2}-\d{2}$'
+        }
+
+        It 'reports a Windows version that is out of support as Critical' {
+            Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '90H1' }
+            $support = Get-SystemHealth | Where-Object Check -eq 'Windows support'
+            $support.Status | Should -Be 'Critical'
+            $support.Recommendation | Should -Match 'no longer receives security updates'
+        }
+
+        It 'reports the newest stability index' {
+            $stability = Get-SystemHealth | Where-Object Check -eq 'Stability index'
+            $stability.Status | Should -Be 'OK'
+            $stability.Value | Should -Be '8.9 of 10'
+            $stability.Allowed | Should -Be '5 - 10 (critical below 3)'
+        }
+
+        It 'reports a stability index of <Index> as <Status>' -ForEach @(
+            @{ Index = 4.2; Status = 'Warning' }
+            @{ Index = 1.5; Status = 'Critical' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ReliabilityStabilityMetrics' } {
+                [PSCustomObject]@{ SystemStabilityIndex = $Index; TimeGenerated = Get-Date }
+            }
+            $stability = Get-SystemHealth | Where-Object Check -eq 'Stability index'
+            $stability.Status | Should -Be $Status
+            $stability.Recommendation | Should -Match 'Reliability Monitor'
+        }
+
+        It 'says so when Windows keeps no stability data' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ReliabilityStabilityMetrics' } { }
+            (Get-SystemHealth | Where-Object Check -eq 'Stability index').Value | Should -Be 'Not available'
         }
     }
 

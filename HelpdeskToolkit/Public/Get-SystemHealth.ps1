@@ -1,12 +1,17 @@
 function Get-SystemHealth {
     <#
     .SYNOPSIS
-        Collects basic system information and checks uptime, activation and startup programs.
+        Collects basic system information and checks support, uptime, stability, activation and startup programs.
     .DESCRIPTION
         Reports the computer name, operating system version and build, manufacturer
-        and model, domain or workgroup, the signed-in user and the Windows install
-        date, and checks three things:
+        and model, domain or workgroup, the signed-in user, the time zone and the
+        Windows install date, and checks these things:
 
+        - A Windows version that no longer receives security updates is Critical; one
+          whose support ends within 90 days is a Warning. The dates are in
+          Config\Thresholds.psd1.
+        - A stability index (the value Reliability Monitor shows) below the limit is a
+          Warning or Critical.
         - Uptime above the limit in Config\Thresholds.psd1 (7 days by default) is a
           Warning, because a long-running machine is a common cause of slowness and
           of updates that never finish installing.
@@ -55,6 +60,12 @@ function Get-SystemHealth {
     }
     New-CheckResult -Category $category -Check 'Operating system' -Status Info -Value $osValue
 
+    # Does this Windows version still receive security updates?
+    $support = Get-WindowsSupportInfo -Caption $os.Caption -BuildNumber $os.BuildNumber `
+        -DisplayVersion $displayVersion -ProductType $os.ProductType
+    New-CheckResult -Category $category -Check 'Windows support' -Status $support.Status -Value $support.Value `
+        -Recommendation $support.Recommendation
+
     if ($os.InstallDate) {
         New-CheckResult -Category $category -Check 'Windows installed' -Status Info -Value ('{0:yyyy-MM-dd}' -f $os.InstallDate)
     }
@@ -82,6 +93,37 @@ function Get-SystemHealth {
     }
     New-CheckResult -Category $category -Check 'Uptime' -Status $status -Value $uptimeValue -Recommendation $recommendation `
         -Allowed (Format-AllowedRange -Warning $thresholds.Uptime.WarningDays -Unit 'days') -Typical $thresholds.Uptime.Typical
+
+    # Stability index: the number Reliability Monitor draws as its graph, from 1
+    # (unstable) to 10 (stable). It drops after crashes, hangs and failed installations.
+    try {
+        $latest = Get-CimInstance -ClassName Win32_ReliabilityStabilityMetrics -ErrorAction Stop |
+            Select-Object -First 24 |
+            Sort-Object -Property TimeGenerated -Descending |
+            Select-Object -First 1
+
+        if (-not $latest) {
+            New-CheckResult -Category $category -Check 'Stability index' -Status Info -Value 'Not available'
+        }
+        else {
+            $index = [math]::Round([double]$latest.SystemStabilityIndex, 1)
+            $status = Get-ThresholdStatus -Value $index -LowerIsWorse `
+                -Warning $thresholds.Stability.WarningIndex -Critical $thresholds.Stability.CriticalIndex
+            $recommendation = if ($status -ne 'OK') {
+                'Windows has recorded many crashes or failures lately. Open Reliability Monitor (run "perfmon /rel") to see which program or device caused them and on which days.'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'Stability index' -Status $status `
+                -Value ('{0} of 10' -f [string]$index) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.Stability.WarningIndex -Critical $thresholds.Stability.CriticalIndex -LowerIsWorse -Maximum 10) `
+                -Typical $thresholds.Stability.Typical
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Stability index' -ErrorRecord $_
+    }
 
     # Activation. The filter selects the Windows license that has a product key installed;
     # LicenseStatus 1 means licensed.
