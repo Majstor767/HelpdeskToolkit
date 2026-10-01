@@ -1,16 +1,26 @@
 function Show-WindowPage {
     <#
     .SYNOPSIS
-        Shows one page of the window: the Overview, the Live monitor or one category.
+        Shows one page of the window: the Overview, the Live monitor, the settings or one category.
     .DESCRIPTION
-        Called when an entry of the category list is selected.
+        Called when an entry of the page list is selected, and again when the search
+        text or the status filter changes.
 
-        - Overview: the verdict, the count per status and every problem of the whole
-          report, critical ones first, each with its recommended fix.
+        - Overview: the verdict, the score, the count per status, what changed since the
+          last check, and every problem of the whole report, critical ones first, each
+          with its recommended fix.
         - Live monitor: what the computer is doing right now. It needs no health check
-          and measures only while it is shown.
+          and measures only while it is shown (or while a recording runs).
+        - Settings: language, theme, keyboard shortcuts and where the application
+          keeps its files.
         - A category (System, Network, ...): every check of that category in the
           order it ran.
+
+        Search and filter (on pages with results):
+        - A search text looks through all results of the report, whatever page is
+          open; the cards then also name their category.
+        - The status filter narrows down what the page shows. On the Overview, which
+          normally lists the problems, it shows every result with the chosen status.
     #>
     [CmdletBinding()]
     param(
@@ -18,7 +28,7 @@ function Show-WindowPage {
         [Parameter(Mandatory)]
         [hashtable]$Gui,
 
-        # Page to show. Defaults to the entry selected in the category list.
+        # Page to show. Defaults to the entry selected in the page list.
         [string]$Name
     )
 
@@ -33,65 +43,116 @@ function Show-WindowPage {
     }
 
     if ($Name -eq 'Live monitor') {
-        $controls.PageTitle.Text = 'Live monitor'
-        $controls.PageSubtitle.Text = 'Measuring ...'
+        $controls.PageTitle.Text = Get-LocalizedText 'Live monitor'
+        $controls.PageSubtitle.Text = Get-LocalizedText 'Measuring ...'
         $controls.OverviewPanel.Visibility = $collapsed
         $controls.ResultScroll.Visibility = $collapsed
         $controls.EmptyText.Visibility = $collapsed
+        $controls.SettingsPanel.Visibility = $collapsed
+        $controls.FilterPanel.Visibility = $collapsed
         $controls.MonitorPanel.Visibility = $visible
         Enable-WindowMonitor -Gui $Gui
         return
     }
 
-    # Every other page shows result cards; the monitor only measures while it is visible.
+    # Every other page leaves the monitor; it only measures while it is visible.
     Disable-WindowMonitor -Gui $Gui
     $controls.MonitorPanel.Visibility = $collapsed
+
+    if ($Name -eq 'Settings') {
+        $controls.PageTitle.Text = Get-LocalizedText 'Settings'
+        $controls.PageSubtitle.Text = Get-LocalizedText 'How the application looks, and where it keeps its own files.'
+        $controls.OverviewPanel.Visibility = $collapsed
+        $controls.ResultScroll.Visibility = $collapsed
+        $controls.EmptyText.Visibility = $collapsed
+        $controls.FilterPanel.Visibility = $collapsed
+        $controls.SettingsPanel.Visibility = $visible
+        Show-WindowSetting -Gui $Gui
+        return
+    }
+
+    $controls.SettingsPanel.Visibility = $collapsed
     $controls.ResultScroll.Visibility = $visible
 
     if (-not $report) {
         # No health check has run yet: the Overview shows the hint to start one.
-        $controls.PageTitle.Text = 'Overview'
-        $controls.PageSubtitle.Text = 'Click Run check to examine this computer.'
+        $controls.PageTitle.Text = Get-LocalizedText 'Overview'
+        $controls.PageSubtitle.Text = Get-LocalizedText 'Click Run check to examine this computer.'
         $controls.OverviewPanel.Visibility = $visible
+        $controls.FilterPanel.Visibility = $collapsed
         $controls.ResultItems.ItemsSource = @()
-        $controls.EmptyText.Text = 'No results yet. Click Run check.'
+        $controls.EmptyText.Text = Get-LocalizedText 'No results yet. Click Run check.'
         $controls.EmptyText.Visibility = $visible
         return
     }
 
+    $controls.FilterPanel.Visibility = $visible
     $results = @($report.Results)
 
-    if ($Name -eq 'Overview') {
-        # Most severe first, like the problem list of the HTML report.
-        $problems = @($results | Where-Object { $_.Status -eq 'Critical' }) + @($results | Where-Object { $_.Status -eq 'Warning' })
-        $items = @($problems | ConvertTo-WindowItem -ShowCategory)
+    # The two filters
+    $search = ([string]$controls.SearchBox.Text).Trim()
+    $controls.SearchHint.Visibility = if ($controls.SearchBox.Text) { $collapsed } else { $visible }
+    $statusFilter = if ($controls.StatusFilter.SelectedItem) { [string]$controls.StatusFilter.SelectedItem.Tag } else { '' }
+    $hasStatus = {
+        param($Result)
+        switch ($statusFilter) {
+            '' { $true }
+            'Problems' { $Result.Status -in 'Critical', 'Warning' }
+            default { $Result.Status -eq $statusFilter }
+        }
+    }
 
-        $controls.PageTitle.Text = 'Overview'
-        $controls.PageSubtitle.Text = if ($problems.Count -eq 0) {
-            'Nothing needs attention. Choose a category on the left to see its details.'
+    if ($search) {
+        # All results of the report whose visible text contains the search text
+        $items = @(
+            $results | Where-Object { & $hasStatus $_ } | ConvertTo-WindowItem -ShowCategory | Where-Object {
+                $text = $_.Check, $_.Value, $_.Description, $_.Recommendation, $_.Category, $_.More, $_.SourceCheck -join "`n"
+                $text.IndexOf($search, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+            }
+        )
+        $controls.PageTitle.Text = Get-LocalizedText 'Search results'
+        $controls.PageSubtitle.Text = (Get-LocalizedText '{0} of {1} results contain "{2}".') -f $items.Count, $results.Count, $search
+        $controls.OverviewPanel.Visibility = $collapsed
+        $emptyText = Get-LocalizedText 'Nothing found.'
+    }
+    elseif ($Name -eq 'Overview') {
+        if ($statusFilter) {
+            $shown = @($results | Where-Object { & $hasStatus $_ })
+            $subtitle = (Get-LocalizedText '{0} of {1} results have the chosen status.') -f $shown.Count, $results.Count
         }
         else {
-            'These {0} results need attention. Choose a category on the left to see everything it checked.' -f $problems.Count
+            # Most severe first, like the problem list of the HTML report.
+            $shown = @($results | Where-Object { $_.Status -eq 'Critical' }) + @($results | Where-Object { $_.Status -eq 'Warning' })
+            $subtitle = if ($shown.Count -eq 0) {
+                Get-LocalizedText 'Nothing needs attention. Choose a category on the left to see its details.'
+            }
+            else {
+                (Get-LocalizedText 'These {0} results need attention. Choose a category on the left to see everything it checked.') -f $shown.Count
+            }
         }
+        $items = @($shown | ConvertTo-WindowItem -ShowCategory)
+
+        $controls.PageTitle.Text = Get-LocalizedText 'Overview'
+        $controls.PageSubtitle.Text = $subtitle
         $controls.OverviewPanel.Visibility = $visible
-        $emptyText = 'No problems found.'
+        $emptyText = if ($statusFilter) { Get-LocalizedText 'No result has the chosen status.' } else { Get-LocalizedText 'No problems found.' }
     }
     else {
         $pageResults = @($results | Where-Object { $_.Category -eq $Name })
-        $items = @($pageResults | ConvertTo-WindowItem)
+        $items = @($pageResults | Where-Object { & $hasStatus $_ } | ConvertTo-WindowItem)
 
         # For example "1 Critical, 2 Warning, 5 OK"
         $counts = foreach ($status in 'Critical', 'Warning', 'OK', 'Info') {
             $count = @($pageResults | Where-Object { $_.Status -eq $status }).Count
             if ($count -gt 0) {
-                '{0} {1}' -f $count, $status
+                '{0} {1}' -f $count, (Get-LocalizedText $status)
             }
         }
 
-        $controls.PageTitle.Text = $Name
+        $controls.PageTitle.Text = Get-LocalizedText $Name
         $controls.PageSubtitle.Text = @($counts) -join ', '
         $controls.OverviewPanel.Visibility = $collapsed
-        $emptyText = 'No results in this category.'
+        $emptyText = if ($statusFilter) { Get-LocalizedText 'No result has the chosen status.' } else { Get-LocalizedText 'No results in this category.' }
     }
 
     $controls.ResultItems.ItemsSource = $items

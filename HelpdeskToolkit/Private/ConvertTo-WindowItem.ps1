@@ -11,8 +11,15 @@ function ConvertTo-WindowItem {
         - More / MoreHeader: the remaining items of a long list and the caption of the
           section that opens them
         - RecommendationLabel: "Recommended fix" for a problem, "Advice" otherwise
-        - Category: only filled in on the Overview page, where cards of several
-          categories are mixed
+        - ActionLabel: the caption of the button that opens the place in Windows where
+          the problem is fixed; empty when there is no recommendation or no such place
+        - Category: only filled in where cards of several categories are mixed
+        - StatusText: the status as shown on the badge
+
+        All texts are shown in the language of the window (see Get-LocalizedText). The
+        properties Status, SourceCheck and SourceCategory keep the original, English
+        values: the colors of the card depend on Status, and the button looks its
+        target up by the original names.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -24,28 +31,49 @@ function ConvertTo-WindowItem {
     )
 
     process {
+        # A name like "Disk (C:)" or "Adapter: Contoso Ethernet" is translated by its
+        # first part; the rest is a name that stays as it is.
+        $check = Get-LocalizedText $Result.Check
+        if ($check -eq $Result.Check -and $Result.Check -match '^(.*?)(\s*[:(].*)$') {
+            $prefix = $Matches[1]
+            $suffix = $Matches[2]
+            $check = '{0}{1}' -f (Get-LocalizedText $prefix), $suffix
+        }
+
         $reference = @()
         if ($Result.Allowed) {
-            $reference += 'Allowed: {0}' -f $Result.Allowed
+            $reference += (Get-LocalizedText 'Allowed: {0}') -f (Get-LocalizedText $Result.Allowed)
         }
         if ($Result.Typical) {
-            $reference += 'Typical: {0}' -f $Result.Typical
+            $reference += (Get-LocalizedText 'Typical: {0}') -f (Get-LocalizedText $Result.Typical)
         }
 
         $details = @($Result.Details | Where-Object { $_ })
         $label = if ($Result.Status -in 'Warning', 'Critical') { 'RECOMMENDED FIX' } else { 'ADVICE' }
 
+        $actionLabel = ''
+        if ($Result.Recommendation) {
+            $action = Get-CheckAction -Check $Result.Check -Category $Result.Category
+            if ($action) {
+                $actionLabel = Get-LocalizedText $action.Label
+            }
+        }
+
         [PSCustomObject]@{
             Status              = $Result.Status
-            Category            = if ($ShowCategory) { $Result.Category } else { '' }
-            Check               = $Result.Check
-            Value               = $Result.Value
-            Description         = [string]$Result.Description
+            StatusText          = Get-LocalizedText $Result.Status
+            Category            = if ($ShowCategory) { Get-LocalizedText $Result.Category } else { '' }
+            Check               = $check
+            Value               = Get-LocalizedText ([string]$Result.Value)
+            Description         = Get-LocalizedText ([string]$Result.Description)
             Reference           = $reference -join '   |   '
             More                = $details -join "`n"
-            MoreHeader          = if ($details.Count -gt 0) { 'Show {0} more' -f $details.Count } else { '' }
-            Recommendation      = [string]$Result.Recommendation
-            RecommendationLabel = $label
+            MoreHeader          = if ($details.Count -gt 0) { (Get-LocalizedText 'Show {0} more') -f $details.Count } else { '' }
+            Recommendation      = Get-LocalizedText ([string]$Result.Recommendation)
+            RecommendationLabel = Get-LocalizedText $label
+            ActionLabel         = $actionLabel
+            SourceCheck         = $Result.Check
+            SourceCategory      = $Result.Category
         }
     }
 }

@@ -222,6 +222,17 @@
         }
     }
 
+    Monitor       = @{
+        # Live monitor: a warning appears when every one of the last AlertSamples
+        # measurements was above these percentages.
+        CpuAlertPercent     = 90
+        MemoryAlertPercent  = 90
+        DiskAlertPercent    = 90
+        AlertSamples        = 10
+        # Temperature of the graphics card, in degrees Celsius, from which a warning is shown.
+        GpuTemperatureAlert = 85
+    }
+
     Score         = @{
         # The health score starts at 100; every result with these statuses takes points off.
         CriticalPenalty = 15

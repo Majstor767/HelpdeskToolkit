@@ -7,6 +7,12 @@ function Import-TestModule {
     #>
     $manifest = Join-Path -Path $PSScriptRoot -ChildPath '..\HelpdeskToolkit\HelpdeskToolkit.psd1'
     Import-Module -Name $manifest -Force
+
+    # The application keeps settings and a history of reports in a folder of the user.
+    # The tests must never read or write the real one, so it is replaced with a folder
+    # that Pester removes after the test file has run.
+    $folder = Join-Path -Path $TestDrive -ChildPath 'AppData'
+    InModuleScope HelpdeskToolkit -Parameters @{ Folder = $folder } { $script:AppDataRoot = $Folder }
 }
 
 function Set-TestThreshold {
@@ -88,6 +94,7 @@ function Set-TestThreshold {
                 TypicalWifiSignal   = 'typical wifi'
             }
             Score         = @{ CriticalPenalty = 15; WarningPenalty = 4 }
+            Monitor       = @{ CpuAlertPercent = 90; MemoryAlertPercent = 90; DiskAlertPercent = 90; AlertSamples = 3; GpuTemperatureAlert = 85 }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }
     }

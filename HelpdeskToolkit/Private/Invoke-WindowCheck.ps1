@@ -26,14 +26,14 @@ function Invoke-WindowCheck {
     $skipNetwork = $controls.SkipNetworkCheckBox.IsChecked -eq $true
 
     $controls.RunButton.IsEnabled = $false
-    $controls.RunButton.Content = 'Checking ...'
-    $controls.StatusText.Text = 'The check is running ...'
+    $controls.RunButton.Content = Get-LocalizedText 'Checking ...'
+    $controls.StatusText.Text = Get-LocalizedText 'The check is running ...'
 
     # Progress panel: empty the bar and show it. An animation of the previous run would
     # otherwise keep holding the old value, so it is removed first.
     $controls.ProgressBar.BeginAnimation([System.Windows.Controls.Primitives.RangeBase]::ValueProperty, $null)
     $controls.ProgressBar.Value = 0
-    $controls.RunTitle.Text = 'Starting the check ...'
+    $controls.RunTitle.Text = Get-LocalizedText 'Starting the check ...'
     $controls.RunStep.Text = ''
     $controls.RunPercent.Text = '0 %'
     $controls.RunPanel.Visibility = [System.Windows.Visibility]::Visible

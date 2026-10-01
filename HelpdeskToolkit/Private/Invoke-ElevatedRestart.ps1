@@ -24,23 +24,12 @@ function Invoke-ElevatedRestart {
 
     $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
-    # Installed and portable copies have the launcher script next to the module folder.
-    # A module loaded from somewhere else is started through its manifest instead.
-    $launcher = Join-Path -Path (Split-Path -Path $script:ModuleRoot -Parent) -ChildPath 'Start-HelpdeskToolkit.ps1'
-    if (Test-Path -LiteralPath $launcher) {
-        $arguments = '-NoProfile -ExecutionPolicy Bypass -File "{0}"' -f $launcher
-    }
-    else {
-        $manifest = (Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1').Replace("'", "''")
-        $arguments = '-NoProfile -ExecutionPolicy Bypass -Command "Import-Module ''{0}''; Show-PCHealthCheck"' -f $manifest
-    }
-
     try {
-        Start-Process -FilePath $powershell -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
+        Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument) -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
     }
     catch {
         # Thrown when the user answers "No" in the User Account Control prompt.
-        $Gui.Controls.StatusText.Text = 'Administrator rights were not granted; the window keeps running with standard rights.'
+        $Gui.Controls.StatusText.Text = Get-LocalizedText 'Administrator rights were not granted; the window keeps running with standard rights.'
         return $false
     }
 

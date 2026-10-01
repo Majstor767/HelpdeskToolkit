@@ -7,6 +7,9 @@ function Receive-WindowMonitor {
         counter with every measurement; the page is only redrawn when that counter has
         changed since the last call. A measurement that failed is reported in the
         subtitle of the page instead of stopping the monitor.
+
+        While a recording runs, every new measurement is also written to its file
+        (see Add-WindowRecordingRow).
     #>
     [CmdletBinding()]
     param(
@@ -27,12 +30,15 @@ function Receive-WindowMonitor {
     $monitor.LastSequence = $sequence
 
     if ($monitor.Shared.Error) {
-        $Gui.Controls.PageSubtitle.Text = 'The live data could not be read: {0}' -f $monitor.Shared.Error
+        $Gui.Controls.PageSubtitle.Text = (Get-LocalizedText 'The live data could not be read: {0}') -f $monitor.Shared.Error
         return
     }
 
     $snapshot = $monitor.Shared.Snapshot
     if ($snapshot) {
+        if ($Gui.Recorder) {
+            Add-WindowRecordingRow -Gui $Gui -Snapshot $snapshot
+        }
         Show-WindowMonitor -Gui $Gui -Snapshot $snapshot
     }
 }

@@ -9,8 +9,13 @@ function Enable-WindowMonitor {
         hashtable). A timer on the window thread looks into that table a few times per
         second and displays a new snapshot when there is one (Receive-WindowMonitor).
 
+        The same table carries the wishes of the window to the loop: Paused, Stop and
+        IntervalSeconds, the time from the start of one measurement to the start of the
+        next. The loop waits in short steps, so it reacts to a change within a moment.
+
         The runspace is created once per window. Leaving the page only pauses it
-        (Disable-WindowMonitor), so coming back shows data again without a delay.
+        (Disable-WindowMonitor), so coming back shows data again without a delay. When
+        the user pressed Pause, opening the page does not resume by itself.
     #>
     [CmdletBinding()]
     param(
@@ -21,11 +26,12 @@ function Enable-WindowMonitor {
 
     if (-not $Gui.Monitor) {
         $shared = [hashtable]::Synchronized(@{
-                Paused   = $false
-                Stop     = $false
-                Snapshot = $null
-                Error    = $null
-                Sequence = 0
+                Paused          = $false
+                Stop            = $false
+                IntervalSeconds = [int]$Gui.Settings.MonitorIntervalSeconds
+                Snapshot        = $null
+                Error           = $null
+                Sequence        = 0
             })
 
         $work = {
@@ -33,9 +39,11 @@ function Enable-WindowMonitor {
             Import-Module -Name $ManifestPath
             while (-not $Shared.Stop) {
                 if ($Shared.Paused) {
-                    Start-Sleep -Milliseconds 300
+                    Start-Sleep -Milliseconds 200
                     continue
                 }
+
+                $started = Get-Date
                 try {
                     $Shared.Snapshot = Get-PerformanceSnapshot
                     $Shared.Error = $null
@@ -44,7 +52,13 @@ function Enable-WindowMonitor {
                     $Shared.Error = $_.Exception.Message
                 }
                 $Shared.Sequence++
+
+                # Wait for the rest of the interval, but at least a moment, so the loop
+                # never keeps the processor busy all the time.
                 Start-Sleep -Milliseconds 300
+                while (-not $Shared.Stop -and -not $Shared.Paused -and ((Get-Date) - $started).TotalSeconds -lt $Shared.IntervalSeconds) {
+                    Start-Sleep -Milliseconds 200
+                }
             }
         }
 
@@ -59,7 +73,9 @@ function Enable-WindowMonitor {
         }
     }
 
-    $Gui.Monitor.Shared.Paused = $false
+    if (-not $Gui.MonitorUserPaused) {
+        $Gui.Monitor.Shared.Paused = $false
+    }
     if ($Gui.MonitorTimer) {
         $Gui.MonitorTimer.Start()
     }

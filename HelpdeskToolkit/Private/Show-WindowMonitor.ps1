@@ -7,8 +7,14 @@ function Show-WindowMonitor {
         graphs and lists of the page. Like the result cards, the lists of the page only
         show text and a percentage; this function prepares exactly those for every row.
 
-        The graphs show the history of a value. The window keeps the last measurements
-        in $Gui.MonitorHistory; every call adds one and redraws the lines.
+        The graphs show the history of a value. The window keeps the last 60
+        measurements in $Gui.MonitorHistory; every call adds one and redraws the
+        lines. Processor, memory, graphics and disk are percentages. The network has
+        no fixed upper end, so its two lines (download and upload) are drawn against
+        the highest rate in the history, which the caption of the graph names.
+
+        The same histories decide about the warnings at the top of the page (see
+        Get-MonitorAlert).
     #>
     [CmdletBinding()]
     param(
@@ -26,6 +32,7 @@ function Show-WindowMonitor {
     $collapsed = [System.Windows.Visibility]::Collapsed
     $separator = '  |  '
     $degree = '{0}C' -f [char]176
+    $capacity = 60
 
     # Clock speed in GHz with one decimal, for example "3.9 GHz"
     $toGigahertz = { param($Megahertz) '{0} GHz' -f [string][math]::Round([double]$Megahertz / 1000, 1) }
@@ -39,22 +46,33 @@ function Show-WindowMonitor {
     # A whole number with thousands separators, the same in every regional setting: "5,964"
     $toCount = { param($Number) ([long]$Number).ToString('N0', [cultureinfo]::InvariantCulture) }
 
-    # Adds a value to the history of a graph and redraws its line and area.
-    $drawGraph = {
-        param([string]$Name, $Percent)
-
+    # Adds a value to a history, keeps only the newest ones and returns them all.
+    # (The values are returned as an array: a list that leaves a script block is
+    # taken apart by PowerShell, and one with a single value would arrive as a number.)
+    $remember = {
+        param([string]$Name, $Value)
         $history = $Gui.MonitorHistory[$Name]
-        $history.Add([double]$Percent)
-        while ($history.Count -gt 60) {
+        $history.Add([double]$Value)
+        while ($history.Count -gt $capacity) {
             $history.RemoveAt(0)
         }
+        , $history.ToArray()
+    }
 
-        # Before the page was shown for the first time the drawing area has no size yet.
-        $canvas = $controls["Monitor${Name}Graph"]
-        $width = if ($canvas.ActualWidth -gt 0) { $canvas.ActualWidth } else { 600 }
-        $height = if ($canvas.ActualHeight -gt 0) { $canvas.ActualHeight } else { 62 }
+    # The points of a line for the drawing area of a graph. Before the page was shown
+    # for the first time the area has no size yet.
+    $toGraph = {
+        param($Canvas, [double[]]$Values)
+        $width = if ($Canvas.ActualWidth -gt 0) { $Canvas.ActualWidth } else { 600 }
+        $height = if ($Canvas.ActualHeight -gt 0) { $Canvas.ActualHeight } else { 62 }
+        ConvertTo-WindowGraph -Value $Values -Width $width -Height $height -Capacity $capacity
+    }
 
-        $graph = ConvertTo-WindowGraph -Value $history.ToArray() -Width $width -Height $height -Capacity 60
+    # Adds a percentage to the history of a graph and redraws its line and area.
+    $drawGraph = {
+        param([string]$Name, $Percent)
+        $history = & $remember $Name $Percent
+        $graph = & $toGraph $controls["Monitor${Name}Graph"] $history
         $controls["Monitor${Name}Line"].Points = $graph.Line
         $controls["Monitor${Name}Area"].Points = $graph.Area
     }
@@ -66,26 +84,27 @@ function Show-WindowMonitor {
     # --- Processor ---------------------------------------------------------------
     if ($Snapshot.Cpu) {
         $speed = & $toGigahertz $Snapshot.Cpu.FrequencyMHz
-        $controls.MonitorCpuText.Text = '{0} % at {1}' -f $Snapshot.Cpu.Percent, $speed
+        $controls.MonitorCpuText.Text = (Get-LocalizedText '{0} % at {1}') -f $Snapshot.Cpu.Percent, $speed
         $controls.MonitorTileCpu.Text = '{0} %' -f $Snapshot.Cpu.Percent
         $controls.MonitorTileCpuSub.Text = $speed
         & $drawGraph 'Cpu' $Snapshot.Cpu.Percent
 
+        $parked = Get-LocalizedText '{0}, parked by Windows to save power'
         $controls.MonitorProcessors.ItemsSource = @(
             $Snapshot.Cpu.Processors | ForEach-Object {
                 $tip = & $toGigahertz $_.FrequencyMHz
                 if ($_.Parked) {
-                    $tip = '{0}, parked by Windows to save power' -f $tip
+                    $tip = $parked -f $tip
                 }
                 [PSCustomObject]@{ Name = $_.Name; Percent = [double]$_.Percent; Text = '{0} %' -f $_.Percent; Tip = $tip }
             }
         )
 
-        $details = @('Base speed {0}' -f (& $toGigahertz $Snapshot.Cpu.BaseFrequencyMHz))
-        $details += '{0} logical processors' -f @($Snapshot.Cpu.Processors).Count
+        $details = @((Get-LocalizedText 'Base speed {0}') -f (& $toGigahertz $Snapshot.Cpu.BaseFrequencyMHz))
+        $details += (Get-LocalizedText '{0} logical processors') -f @($Snapshot.Cpu.Processors).Count
     }
     else {
-        $controls.MonitorCpuText.Text = 'Not available'
+        $controls.MonitorCpuText.Text = Get-LocalizedText 'Not available'
         $controls.MonitorTileCpu.Text = '-'
         $controls.MonitorTileCpuSub.Text = ''
         $controls.MonitorProcessors.ItemsSource = @()
@@ -94,13 +113,14 @@ function Show-WindowMonitor {
 
     # --- System ------------------------------------------------------------------
     if ($Snapshot.System) {
-        $details += '{0} processes' -f (& $toCount $Snapshot.System.Processes)
+        $processText = (Get-LocalizedText '{0} processes') -f (& $toCount $Snapshot.System.Processes)
+        $details += $processText
         if ($null -ne $Snapshot.System.Threads) {
-            $details += '{0} threads' -f (& $toCount $Snapshot.System.Threads)
-            $details += '{0} handles' -f (& $toCount $Snapshot.System.Handles)
+            $details += (Get-LocalizedText '{0} threads') -f (& $toCount $Snapshot.System.Threads)
+            $details += (Get-LocalizedText '{0} handles') -f (& $toCount $Snapshot.System.Handles)
         }
         $controls.MonitorTileUptime.Text = if ($null -ne $Snapshot.System.UptimeSeconds) { Format-Duration -Seconds $Snapshot.System.UptimeSeconds } else { '-' }
-        $controls.MonitorTileUptimeSub.Text = '{0} processes' -f (& $toCount $Snapshot.System.Processes)
+        $controls.MonitorTileUptimeSub.Text = $processText
     }
     else {
         $controls.MonitorTileUptime.Text = '-'
@@ -111,35 +131,33 @@ function Show-WindowMonitor {
     # --- Memory ------------------------------------------------------------------
     if ($Snapshot.Memory) {
         $memory = $Snapshot.Memory
-        $controls.MonitorMemoryText.Text = '{0} % ({1} of {2} in use)' -f $memory.Percent,
-            (Format-Gigabyte -Bytes $memory.UsedBytes), (Format-Gigabyte -Bytes $memory.TotalBytes)
+        $used = Format-Gigabyte -Bytes $memory.UsedBytes
+        $total = Format-Gigabyte -Bytes $memory.TotalBytes
+        $controls.MonitorMemoryText.Text = (Get-LocalizedText '{0} % ({1} of {2} in use)') -f $memory.Percent, $used, $total
         $controls.MonitorMemoryBar.Value = $memory.Percent
         $controls.MonitorTileMemory.Text = '{0} %' -f $memory.Percent
-        $controls.MonitorTileMemorySub.Text = '{0} of {1}' -f (Format-Gigabyte -Bytes $memory.UsedBytes), (Format-Gigabyte -Bytes $memory.TotalBytes)
+        $controls.MonitorTileMemorySub.Text = (Get-LocalizedText '{0} of {1}') -f $used, $total
         & $drawGraph 'Memory' $memory.Percent
 
-        $stats = @(
-            [PSCustomObject]@{ Name = 'In use'; Text = Format-Gigabyte -Bytes $memory.UsedBytes }
-            [PSCustomObject]@{ Name = 'Available'; Text = Format-Gigabyte -Bytes $memory.AvailableBytes }
+        $stat = { param($Label, $Text) [PSCustomObject]@{ Name = Get-LocalizedText $Label; Text = $Text } }
+        $controls.MonitorMemoryStats.ItemsSource = @(
+            & $stat 'In use' $used
+            & $stat 'Available' (Format-Gigabyte -Bytes $memory.AvailableBytes)
             if ($null -ne $memory.CachedBytes) {
-                [PSCustomObject]@{ Name = 'Cached'; Text = Format-Gigabyte -Bytes $memory.CachedBytes }
+                & $stat 'Cached' (Format-Gigabyte -Bytes $memory.CachedBytes)
             }
-            [PSCustomObject]@{
-                Name = 'Committed (RAM plus page file)'
-                Text = '{0} of {1}' -f (Format-Gigabyte -Bytes $memory.CommittedBytes), (Format-Gigabyte -Bytes $memory.CommitLimitBytes)
-            }
+            & $stat 'Committed (RAM plus page file)' ((Get-LocalizedText '{0} of {1}') -f (Format-Gigabyte -Bytes $memory.CommittedBytes), (Format-Gigabyte -Bytes $memory.CommitLimitBytes))
             if ($null -ne $memory.PagedPoolBytes) {
-                [PSCustomObject]@{ Name = 'Paged pool'; Text = & $toSize $memory.PagedPoolBytes }
-                [PSCustomObject]@{ Name = 'Non-paged pool'; Text = & $toSize $memory.NonPagedPoolBytes }
+                & $stat 'Paged pool' (& $toSize $memory.PagedPoolBytes)
+                & $stat 'Non-paged pool' (& $toSize $memory.NonPagedPoolBytes)
             }
             if ($null -ne $memory.PageFilePercent) {
-                [PSCustomObject]@{ Name = 'Page file'; Text = '{0} % used' -f $memory.PageFilePercent }
+                & $stat 'Page file' ((Get-LocalizedText '{0} % used') -f $memory.PageFilePercent)
             }
         )
-        $controls.MonitorMemoryStats.ItemsSource = $stats
     }
     else {
-        $controls.MonitorMemoryText.Text = 'Not available'
+        $controls.MonitorMemoryText.Text = Get-LocalizedText 'Not available'
         $controls.MonitorMemoryBar.Value = 0
         $controls.MonitorTileMemory.Text = '-'
         $controls.MonitorTileMemorySub.Text = ''
@@ -151,16 +169,16 @@ function Show-WindowMonitor {
     $gpus = @(
         $Snapshot.Gpu | Where-Object { $_ } | ForEach-Object {
             $memoryText = if ($_.DedicatedTotalBytes -gt 0) {
-                '{0} of {1} memory' -f (Format-Gigabyte -Bytes $_.DedicatedUsedBytes), (Format-Gigabyte -Bytes $_.DedicatedTotalBytes)
+                (Get-LocalizedText '{0} of {1} memory') -f (Format-Gigabyte -Bytes $_.DedicatedUsedBytes), (Format-Gigabyte -Bytes $_.DedicatedTotalBytes)
             }
             else {
-                '{0} memory in use' -f (Format-Gigabyte -Bytes $_.DedicatedUsedBytes)
+                (Get-LocalizedText '{0} memory in use') -f (Format-Gigabyte -Bytes $_.DedicatedUsedBytes)
             }
 
             # Load per engine, then the ordinary RAM the adapter borrows
-            $detail = @($_.Engines | Where-Object { $_ } | ForEach-Object { '{0} {1} %' -f $_.Name, $_.Percent })
+            $detail = @($_.Engines | Where-Object { $_ } | ForEach-Object { '{0} {1} %' -f (Get-LocalizedText $_.Name), $_.Percent })
             if ($_.SharedUsedBytes -gt 0) {
-                $detail += 'shared memory {0}' -f (& $toSize $_.SharedUsedBytes)
+                $detail += (Get-LocalizedText 'shared memory {0}') -f (& $toSize $_.SharedUsedBytes)
             }
 
             [PSCustomObject]@{
@@ -194,16 +212,21 @@ function Show-WindowMonitor {
     }
 
     # --- Disks -------------------------------------------------------------------
+    $disks = @($Snapshot.Disks | Where-Object { $_ })
     $controls.MonitorDisks.ItemsSource = @(
-        $Snapshot.Disks | Where-Object { $_ } | ForEach-Object {
-            $text = 'active {0} %{1}read {2}{1}write {3}' -f $_.Percent, $separator,
-                (Format-DataRate -BytesPerSecond $_.ReadBytesPerSecond), (Format-DataRate -BytesPerSecond $_.WriteBytesPerSecond)
+        $disks | ForEach-Object {
+            $text = (Get-LocalizedText 'active {0} %') -f $_.Percent
+            $text += $separator + ((Get-LocalizedText 'read {0}') -f (Format-DataRate -BytesPerSecond $_.ReadBytesPerSecond))
+            $text += $separator + ((Get-LocalizedText 'write {0}') -f (Format-DataRate -BytesPerSecond $_.WriteBytesPerSecond))
             if ($_.QueueLength -gt 0) {
-                $text = '{0}{1}queue {2}' -f $text, $separator, $_.QueueLength
+                $text += $separator + ((Get-LocalizedText 'queue {0}') -f $_.QueueLength)
             }
             [PSCustomObject]@{ Name = $_.Name; Percent = [double]$_.Percent; Text = $text }
         }
     )
+    # The graph follows the busiest disk: that is the one that slows the computer down.
+    $busiestDisk = if ($disks.Count -gt 0) { ($disks | Measure-Object -Property Percent -Maximum).Maximum } else { 0 }
+    & $drawGraph 'Disk' $busiestDisk
 
     # Space on every drive letter. The meter takes the colors of the disk space check:
     # the same limits from Config\Thresholds.psd1 decide between normal, warning and critical.
@@ -216,32 +239,47 @@ function Show-WindowMonitor {
                 Name    = if ($_.Label) { '{0} {1}' -f $_.Name, $_.Label } else { $_.Name }
                 Percent = [double]$_.Percent
                 Level   = $level
-                Text    = '{0} % used{1}{2} free of {3}' -f $_.Percent, $separator, (Format-Gigabyte -Bytes $_.FreeBytes), (Format-Gigabyte -Bytes $_.TotalBytes)
+                Text    = ((Get-LocalizedText '{0} % used') -f $_.Percent) + $separator +
+                    ((Get-LocalizedText '{0} free of {1}') -f (Format-Gigabyte -Bytes $_.FreeBytes), (Format-Gigabyte -Bytes $_.TotalBytes))
             }
         }
     )
 
     # --- Network -----------------------------------------------------------------
+    $network = @($Snapshot.Network | Where-Object { $_ })
     $controls.MonitorNetwork.ItemsSource = @(
-        $Snapshot.Network | Where-Object { $_ } | ForEach-Object {
-            $text = 'down {0}{1}up {2}' -f (Format-DataRate -BytesPerSecond $_.ReceivedBytesPerSecond -AsBits), $separator,
-                (Format-DataRate -BytesPerSecond $_.SentBytesPerSecond -AsBits)
+        $network | ForEach-Object {
+            $text = (Get-LocalizedText 'down {0}') -f (Format-DataRate -BytesPerSecond $_.ReceivedBytesPerSecond -AsBits)
+            $text += $separator + ((Get-LocalizedText 'up {0}') -f (Format-DataRate -BytesPerSecond $_.SentBytesPerSecond -AsBits))
             if ($_.LinkBitsPerSecond -gt 0) {
-                $text = '{0}{1}link {2}' -f $text, $separator, (Format-DataRate -BytesPerSecond ($_.LinkBitsPerSecond / 8) -AsBits)
+                $text += $separator + ((Get-LocalizedText 'link {0}') -f (Format-DataRate -BytesPerSecond ($_.LinkBitsPerSecond / 8) -AsBits))
             }
             [PSCustomObject]@{ Name = $_.Name; Text = $text }
         }
     )
 
+    # Graph: both directions of all adapters together, in bytes per second. The scale is
+    # the highest rate of the history, but never below 100 KB/s, so that an idle line
+    # does not look like a busy one.
+    $down = if ($network.Count -gt 0) { ($network | Measure-Object -Property ReceivedBytesPerSecond -Sum).Sum } else { 0 }
+    $up = if ($network.Count -gt 0) { ($network | Measure-Object -Property SentBytesPerSecond -Sum).Sum } else { 0 }
+    $downHistory = & $remember 'NetworkDown' $down
+    $upHistory = & $remember 'NetworkUp' $up
+    $scale = [math]::Max(100KB, (@($downHistory) + @($upHistory) | Measure-Object -Maximum).Maximum)
+    $toPercent = { param($Values) , [double[]]@($Values | ForEach-Object { $_ / $scale * 100 }) }
+    $controls.MonitorNetworkDownLine.Points = (& $toGraph $controls.MonitorNetworkGraph (& $toPercent $downHistory)).Line
+    $controls.MonitorNetworkUpLine.Points = (& $toGraph $controls.MonitorNetworkGraph (& $toPercent $upHistory)).Line
+    $controls.MonitorNetworkCaption.Text = (Get-LocalizedText 'download (blue) and upload (green), last 60 measurements, 0 - {0}') -f (Format-DataRate -BytesPerSecond $scale -AsBits)
+
     # --- Sensors -----------------------------------------------------------------
-    $sensorRows = @(
+    $controls.MonitorSensors.ItemsSource = @(
         # Graphics card: temperature, fan and power draw
         foreach ($sensor in $sensors) {
             $parts = @(
                 if ($null -ne $sensor.TemperatureC) { '{0} {1}' -f $sensor.TemperatureC, $degree }
-                if ($null -ne $sensor.FanPercent) { 'fan {0} %' -f $sensor.FanPercent }
+                if ($null -ne $sensor.FanPercent) { (Get-LocalizedText 'fan {0} %') -f $sensor.FanPercent }
                 if ($null -ne $sensor.PowerWatts) {
-                    if ($sensor.PowerLimitWatts) { '{0} W of {1} W' -f $sensor.PowerWatts, $sensor.PowerLimitWatts } else { '{0} W' -f $sensor.PowerWatts }
+                    if ($sensor.PowerLimitWatts) { (Get-LocalizedText '{0} W of {1} W') -f $sensor.PowerWatts, $sensor.PowerLimitWatts } else { '{0} W' -f $sensor.PowerWatts }
                 }
             )
             if ($parts.Count -gt 0) {
@@ -257,38 +295,37 @@ function Show-WindowMonitor {
                     foreach ($drive in @($health.Drives | Where-Object { $_ })) {
                         $parts = @(
                             if ($null -ne $drive.TemperatureC) { '{0} {1}' -f $drive.TemperatureC, $degree }
-                            if ($null -ne $drive.WearPercent) { 'wear {0} %' -f $drive.WearPercent }
-                            if ($null -ne $drive.PowerOnHours) { '{0} h powered on' -f (& $toCount $drive.PowerOnHours) }
+                            if ($null -ne $drive.WearPercent) { (Get-LocalizedText 'wear {0} %') -f $drive.WearPercent }
+                            if ($null -ne $drive.PowerOnHours) { (Get-LocalizedText '{0} h powered on') -f (& $toCount $drive.PowerOnHours) }
                         )
-                        $text = if ($parts.Count -gt 0) { $parts -join $separator } else { 'reports no sensor values' }
+                        $text = if ($parts.Count -gt 0) { $parts -join $separator } else { Get-LocalizedText 'reports no sensor values' }
                         [PSCustomObject]@{ Name = $drive.Name; Text = $text }
                     }
                 }
                 'RequiresAdmin' {
-                    [PSCustomObject]@{ Name = 'Drives'; Text = 'temperature and wear need administrator rights' }
+                    [PSCustomObject]@{ Name = Get-LocalizedText 'Drives'; Text = Get-LocalizedText 'temperature and wear need administrator rights' }
                 }
                 default {
-                    [PSCustomObject]@{ Name = 'Drives'; Text = 'could not be read: {0}' -f $health.Message }
+                    [PSCustomObject]@{ Name = Get-LocalizedText 'Drives'; Text = (Get-LocalizedText 'could not be read: {0}') -f $health.Message }
                 }
             }
         }
 
         # Thermal zones of the firmware
         foreach ($zone in @($Snapshot.Thermal | Where-Object { $_ })) {
-            [PSCustomObject]@{ Name = 'Thermal zone {0}' -f $zone.Name; Text = '{0} {1}' -f $zone.TemperatureC, $degree }
+            [PSCustomObject]@{ Name = (Get-LocalizedText 'Thermal zone {0}') -f $zone.Name; Text = '{0} {1}' -f $zone.TemperatureC, $degree }
         }
 
         # Battery
         if ($Snapshot.Battery) {
-            $state = if ($Snapshot.Battery.PluggedIn) { 'plugged in' } else { 'on battery' }
+            $state = if ($Snapshot.Battery.PluggedIn) { Get-LocalizedText 'plugged in' } else { Get-LocalizedText 'on battery' }
             $text = '{0} %{1}{2}' -f $Snapshot.Battery.Percent, $separator, $state
             if ($null -ne $Snapshot.Battery.MinutesRemaining) {
-                $text = '{0}{1}about {2} left' -f $text, $separator, (Format-Duration -Seconds ($Snapshot.Battery.MinutesRemaining * 60))
+                $text += $separator + ((Get-LocalizedText 'about {0} left') -f (Format-Duration -Seconds ($Snapshot.Battery.MinutesRemaining * 60)))
             }
-            [PSCustomObject]@{ Name = 'Battery'; Text = $text }
+            [PSCustomObject]@{ Name = Get-LocalizedText 'Battery'; Text = $text }
         }
     )
-    $controls.MonitorSensors.ItemsSource = $sensorRows
 
     # --- Programs ----------------------------------------------------------------
     $controls.MonitorProcesses.ItemsSource = @(
@@ -309,5 +346,11 @@ function Show-WindowMonitor {
     $controls.MonitorIoProcesses.ItemsSource = $ioRows
     $controls.MonitorIoEmpty.Visibility = if ($ioRows.Count -eq 0) { $visible } else { $collapsed }
 
-    $controls.PageSubtitle.Text = 'What the computer is doing right now. Updated {0:HH:mm:ss}; refreshes about every 2 seconds.' -f $Snapshot.TakenAt
+    # --- Warnings ----------------------------------------------------------------
+    $controls.MonitorAlerts.ItemsSource = @(
+        Get-MonitorAlert -History $Gui.MonitorHistory -Snapshot $Snapshot | ForEach-Object { [PSCustomObject]@{ Text = $_ } }
+    )
+
+    $interval = if ($Gui.Monitor) { [int]$Gui.Monitor.Shared.IntervalSeconds } else { [int]$Gui.Settings.MonitorIntervalSeconds }
+    $controls.PageSubtitle.Text = (Get-LocalizedText 'What the computer is doing right now. Updated {0:HH:mm:ss}; refreshes about every {1} seconds.') -f $Snapshot.TakenAt, $interval
 }
