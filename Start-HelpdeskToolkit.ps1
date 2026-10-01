@@ -6,8 +6,9 @@
     installer creates. It loads the module from the folder next to this file and opens
     the window.
 
-    The console window is hidden when the application is started this way, so an
-    error would otherwise go unnoticed. Any failure is therefore shown in a message box.
+    Both start this script through "conhost.exe --headless", so there is no console
+    window at all and an error would go unnoticed. Any failure is therefore shown in a
+    message box.
 .EXAMPLE
     .\Start-HelpdeskToolkit.ps1
 

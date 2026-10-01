@@ -84,12 +84,28 @@ Describe 'Installer script' {
         $iss | Should -Match 'Start-HelpdeskToolkit\.ps1'
         Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.ps1' | Should -Exist
     }
+
+    # Regression: started directly, PowerShell left an empty Windows Terminal window
+    # open on Windows 11, and closing that window closed the application.
+    It 'starts PowerShell through the headless console host, so no console window appears' {
+        # Comment lines (starting with ";") explain the old behaviour and are ignored.
+        $commands = ($iss -split "`r?`n" | Where-Object { $_ -notmatch '^\s*;' }) -join "`n"
+        $commands | Should -Match '\{sys\}\\conhost\.exe'
+        $commands | Should -Match '--headless'
+        $commands | Should -Not -Match '-WindowStyle Hidden'
+    }
 }
 
 Describe 'Launcher' {
     It 'Start-HelpdeskToolkit.cmd calls the launcher script next to it' {
         Get-Content -LiteralPath (Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.cmd') -Raw |
             Should -Match '%~dp0Start-HelpdeskToolkit\.ps1'
+    }
+
+    It 'Start-HelpdeskToolkit.cmd starts PowerShell through the headless console host' {
+        $text = Get-Content -LiteralPath (Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.cmd') -Raw
+        $text | Should -Match 'conhost\.exe" --headless'
+        ($text -split "`r?`n" | Where-Object { $_ -notmatch '^\s*rem' }) -join "`n" | Should -Not -Match '-WindowStyle Hidden'
     }
 
     It 'Start-HelpdeskToolkit.cmd uses Windows line endings' {

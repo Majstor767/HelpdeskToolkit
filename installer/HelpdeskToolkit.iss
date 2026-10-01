@@ -15,9 +15,12 @@
 #define AppName "HelpdeskToolkit"
 #define AppIcon "HelpdeskToolkit\Assets\HelpdeskToolkit.ico"
 
-; Windows PowerShell is part of every supported Windows version, so the shortcuts
-; need nothing else installed.
-#define PowerShell "{sys}\WindowsPowerShell\v1.0\powershell.exe"
+; PowerShell is a console program, so Windows always gives it a console window. On
+; Windows 11 that window is a Windows Terminal window, which ignores PowerShell's own
+; "-WindowStyle Hidden" option: an empty terminal stays open, and closing it closes
+; the application. The shortcuts therefore start PowerShell through the Windows
+; console host in headless mode, which provides the console without any window.
+#define ConsoleHost "{sys}\conhost.exe"
 
 [Setup]
 ; AppId identifies the application for updates and uninstall. Never change it.
@@ -36,7 +39,9 @@ DisableProgramGroupPage=yes
 ; On 64-bit Windows the 64-bit PowerShell must be used; the 32-bit one would see a
 ; different view of the registry and of some system information.
 ArchitecturesInstallIn64BitMode=x64compatible
-MinVersion=10.0
+
+; The headless mode of the console host exists since Windows 10 version 1809 (build 17763).
+MinVersion=10.0.17763
 
 LicenseFile={#SourceDir}\LICENSE
 SetupIconFile={#SourceDir}\{#AppIcon}
@@ -54,11 +59,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
-; The shortcuts start the window through the launcher script. In this file a double
-; quote inside a quoted value is written as two double quotes.
+; The shortcuts start the window through the launcher script. Windows PowerShell is
+; part of every supported Windows version, so nothing else has to be installed. In this
+; file a double quote inside a quoted value is written as two double quotes.
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{#PowerShell}"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"
-Name: "{autodesktop}\{#AppName}"; Filename: "{#PowerShell}"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; Tasks: desktopicon
+Name: "{autoprograms}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"
+Name: "{autodesktop}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; Tasks: desktopicon
 
 [Run]
-Filename: "{#PowerShell}"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent
