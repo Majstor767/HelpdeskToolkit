@@ -35,8 +35,7 @@ function Get-SystemHealth {
         $computer = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
     }
     catch {
-        New-CheckResult -Category $category -Check 'System information' -Status Warning -Value 'Unavailable' `
-            -Recommendation "CIM/WMI query failed: $($_.Exception.Message)"
+        New-FailureResult -Category $category -Check 'System information' -ErrorRecord $_
         return
     }
 
@@ -56,11 +55,12 @@ function Get-SystemHealth {
 
     $uptime = (Get-Date) - $os.LastBootUpTime
     $uptimeValue = '{0} d {1} h {2} min' -f [int][math]::Floor($uptime.TotalDays), $uptime.Hours, $uptime.Minutes
-    if ($uptime.TotalDays -gt $threshold.WarningDays) {
-        New-CheckResult -Category $category -Check 'Uptime' -Status Warning -Value $uptimeValue `
-            -Recommendation ('Restart the computer; it has been running for more than {0} days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.' -f $threshold.WarningDays)
+    $status = Get-ThresholdStatus -Value $uptime.TotalDays -Warning $threshold.WarningDays
+    $recommendation = if ($status -eq 'Warning') {
+        'Restart the computer; it has been running for more than {0} days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.' -f $threshold.WarningDays
     }
     else {
-        New-CheckResult -Category $category -Check 'Uptime' -Status OK -Value $uptimeValue
+        ''
     }
+    New-CheckResult -Category $category -Check 'Uptime' -Status $status -Value $uptimeValue -Recommendation $recommendation
 }
