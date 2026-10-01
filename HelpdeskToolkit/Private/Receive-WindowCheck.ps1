@@ -31,9 +31,17 @@ function Receive-WindowCheck {
             Where-Object { $_.Activity -eq $script:ProgressActivity -and $_.PercentComplete -ge 0 } |
             Select-Object -Last 1
 
-        if ($latest) {
-            $controls.ProgressBar.Value = $latest.PercentComplete
-            $controls.StatusText.Text = 'Checking: {0} ...' -f $latest.StatusDescription
+        if ($latest -and $controls.RunPercent.Text -ne ('{0} %' -f $latest.PercentComplete)) {
+            $controls.RunTitle.Text = 'Checking: {0}' -f $latest.StatusDescription
+            $controls.RunStep.Text = [string]$latest.CurrentOperation
+            $controls.RunPercent.Text = '{0} %' -f $latest.PercentComplete
+
+            # The bar glides to its new value instead of jumping.
+            $animation = New-Object -TypeName System.Windows.Media.Animation.DoubleAnimation
+            $animation.To = [double]$latest.PercentComplete
+            $animation.Duration = New-Object -TypeName System.Windows.Duration -ArgumentList ([timespan]::FromMilliseconds(450))
+            $animation.EasingFunction = New-Object -TypeName System.Windows.Media.Animation.QuadraticEase
+            $controls.ProgressBar.BeginAnimation([System.Windows.Controls.Primitives.RangeBase]::ValueProperty, $animation)
         }
         return
     }
@@ -61,6 +69,6 @@ function Receive-WindowCheck {
         $Gui.Handle = $null
         $controls.RunButton.IsEnabled = $true
         $controls.RunButton.Content = 'Run check'
-        $controls.ProgressBar.Visibility = [System.Windows.Visibility]::Hidden
+        $controls.RunPanel.Visibility = [System.Windows.Visibility]::Collapsed
     }
 }

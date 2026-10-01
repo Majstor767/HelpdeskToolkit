@@ -9,6 +9,10 @@ function Show-PCHealthCheck {
         explanation, the allowed range and the typical value. The report can be opened
         in the browser as HTML or saved as HTML or JSON.
 
+        The "Live monitor" page needs no check: it shows what the computer is doing
+        right now (load of every logical processor, memory, graphics, disks, network
+        and the busiest programs) and refreshes about every two seconds.
+
         The window runs exactly the same checks as Invoke-PCHealthCheck; it only
         presents them differently. The checks run in the background, so the window
         stays responsive. Nothing on the computer is changed.
@@ -45,7 +49,6 @@ function Show-PCHealthCheck {
     }
 
     $gui = New-HealthCheckWindow
-    $gui.ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
     $gui.OutputFolder = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputPath)
 
     # The event handlers below run later, when a button is clicked. They reach the
@@ -61,6 +64,12 @@ function Show-PCHealthCheck {
     $gui.Timer.Add_Tick({ Receive-WindowCheck -Gui $script:HealthCheckWindow })
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
+
+    # Shows new measurements on the Live monitor page (see Receive-WindowMonitor). The
+    # timer only runs while that page is open.
+    $gui.MonitorTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
+    $gui.MonitorTimer.Interval = [timespan]::FromMilliseconds(400)
+    $gui.MonitorTimer.Add_Tick({ Receive-WindowMonitor -Gui $script:HealthCheckWindow })
 
     # With administrator rights there is nothing left to elevate.
     if (Test-IsAdministrator) {
@@ -117,6 +126,7 @@ function Show-PCHealthCheck {
     $gui.Window.Add_Closed({
             $state = $script:HealthCheckWindow
             $state.Timer.Stop()
+            Disable-WindowMonitor -Gui $state -Stop
             if ($state.Worker) {
                 [void]$state.Worker.BeginStop($null, $null)
             }

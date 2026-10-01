@@ -64,6 +64,55 @@
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
         </Style>
 
+        <!-- A slim, rounded bar. Used for the progress of a run and for the meters of the
+             Live monitor page. PART_Track and PART_Indicator are the names WPF looks for
+             to size the filled part itself. -->
+        <Style x:Key="MeterBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="100"/>
+            <Setter Property="Background" Value="#E3E8EF"/>
+            <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="4"/>
+                            <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="4" HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The bar that fills while a check runs: the same shape with a color gradient. -->
+        <Style x:Key="RunProgressBar" TargetType="ProgressBar" BasedOn="{StaticResource MeterBar}">
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Foreground">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#2B5EA8" Offset="0"/>
+                        <GradientStop Color="#35B6A6" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        </Style>
+
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
         <!-- One entry of the category list on the left. -->
         <Style x:Key="NavItem" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="12,9"/>
@@ -114,12 +163,22 @@
             </DockPanel>
         </Border>
 
+        <!-- Progress of a running check: what is being checked, which step, how far.
+             Only visible while a check runs. -->
+        <Border x:Name="RunPanel" DockPanel.Dock="Top" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,12,20,14" Visibility="Collapsed">
+            <StackPanel>
+                <DockPanel Margin="0,0,0,8">
+                    <TextBlock x:Name="RunPercent" DockPanel.Dock="Right" Text="0 %" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource InfoBrush}"/>
+                    <TextBlock x:Name="RunStep" DockPanel.Dock="Right" Text="" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="RunTitle" Text="Starting the check ..." FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                </DockPanel>
+                <ProgressBar x:Name="ProgressBar" Style="{StaticResource RunProgressBar}"/>
+            </StackPanel>
+        </Border>
+
         <!-- Status bar -->
         <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="20,7">
-            <DockPanel>
-                <ProgressBar x:Name="ProgressBar" DockPanel.Dock="Right" Width="200" Height="10" Minimum="0" Maximum="100" Visibility="Hidden"/>
-                <TextBlock x:Name="StatusText" Text="Ready. Click Run check to examine this computer." Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-            </DockPanel>
+            <TextBlock x:Name="StatusText" Text="Ready. Click Run check to examine this computer." Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
         </Border>
 
         <Grid>
@@ -383,6 +442,133 @@
                     </ScrollViewer>
                     <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+
+                    <!-- Live monitor page: what the computer is doing right now. It replaces
+                         the result cards while the "Live monitor" entry is selected. -->
+                    <ScrollViewer x:Name="MonitorPanel" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                        <StackPanel Margin="0,0,6,0">
+
+                            <!-- Processor: total, then one meter per logical processor -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock x:Name="MonitorCpuText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBlock Text="Processor" Style="{StaticResource SectionTitle}"/>
+                                    </DockPanel>
+                                    <ProgressBar x:Name="MonitorCpuBar" Style="{StaticResource MeterBar}" Height="10" Margin="0,0,0,12"/>
+                                    <ItemsControl x:Name="MonitorProcessors">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="4"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,14,10">
+                                                    <DockPanel Margin="0,0,0,3">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource MutedBrush}"/>
+                                                    </DockPanel>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Height="6"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Memory -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock x:Name="MonitorMemoryText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBlock Text="Memory" Style="{StaticResource SectionTitle}"/>
+                                    </DockPanel>
+                                    <ProgressBar x:Name="MonitorMemoryBar" Style="{StaticResource MeterBar}" Height="10"/>
+                                    <TextBlock x:Name="MonitorCommitText" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Graphics, disks and network: one row with a meter per device -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Graphics" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <TextBlock x:Name="MonitorGpuEmpty" Text="No graphics data available." Foreground="{StaticResource MutedBrush}" Visibility="Collapsed"/>
+                                    <ItemsControl x:Name="MonitorGpus">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,0,8">
+                                                    <DockPanel Margin="0,0,0,3">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                    </DockPanel>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Disks" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <ItemsControl x:Name="MonitorDisks">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,0,8">
+                                                    <DockPanel Margin="0,0,0,3">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                    </DockPanel>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Network" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                    <ItemsControl x:Name="MonitorNetwork">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Busiest programs -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock DockPanel.Dock="Right" Text="processor  |  memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                        <TextBlock Text="Busiest programs" Style="{StaticResource SectionTitle}"/>
+                                    </DockPanel>
+                                    <ItemsControl x:Name="MonitorProcesses">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock x:Name="MonitorNote" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,8"
+                                       Text="Temperatures, fan speeds and voltages are not shown: Windows does not expose them, and tools that show them install their own hardware driver."/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
             </Grid>
         </Grid>

@@ -54,6 +54,16 @@ Describe 'Get-PCHealthReport' {
                 $Activity -eq 'PC Health Check' -and $Status -eq 'Network'
             }
         }
+
+        It 'reports the step and the share of the work that is already done' {
+            # Network is the 8th of 10 categories: seven are finished when it starts.
+            Should -Invoke -ModuleName HelpdeskToolkit Write-Progress -Scope Context -Times 1 -Exactly -ParameterFilter {
+                $Status -eq 'Network' -and $CurrentOperation -eq 'step 8 of 10' -and $PercentComplete -eq 70
+            }
+            Should -Invoke -ModuleName HelpdeskToolkit Write-Progress -Scope Context -Times 1 -Exactly -ParameterFilter {
+                $Status -eq 'System' -and $CurrentOperation -eq 'step 1 of 10' -and $PercentComplete -eq 0
+            }
+        }
     }
 
     Context 'parameters' {

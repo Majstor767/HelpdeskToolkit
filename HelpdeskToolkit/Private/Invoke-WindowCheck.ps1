@@ -27,9 +27,16 @@ function Invoke-WindowCheck {
 
     $controls.RunButton.IsEnabled = $false
     $controls.RunButton.Content = 'Checking ...'
+    $controls.StatusText.Text = 'The check is running ...'
+
+    # Progress panel: empty the bar and show it. An animation of the previous run would
+    # otherwise keep holding the old value, so it is removed first.
+    $controls.ProgressBar.BeginAnimation([System.Windows.Controls.Primitives.RangeBase]::ValueProperty, $null)
     $controls.ProgressBar.Value = 0
-    $controls.ProgressBar.Visibility = [System.Windows.Visibility]::Visible
-    $controls.StatusText.Text = 'Starting the check ...'
+    $controls.RunTitle.Text = 'Starting the check ...'
+    $controls.RunStep.Text = ''
+    $controls.RunPercent.Text = '0 %'
+    $controls.RunPanel.Visibility = [System.Windows.Visibility]::Visible
 
     # The background runspace knows nothing about this session, so it imports the
     # module itself and then calls the same public command as the console version.

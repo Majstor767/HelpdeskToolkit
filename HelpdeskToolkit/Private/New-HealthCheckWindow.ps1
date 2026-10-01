@@ -7,9 +7,14 @@ function New-HealthCheckWindow {
         installed. The XAML file describes the layout; this function loads it and
         returns one table that the other window functions pass around:
 
-        - Window:   the window object
-        - Controls: every element that has an x:Name in the XAML, by that name
-        - Report, Worker, Handle, Timer: state of the current run, filled in later
+        - Window:       the window object
+        - Controls:     every element that has an x:Name in the XAML, by that name
+        - ManifestPath: where the module is, for the background runspaces
+        - Report, Worker, Handle, Timer: state of the current health check
+        - Monitor, MonitorTimer:         state of the Live monitor page
+
+        The category list starts with the two pages that need no health check:
+        Overview and Live monitor.
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
         Justification = 'Only builds a window object in memory; no system state is changed.')]
@@ -46,12 +51,20 @@ function New-HealthCheckWindow {
         }
     }
 
+    $controls.CategoryList.ItemsSource = @(
+        ConvertTo-WindowNavigationItem -Name 'Overview'
+        ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
+    )
+
     @{
-        Window   = $window
-        Controls = $controls
-        Report   = $null
-        Worker   = $null
-        Handle   = $null
-        Timer    = $null
+        Window       = $window
+        Controls     = $controls
+        ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
+        Report       = $null
+        Worker       = $null
+        Handle       = $null
+        Timer        = $null
+        Monitor      = $null
+        MonitorTimer = $null
     }
 }

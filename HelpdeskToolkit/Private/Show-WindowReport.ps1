@@ -3,7 +3,7 @@ function Show-WindowReport {
     .SYNOPSIS
         Displays a finished health report in the application window.
     .DESCRIPTION
-        Fills in the verdict and the count per status, builds the category list on the
+        Fills in the verdict and the count per status, rebuilds the category list on the
         left and opens the Overview page. Every entry of the list carries the worst
         status of its category (shown as a colored dot) and the number of problems in
         it, so the user sees at a glance where to look.
@@ -61,25 +61,13 @@ function Show-WindowReport {
     $controls.OpenReportButton.IsEnabled = $true
     $controls.SaveAsButton.IsEnabled = $true
 
-    # Category list: Overview first, then the categories in the order they ran.
-    $statusOrder = @('Critical', 'Warning', 'OK', 'Info')
-    $newEntry = {
-        param($EntryName, $EntryResults)
-
-        $statuses = @($EntryResults | ForEach-Object { $_.Status })
-        $worst = $statusOrder | Where-Object { $statuses -contains $_ } | Select-Object -First 1
-        $problems = @($EntryResults | Where-Object { $_.Status -in 'Critical', 'Warning' }).Count
-
-        [PSCustomObject]@{
-            Name  = $EntryName
-            Worst = if ($worst) { $worst } else { 'None' }
-            Badge = if ($problems -gt 0) { [string]$problems } else { '' }
-        }
-    }
-
-    $entries = @(& $newEntry 'Overview' $results)
+    # Category list: Overview and Live monitor first, then the categories in the order they ran.
+    $entries = @(
+        ConvertTo-WindowNavigationItem -Name 'Overview' -Result $results
+        ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
+    )
     foreach ($category in @($results | ForEach-Object { $_.Category } | Select-Object -Unique)) {
-        $entries += & $newEntry $category @($results | Where-Object { $_.Category -eq $category })
+        $entries += ConvertTo-WindowNavigationItem -Name $category -Result @($results | Where-Object { $_.Category -eq $category })
     }
 
     $controls.CategoryList.ItemsSource = $entries

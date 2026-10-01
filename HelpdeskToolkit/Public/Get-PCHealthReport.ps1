@@ -63,8 +63,11 @@ function Get-PCHealthReport {
     $activity = $script:ProgressActivity
     $completed = 0
     $results = foreach ($category in $checks.Keys) {
-        Write-Progress -Activity $activity -Status $category -PercentComplete ($completed / $checks.Count * 100)
         $completed++
+        # The percentage counts the category that is running as done once it finishes;
+        # the step text ("step 3 of 10") is what the window shows next to the name.
+        Write-Progress -Activity $activity -Status $category -CurrentOperation ('step {0} of {1}' -f $completed, $checks.Count) `
+            -PercentComplete (($completed - 1) / $checks.Count * 100)
 
         $command = $checks[$category].Command
         $parameters = $checks[$category].Parameters
