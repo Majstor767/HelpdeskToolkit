@@ -222,6 +222,12 @@
         }
     }
 
+    Score         = @{
+        # The health score starts at 100; every result with these statuses takes points off.
+        CriticalPenalty = 15
+        WarningPenalty  = 4
+    }
+
     # Services (by service name) whose state is reported in the Services category.
     Services      = @(
         'Dhcp'

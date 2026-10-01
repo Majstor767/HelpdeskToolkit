@@ -87,6 +87,7 @@ function Set-TestThreshold {
                 WifiSignalWarningPercent = 40
                 TypicalWifiSignal   = 'typical wifi'
             }
+            Score         = @{ CriticalPenalty = 15; WarningPenalty = 4 }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }
     }
@@ -151,6 +152,7 @@ function New-TestReport {
         DurationSeconds = 1.5
         IsElevated      = $IsElevated
         EventLogDays    = 7
+        Score           = [math]::Max(0, 100 - 15 * $summary.Critical - 4 * $summary.Warning)
         Summary         = $summary
         Results         = @($Result)
     }

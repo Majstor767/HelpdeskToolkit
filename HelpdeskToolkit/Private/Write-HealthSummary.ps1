@@ -59,6 +59,9 @@ function Write-HealthSummary {
         }
     }
     Write-Host ''
+    if ($Report.PSObject.Properties['Score']) {
+        Write-Host ('Health score: {0} of 100' -f $Report.Score)
+    }
 
     if (-not $Report.IsElevated) {
         Write-Host 'Run without administrator rights: checks marked "Requires admin" were skipped.' -ForegroundColor DarkGray

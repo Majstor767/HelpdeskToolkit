@@ -107,6 +107,10 @@ function ConvertTo-HealthReportHtml {
     $html.Add(('<div><dt>Duration</dt><dd>{0} s</dd></div>' -f [string]$Report.DurationSeconds))
     $html.Add(('<div><dt>Event log period</dt><dd>{0} days</dd></div>' -f [string]$Report.EventLogDays))
     $html.Add(('<div><dt>Administrator rights</dt><dd>{0}</dd></div>' -f $(if ($Report.IsElevated) { 'Yes' } else { 'No' })))
+    # Reports saved by older versions have no score.
+    if ($Report.PSObject.Properties['Score']) {
+        $html.Add(('<div><dt>Health score</dt><dd>{0} of 100</dd></div>' -f [string]$Report.Score))
+    }
     $html.Add('</dl>')
     $html.Add('</div></header>')
 
