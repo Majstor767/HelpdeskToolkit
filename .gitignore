@@ -4,6 +4,9 @@ reports/
 PCHealth_*.html
 PCHealth_*.json
 
+# Release files are built by tools/Build-Release.ps1 and published on GitHub Releases.
+dist/
+
 # Test and analysis output
 testResults.xml
 coverage.xml

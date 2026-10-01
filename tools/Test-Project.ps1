@@ -44,6 +44,11 @@ if (-not $SkipAnalyzer) {
     $findings = @(Invoke-ScriptAnalyzer -Path $modulePath -Recurse)
     $findings += @(Invoke-ScriptAnalyzer -Path $toolsPath -Recurse)
 
+    # Scripts in the repository root, such as the launcher.
+    foreach ($script in Get-ChildItem -Path $root -Filter '*.ps1' -File) {
+        $findings += @(Invoke-ScriptAnalyzer -Path $script.FullName)
+    }
+
     # Pester runs BeforeAll and It blocks in separate scopes that the analyzer cannot
     # follow, so every variable that is set in BeforeAll and used in a test is reported
     # as "assigned but never used". That one rule is switched off for the tests only.
