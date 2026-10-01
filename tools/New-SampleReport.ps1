@@ -54,6 +54,9 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'Stability index', 'OK', '7.4 of 10', '')
         , @('System', 'Windows activation', 'OK', 'Activated', '')
         , @('System', 'Startup programs', 'OK', '12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more', '')
+        , @('System', 'Scheduled tasks', 'Info', '4 tasks: Cloud Backup Sync, Contoso Updater, PDF Helper Update, Printer Assistant Check', '')
+        , @('System', 'Power plan', 'Info', 'Balanced', '')
+        , @('System', 'Fast Startup', 'Info', 'Enabled', '')
         , @('System', 'Last startup duration', 'Info', 'Requires admin', $adminOnly)
         , @('System', 'User profiles', 'Info', 'Requires admin', $adminOnly)
 
@@ -79,19 +82,25 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Drive: Contoso HDD 500GB', 'Warning', 'HDD, SATA, 465.8 GB, health: Warning', 'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.')
         , @('Hardware', 'Disk (C:)', 'Critical', '3.1 % free (7.4 GB of 237.9 GB)', 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.')
         , @('Hardware', 'Disk (D:)', 'OK', '61.4 % free (286.1 GB of 465.8 GB)', '')
+        , @('Hardware', 'Largest folders (C:)', 'Info', 'Users\m.horvat\AppData 71.2 GB or more, Windows 28.4 GB or more, Program Files 19.6 GB, Users\m.horvat\Downloads 11.2 GB, Users\m.horvat\Videos 9.7 GB, hiberfil.sys 6.3 GB and 6 more', 'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.')
         , @('Hardware', 'Temporary files', 'Warning', '6.8 GB', 'Temporary files take up a lot of space. Remove them in Settings > System > Storage > Temporary files.')
         , @('Hardware', 'Downloads folder', 'Info', '11.2 GB in 348 files', '')
         , @('Hardware', 'Recycle Bin', 'OK', '1.3 GB', '')
+        , @('Hardware', 'Hibernation file', 'Info', '6.3 GB', 'The system disk is short of space and this file takes up a good part of it. On a computer that is never put into hibernation, an administrator can remove the file with "powercfg /hibernate off"; this also turns off Fast Startup, so starting Windows takes a little longer.')
         , @('Hardware', 'Page file', 'OK', '34 % (1632 MB of 4800 MB used)', '')
         , @('Hardware', 'Drive details', 'Info', 'Requires admin', $adminOnly)
         , @('Hardware', 'File system', 'Info', 'Requires admin', $adminOnly)
         , @('Hardware', 'System temporary files', 'Info', 'Requires admin', $adminOnly)
         , @('Hardware', 'Devices with problems', 'OK', 'None', '')
+        , @('Hardware', 'Unsigned drivers', 'OK', 'None', '')
+        , @('Hardware', 'Old drivers', 'Info', '1 driver: Contoso Card Reader (2019-05-14)', 'These drivers are older than 5 years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try.')
         , @('Hardware', 'Battery', 'OK', '64 % (plugged in)', '')
+        , @('Hardware', 'Battery health', 'OK', '86 % of the original capacity (43000 of 50000 mWh), 214 charge cycles', '')
 
         , @('Software', 'Installed programs', 'Info', '12 programs: 7-Zip 24.08, Chat Client 5.2, Contoso Office 16.0, Contoso VPN 3.1, Mail Client 12.4, PDF Reader 2025.1, Printer Assistant 2.0, Screenshot Tool 4.0 and 4 more', '')
         , @('Software', 'Recently installed', 'Info', '2 in the last 30 days: Screenshot Tool (2026-09-22), PDF Reader (2026-09-11)', '')
         , @('Software', 'Application crashes', 'Warning', '9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)', 'Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) > Windows Logs > Application, source "Application Error".')
+        , @('Software', 'Browser extensions', 'Info', '6 extensions: Chrome (2), Edge (4)', '')
         , @('Software', 'Default browser', 'Info', 'Microsoft Edge', '')
 
         , @('Event Log', 'Unexpected shutdowns', 'Warning', '2 in the last 7 days', 'The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.')
@@ -108,6 +117,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Windows Update', 'Last installed update', 'OK', 'KB5000001 on 2026-09-18 (12 days ago)', '')
         , @('Windows Update', 'Pending restart', 'Warning', 'Yes (Windows Update)', 'Restart the computer to finish installing updates.')
         , @('Windows Update', 'Updates paused', 'OK', 'No', '')
+        , @('Windows Update', 'Pending updates', 'Info', '1 update: 2026-09 Cumulative Update Preview for Windows 11 (KB5000002)', 'Windows has found updates that are not installed yet. Install them in Settings > Windows Update.')
+        , @('Windows Update', 'Failed updates', 'OK', 'None in the last 30 days', '')
 
         , @('Security', 'Defender real-time protection', 'OK', 'Enabled', '')
         , @('Security', 'Defender definitions', 'OK', '1 day old (updated 2026-09-29 06:12)', '')
@@ -126,6 +137,10 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Security', 'Guest account', 'OK', 'Disabled', '')
         , @('Security', 'Built-in Administrator account', 'OK', 'Disabled', '')
         , @('Security', 'Shared folders', 'OK', 'None', '')
+        , @('Security', 'Listening ports', 'Info', '4 ports open to the network: spoolsv: 49668, svchost: 135, 5040, System: 445', '')
+        , @('Security', 'File History', 'Info', 'Not set up', '')
+        , @('Security', 'OneDrive', 'Info', 'Signed in and running', '')
+        , @('Security', 'System Restore', 'Info', 'On (the restore points are only shown to administrators)', '')
         , @('Security', 'Secure Boot', 'OK', 'Enabled', '')
         , @('Security', 'TPM', 'Info', 'Requires admin', $adminOnly)
         , @('Security', 'BitLocker (C:)', 'Info', 'Requires admin', $adminOnly)
@@ -133,6 +148,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Security', 'Account lockouts', 'Info', 'Requires admin', $adminOnly)
 
         , @('Network', 'Adapter: Contoso Wi-Fi 6 AX200 160MHz', 'Info', 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 867 Mbps', '')
+        , @('Network', 'Wi-Fi: CONTOSO-CORP', 'OK', '74 % signal, 5 GHz, 802.11ax, security: WPA2-Enterprise', '')
         , @('Network', 'Network profile', 'Info', 'Wi-Fi: Domain (corp.contoso.example)', '')
         , @('Network', 'Proxy', 'Info', 'Not configured', '')
         , @('Network', 'Hosts file', 'OK', 'No custom entries', '')
@@ -156,6 +172,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Services', 'Windows Update (wuauserv)', 'Info', 'Stopped (start mode: Manual)', '')
         , @('Services', 'Background Intelligent Transfer Service (BITS)', 'Info', 'Stopped (start mode: Manual)', '')
         , @('Services', 'Print Spooler (Spooler)', 'Warning', 'Stopped (start mode: Auto)', 'The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.')
+        , @('Services', 'Third-party services', 'Info', '3 services: Cloud Backup Service, Contoso Updater Service, Contoso VPN Service', '')
     )
 
     # Allowed range and typical value of the measurements, by check name. They are
@@ -169,6 +186,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Disk (C:)'                         = @((Format-AllowedRange -Warning $limits.Disk.WarningFreePercent -Critical $limits.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse), $limits.Disk.Typical)
         'Disk (D:)'                         = @((Format-AllowedRange -Warning $limits.Disk.WarningFreePercent -Critical $limits.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse), $limits.Disk.Typical)
         'Battery'                           = @((Format-AllowedRange -Warning $limits.Battery.WarningPercent -Critical $limits.Battery.CriticalPercent -Unit '%' -LowerIsWorse), '')
+        'Battery health'                    = @((Format-AllowedRange -Warning $limits.Battery.HealthWarningPercent -Critical $limits.Battery.HealthCriticalPercent -Unit '%' -LowerIsWorse -Maximum 100), $limits.Battery.TypicalHealth)
+        'Wi-Fi: CONTOSO-CORP'               = @(('signal {0} - 100 %' -f $limits.Network.WifiSignalWarningPercent), $limits.Network.TypicalWifiSignal)
         'Unexpected shutdowns'              = @((Format-AllowedRange -Warning $limits.EventLog.UnexpectedShutdownWarningAbove), $limits.EventLog.TypicalUnexpectedShutdowns)
         'System log - critical events'      = @((Format-AllowedRange -Warning $limits.EventLog.CriticalEventWarningAbove -Critical $limits.EventLog.CriticalEventCriticalAbove), $limits.EventLog.TypicalCriticalEvents)
         'Application log - critical events' = @((Format-AllowedRange -Warning $limits.EventLog.CriticalEventWarningAbove -Critical $limits.EventLog.CriticalEventCriticalAbove), $limits.EventLog.TypicalCriticalEvents)
@@ -194,6 +213,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
     $details = @{
         'Startup programs'   = @('Screenshot Tool', 'SecurityHealth', 'Teams', 'Touchpad Driver')
         'Installed programs' = @('Teams 25.1', 'Touchpad Driver 19.5', 'Video Player 3.0', 'Web Meeting Client 6.2')
+        'Largest folders (C:)' = @('ProgramData 5.1 GB', 'Users\m.horvat\Documents 4.4 GB', 'pagefile.sys 4.7 GB', 'Users\m.horvat\Desktop 3.9 GB', 'Program Files (x86) 3.2 GB', 'Users\m.horvat\Pictures 2.6 GB')
+        'Browser extensions' = @('Chrome: Ad Blocker 1.60.0', 'Chrome: Password Manager 3.2.1', 'Edge: Ad Blocker 1.60.0', 'Edge: Contoso Web Meeting 6.2', 'Edge: PDF Tools 2.0', 'Edge: Shopping Helper 4.1.3')
         'Audio devices'      = @('Web Meeting Virtual Speaker (virtual)')
     }
 
@@ -218,14 +239,16 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         }
     )
 
+    $summary = Get-HealthSummary -Result $results
     $report = [PSCustomObject]@{
-        ToolVersion     = $ExecutionContext.SessionState.Module.Version.ToString()
+        ToolVersion     = Get-ToolVersion
         ComputerName    = 'FIN-LT-014'
         GeneratedAt     = '2026-09-30 09:14:52'
-        DurationSeconds = 6.3
+        DurationSeconds = 18.6
         IsElevated      = $false
         EventLogDays    = 7
-        Summary         = Get-HealthSummary -Result $results
+        Score           = Get-HealthScore -Summary $summary
+        Summary         = $summary
         Results         = $results
     }
 

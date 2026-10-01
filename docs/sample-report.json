@@ -2,14 +2,15 @@
     "ToolVersion":  "0.1.0",
     "ComputerName":  "FIN-LT-014",
     "GeneratedAt":  "2026-09-30 09:14:52",
-    "DurationSeconds":  6.3,
+    "DurationSeconds":  18.6,
     "IsElevated":  false,
     "EventLogDays":  7,
+    "Score":  37,
     "Summary":  {
-                    "OK":  45,
+                    "OK":  49,
                     "Warning":  12,
                     "Critical":  1,
-                    "Info":  47
+                    "Info":  60
                 },
     "Results":  [
                     {
@@ -169,6 +170,45 @@
                                     ],
                         "Allowed":  "0 - 15",
                         "Typical":  "5 - 10",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Scheduled tasks",
+                        "Description":  "Tasks that Windows starts by itself at a set time or event and that were not created by Windows: updaters and helpers of installed programs, and sometimes unwanted software that wants to come back after every restart.",
+                        "Status":  "Info",
+                        "Value":  "4 tasks: Cloud Backup Sync, Contoso Updater, PDF Helper Update, Printer Assistant Check",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Power plan",
+                        "Description":  "The set of power settings in use. \"Power saver\" slows the processor down to save energy; \"High performance\" keeps it fast and uses more power.",
+                        "Status":  "Info",
+                        "Value":  "Balanced",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Fast Startup",
+                        "Description":  "With Fast Startup, \"Shut down\" saves the core of Windows to disk so the next start is quicker. Windows is then not really restarted, which is why \"Restart\" is the cure for many problems and \"Shut down\" is not.",
+                        "Status":  "Info",
+                        "Value":  "Enabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
                         "Recommendation":  ""
                     },
                     {
@@ -472,6 +512,24 @@
                     },
                     {
                         "Category":  "Hardware",
+                        "Check":  "Largest folders (C:)",
+                        "Description":  "The folders and files that take up the most space on a disk that is running full. Folders inside the profile of the current user are listed one by one.",
+                        "Status":  "Info",
+                        "Value":  "Users\\m.horvat\\AppData 71.2 GB or more, Windows 28.4 GB or more, Program Files 19.6 GB, Users\\m.horvat\\Downloads 11.2 GB, Users\\m.horvat\\Videos 9.7 GB, hiberfil.sys 6.3 GB and 6 more",
+                        "Details":  [
+                                        "ProgramData 5.1 GB",
+                                        "Users\\m.horvat\\Documents 4.4 GB",
+                                        "pagefile.sys 4.7 GB",
+                                        "Users\\m.horvat\\Desktop 3.9 GB",
+                                        "Program Files (x86) 3.2 GB",
+                                        "Users\\m.horvat\\Pictures 2.6 GB"
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. \"Or more\" means the folder was too large to be measured completely in the time allowed."
+                    },
+                    {
+                        "Category":  "Hardware",
                         "Check":  "Temporary files",
                         "Description":  "Files that programs left in the temporary folder of the user. They are safe to remove and often the quickest way to free space on a full disk.",
                         "Status":  "Warning",
@@ -508,6 +566,19 @@
                         "Allowed":  "0 - 10 GB",
                         "Typical":  "",
                         "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Hibernation file",
+                        "Description":  "The file hiberfil.sys on the system disk, into which Windows saves the memory for hibernation and for Fast Startup. It is several gigabytes large and cannot be deleted like a normal file.",
+                        "Status":  "Info",
+                        "Value":  "6.3 GB",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "The system disk is short of space and this file takes up a good part of it. On a computer that is never put into hibernation, an administrator can remove the file with \"powercfg /hibernate off\"; this also turns off Fast Startup, so starting Windows takes a little longer."
                     },
                     {
                         "Category":  "Hardware",
@@ -576,6 +647,32 @@
                     },
                     {
                         "Category":  "Hardware",
+                        "Check":  "Unsigned drivers",
+                        "Description":  "A driver is the program that lets Windows use a device. Its digital signature proves who made it and that it was not changed afterwards.",
+                        "Status":  "OK",
+                        "Value":  "None",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Old drivers",
+                        "Description":  "Drivers of graphics cards, network adapters, sound cards, printers and similar devices that have not been updated for years. Drivers that come with Windows are not listed.",
+                        "Status":  "Info",
+                        "Value":  "1 driver: Contoso Card Reader (2019-05-14)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "These drivers are older than 5 years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try."
+                    },
+                    {
+                        "Category":  "Hardware",
                         "Check":  "Battery",
                         "Description":  "The charge of the laptop battery and whether the charger is connected.",
                         "Status":  "OK",
@@ -585,6 +682,19 @@
                                     ],
                         "Allowed":  "20 - 100 % (critical below 10 %)",
                         "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "Battery health",
+                        "Description":  "How much charge the battery can still hold compared with when it was new. Every battery wears out with use; below about 60 % the running time is noticeably shorter.",
+                        "Status":  "OK",
+                        "Value":  "86 % of the original capacity (43000 of 50000 mWh), 214 charge cycles",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "60 - 100 % (critical below 40 %)",
+                        "Typical":  "80 - 100 %",
                         "Recommendation":  ""
                     },
                     {
@@ -628,6 +738,24 @@
                         "Allowed":  "0 - 5",
                         "Typical":  "0 - 2 per week",
                         "Recommendation":  "Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) \u003e Windows Logs \u003e Application, source \"Application Error\"."
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Browser extensions",
+                        "Description":  "Add-ons installed in the browsers of the current user. An extension can read and change the pages that are opened, so unknown ones are a common cause of advertising, redirects and slow browsing.",
+                        "Status":  "Info",
+                        "Value":  "6 extensions: Chrome (2), Edge (4)",
+                        "Details":  [
+                                        "Chrome: Ad Blocker 1.60.0",
+                                        "Chrome: Password Manager 3.2.1",
+                                        "Edge: Ad Blocker 1.60.0",
+                                        "Edge: Contoso Web Meeting 6.2",
+                                        "Edge: PDF Tools 2.0",
+                                        "Edge: Shopping Helper 4.1.3"
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
                     },
                     {
                         "Category":  "Software",
@@ -804,6 +932,32 @@
                         "Description":  "Whether Windows Update was paused in Settings. While it is paused no security updates are installed.",
                         "Status":  "OK",
                         "Value":  "No",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Windows Update",
+                        "Check":  "Pending updates",
+                        "Description":  "Updates that Windows Update has already found but not installed yet, according to the last search Windows made by itself.",
+                        "Status":  "Info",
+                        "Value":  "1 update: 2026-09 Cumulative Update Preview for Windows 11 (KB5000002)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows has found updates that are not installed yet. Install them in Settings \u003e Windows Update."
+                    },
+                    {
+                        "Category":  "Windows Update",
+                        "Check":  "Failed updates",
+                        "Description":  "Updates whose last installation attempt failed, with the error code Windows recorded. Windows tries again automatically; an update that keeps failing leaves the computer without that fix.",
+                        "Status":  "OK",
+                        "Value":  "None in the last 30 days",
                         "Details":  [
 
                                     ],
@@ -1034,6 +1188,58 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "Listening ports",
+                        "Description":  "Network ports on which a program of this computer waits for connections from other computers. Ports that only accept connections from this computer itself are not counted.",
+                        "Status":  "Info",
+                        "Value":  "4 ports open to the network: spoolsv: 49668, svchost: 135, 5040, System: 445",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "File History",
+                        "Description":  "The backup of personal files that is built into Windows. It copies documents, pictures and the desktop to another drive at regular intervals.",
+                        "Status":  "Info",
+                        "Value":  "Not set up",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "OneDrive",
+                        "Description":  "The cloud storage of Microsoft. Files in the OneDrive folder are also stored online, so they survive a broken disk.",
+                        "Status":  "Info",
+                        "Value":  "Signed in and running",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "System Restore",
+                        "Description":  "Lets Windows return to an earlier state of its system files, drivers and settings. Personal files are not touched, so it is no replacement for a backup.",
+                        "Status":  "Info",
+                        "Value":  "On (the restore points are only shown to administrators)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Secure Boot",
                         "Description":  "A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.",
                         "Status":  "OK",
@@ -1108,6 +1314,19 @@
                                     ],
                         "Allowed":  "",
                         "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Network",
+                        "Check":  "Wi-Fi: CONTOSO-CORP",
+                        "Description":  "The wireless network the computer is connected to: signal strength, frequency band, Wi-Fi standard and how the connection is encrypted.",
+                        "Status":  "OK",
+                        "Value":  "74 % signal, 5 GHz, 802.11ax, security: WPA2-Enterprise",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "signal 40 - 100 %",
+                        "Typical":  "60 - 100 %",
                         "Recommendation":  ""
                     },
                     {
@@ -1382,6 +1601,19 @@
                         "Allowed":  "",
                         "Typical":  "",
                         "Recommendation":  "The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped."
+                    },
+                    {
+                        "Category":  "Services",
+                        "Check":  "Third-party services",
+                        "Description":  "Services that start together with Windows and were installed by other programs. Each one runs in the background all the time and uses some memory.",
+                        "Status":  "Info",
+                        "Value":  "3 services: Cloud Backup Service, Contoso Updater Service, Contoso VPN Service",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
                     }
                 ]
 }
