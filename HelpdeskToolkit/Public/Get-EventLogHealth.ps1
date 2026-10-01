@@ -8,8 +8,8 @@ function Get-EventLogHealth {
         in the selected period. That quickly shows whether the computer has a
         recurring problem and where to look in Event Viewer.
 
-        It also counts unexpected shutdowns (event 6008): power loss, crashes and
-        forced power-offs.
+        It also counts unexpected shutdowns (event 6008: power loss, crashes and
+        forced power-offs) and blue screens (event 1001).
 
         Both logs are readable by standard users, so no administrator rights are
         needed. The limits come from Config\Thresholds.psd1.
@@ -65,6 +65,34 @@ function Get-EventLogHealth {
         New-CheckResult -Category $category -Check 'Unexpected shutdowns' -Status $status `
             -Value ('{0} {1}' -f $shutdownCount, $period) -Recommendation $recommendation `
             -Allowed (Format-AllowedRange -Warning $thresholds.UnexpectedShutdownWarningAbove) -Typical $thresholds.TypicalUnexpectedShutdowns
+    }
+
+    # Blue screens: after a crash Windows writes event 1001 with the stop code at the next start.
+    try {
+        try {
+            $filter = @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WER-SystemErrorReporting'; Id = 1001; StartTime = $since }
+            $blueScreenCount = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop).Count
+        }
+        catch {
+            if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {
+                throw
+            }
+            $blueScreenCount = 0
+        }
+
+        $status = Get-ThresholdStatus -Value $blueScreenCount -Warning $thresholds.BlueScreenWarningAbove
+        $recommendation = if ($status -ne 'OK') {
+            'Windows crashed with a blue screen. The usual causes are a faulty driver, bad memory or overheating: install pending driver and Windows updates, test the memory with Windows Memory Diagnostic (mdsched.exe) and look up the stop code in Event Viewer > Windows Logs > System (source BugCheck).'
+        }
+        else {
+            ''
+        }
+        New-CheckResult -Category $category -Check 'Blue screens' -Status $status `
+            -Value ('{0} {1}' -f $blueScreenCount, $period) -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.BlueScreenWarningAbove) -Typical $thresholds.TypicalBlueScreens
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Blue screens' -ErrorRecord $_
     }
 
     foreach ($logName in 'System', 'Application') {

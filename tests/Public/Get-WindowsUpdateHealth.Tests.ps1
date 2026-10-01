@@ -13,6 +13,8 @@ Describe 'Get-WindowsUpdateHealth' {
             [PSCustomObject]@{ HotFixID = 'KB5000003'; InstalledOn = $null }
         }
         Mock -ModuleName HelpdeskToolkit Get-PendingRebootReason { }
+        # No pause date in the registry: updates are not paused.
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue { }
     }
 
     Context 'on an up-to-date computer' {
@@ -62,6 +64,33 @@ Describe 'Get-WindowsUpdateHealth' {
             $restart.Status | Should -Be 'Warning'
             $restart.Value | Should -Be 'Yes (Windows Update, Component servicing)'
             $restart.Recommendation | Should -Match 'Restart'
+        }
+    }
+
+    Context 'paused updates' {
+        It 'reports that updates are not paused when no pause date is stored' {
+            $paused = Get-WindowsUpdateHealth | Where-Object Check -eq 'Updates paused'
+            $paused.Status | Should -Be 'OK'
+            $paused.Value | Should -Be 'No'
+        }
+
+        It 'is a Warning while the pause date is in the future' {
+            $until = (Get-Date).AddDays(10)
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { $until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
+            $paused = Get-WindowsUpdateHealth | Where-Object Check -eq 'Updates paused'
+            $paused.Status | Should -Be 'Warning'
+            $paused.Value | Should -Be ('Yes, until {0:yyyy-MM-dd}' -f $until)
+            $paused.Recommendation | Should -Match 'Resume updates'
+        }
+
+        It 'ignores a pause that has already ended' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { '2020-01-01T00:00:00Z' }
+            (Get-WindowsUpdateHealth | Where-Object Check -eq 'Updates paused').Status | Should -Be 'OK'
+        }
+
+        It 'ignores a value that is not a date' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { 'not a date' }
+            (Get-WindowsUpdateHealth | Where-Object Check -eq 'Updates paused').Status | Should -Be 'OK'
         }
     }
 

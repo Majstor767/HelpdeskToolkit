@@ -69,6 +69,8 @@ function Get-SystemHealth {
     $user = if ($computer.UserName) { $computer.UserName } else { '{0}\{1}' -f $env:USERDOMAIN, $env:USERNAME }
     New-CheckResult -Category $category -Check 'Signed-in user' -Status Info -Value $user
 
+    New-CheckResult -Category $category -Check 'Time zone' -Status Info -Value ([System.TimeZoneInfo]::Local.DisplayName)
+
     $uptime = (Get-Date) - $os.LastBootUpTime
     $uptimeValue = '{0} d {1} h {2} min' -f [int][math]::Floor($uptime.TotalDays), $uptime.Hours, $uptime.Minutes
     $status = Get-ThresholdStatus -Value $uptime.TotalDays -Warning $thresholds.Uptime.WarningDays

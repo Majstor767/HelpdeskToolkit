@@ -1,20 +1,22 @@
 function Get-WindowsUpdateHealth {
     <#
     .SYNOPSIS
-        Reports the last installed Windows update and whether a restart is pending.
+        Reports the last installed Windows update, a pending restart and paused updates.
     .DESCRIPTION
         - Last installed update: the newest entry returned by Get-HotFix. A Warning is
           raised when nothing was installed for longer than the limit in
           Config\Thresholds.psd1 (45 days by default), which usually means Windows
           Update is stuck or disabled.
         - Pending restart: Windows needs a restart to finish installing updates.
+        - Updates paused: Windows Update was paused in Settings and installs nothing
+          until the pause ends.
 
         Nothing is installed, downloaded or changed, and no administrator rights are
         needed.
     .EXAMPLE
         Get-WindowsUpdateHealth
 
-        Returns the two Windows Update results.
+        Returns the Windows Update results.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
         Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
@@ -68,5 +70,27 @@ function Get-WindowsUpdateHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Pending restart' -ErrorRecord $_
+    }
+
+    # Paused updates. "Pause updates" in Settings stores the date until which Windows
+    # Update is paused, for example 2026-10-20T09:00:00Z.
+    $pausedUntil = $null
+    $pauseValue = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings' -Name 'PauseUpdatesExpiryTime'
+    if ($pauseValue) {
+        try {
+            $pausedUntil = [datetime]::Parse($pauseValue, [cultureinfo]::InvariantCulture)
+        }
+        catch {
+            Write-Verbose "Unreadable pause date: $pauseValue"
+        }
+    }
+
+    if ($pausedUntil -and $pausedUntil -gt (Get-Date)) {
+        New-CheckResult -Category $category -Check 'Updates paused' -Status Warning `
+            -Value ('Yes, until {0:yyyy-MM-dd}' -f $pausedUntil) `
+            -Recommendation 'Windows Update is paused, so security updates are not installed. Open Settings > Windows Update and choose "Resume updates".'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Updates paused' -Status OK -Value 'No'
     }
 }

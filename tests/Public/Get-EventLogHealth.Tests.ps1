@@ -6,10 +6,13 @@ BeforeAll {
 
 Describe 'Get-EventLogHealth' {
     BeforeAll {
-        # Three queries are made: unexpected shutdowns (filter contains an Id),
-        # then critical/error events of the System and of the Application log.
+        # Four queries are made: unexpected shutdowns (event 6008), blue screens (event
+        # 1001), then critical/error events of the System and of the Application log.
         Mock -ModuleName HelpdeskToolkit Get-WinEvent { throw "Unexpected event log query" }
-        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].ContainsKey('Id') } {
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 1001 } {
+            throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
+        }
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 6008 } {
             throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
         }
         Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter {
@@ -28,13 +31,14 @@ Describe 'Get-EventLogHealth' {
             $results = Get-EventLogHealth
         }
 
-        It 'returns seven results in the Event Log category' {
-            @($results).Count | Should -Be 7
+        It 'returns eight results in the Event Log category' {
+            @($results).Count | Should -Be 8
             $results.Category | Sort-Object -Unique | Should -Be 'Event Log'
         }
 
         It 'reports <Check> as <Status> with value "<Value>"' -ForEach @(
             @{ Check = 'Unexpected shutdowns'; Status = 'OK'; Value = '0 in the last 7 days' }
+            @{ Check = 'Blue screens'; Status = 'OK'; Value = '0 in the last 7 days' }
             @{ Check = 'System log - critical events'; Status = 'OK'; Value = '0 in the last 7 days' }
             @{ Check = 'System log - errors'; Status = 'OK'; Value = '4 in the last 7 days' }
             @{ Check = 'System log - top sources'; Status = 'Info'; Value = 'Service Control Manager (3), Disk (1)' }
@@ -125,13 +129,30 @@ Describe 'Get-EventLogHealth' {
 
     Context 'with unexpected shutdowns' {
         It 'is a Warning and explains the possible causes' {
-            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].ContainsKey('Id') } {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 6008 } {
                 New-TestEvent -Level 2 -Source 'EventLog' -Count 2
             }
             $shutdowns = Get-EventLogHealth | Where-Object Check -eq 'Unexpected shutdowns'
             $shutdowns.Status | Should -Be 'Warning'
             $shutdowns.Value | Should -Be '2 in the last 7 days'
             $shutdowns.Recommendation | Should -Match 'power'
+        }
+    }
+
+    Context 'with blue screens' {
+        It 'is a Warning that points to drivers, memory and overheating' {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 1001 } {
+                New-TestEvent -Level 2 -Source 'Microsoft-Windows-WER-SystemErrorReporting' -Count 3
+            }
+            $blueScreens = Get-EventLogHealth | Where-Object Check -eq 'Blue screens'
+            $blueScreens.Status | Should -Be 'Warning'
+            $blueScreens.Value | Should -Be '3 in the last 7 days'
+            $blueScreens.Recommendation | Should -Match 'driver'
+        }
+
+        It 'is reported as unavailable when the query fails' {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 1001 } { throw 'Query failed' }
+            (Get-EventLogHealth | Where-Object Check -eq 'Blue screens').Value | Should -Be 'Unavailable'
         }
     }
 
@@ -146,7 +167,7 @@ Describe 'Get-EventLogHealth' {
         }
 
         It 'reports any other failure as unavailable' {
-            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].ContainsKey('Id') } {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 6008 } {
                 throw 'The event log service is not running'
             }
             $shutdowns = Get-EventLogHealth | Where-Object Check -eq 'Unexpected shutdowns'

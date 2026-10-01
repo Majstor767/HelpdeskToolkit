@@ -69,6 +69,10 @@ Describe 'Get-SystemHealth' {
             $uptime.Recommendation | Should -Be ''
         }
 
+        It 'reports the time zone of the computer' {
+            ($results | Where-Object Check -eq 'Time zone').Value | Should -Be ([System.TimeZoneInfo]::Local.DisplayName)
+        }
+
         It 'gives every result a description' {
             $results | Where-Object { -not $_.Description } | Should -BeNullOrEmpty
         }

@@ -9,6 +9,7 @@ function Get-HardwareHealth {
         - CPU load at the time of the check
         - used physical memory and the five programs that use the most of it
         - health reported by every physical drive (SSD/HDD)
+        - devices without a working driver
         - free space on every local fixed disk
         - battery charge, when the computer has a battery
 
@@ -169,6 +170,32 @@ function Get-HardwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Disk space' -ErrorRecord $_
+    }
+
+    # Devices that Device Manager marks with a yellow warning sign. Error code 0 means
+    # the device works; code 22 means it was disabled on purpose, which is not a fault.
+    try {
+        $devices = @(Get-CimInstance -ClassName Win32_PnPEntity -Filter 'ConfigManagerErrorCode <> 0 AND ConfigManagerErrorCode <> 22' -ErrorAction Stop)
+        if ($devices.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Devices with problems' -Status OK -Value 'None'
+        }
+        else {
+            $names = @($devices | ForEach-Object {
+                    $name = if ($_.Name) { $_.Name } else { 'Unknown device' }
+                    '{0} (code {1})' -f $name, $_.ConfigManagerErrorCode
+                })
+            $shown = 5
+            $remaining = @($names | Select-Object -Skip $shown)
+            $value = '{0} devices: {1}' -f $devices.Count, (($names | Select-Object -First $shown) -join ', ')
+            if ($remaining.Count -gt 0) {
+                $value = '{0} and {1} more' -f $value, $remaining.Count
+            }
+            New-CheckResult -Category $category -Check 'Devices with problems' -Status Warning -Value $value -Details $remaining `
+                -Recommendation 'These devices have no working driver. Open Device Manager (devmgmt.msc), find the devices with a yellow mark and install the driver from Windows Update or from the web site of the manufacturer.'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Devices with problems' -ErrorRecord $_
     }
 
     # Battery. Desktops simply have no Win32_Battery instance.

@@ -5,7 +5,7 @@ function Get-NetworkHealth {
     .DESCRIPTION
         Configuration (read from WMI, nothing is sent over the network):
         every active adapter with its IPv4 address, default gateway, DNS servers, MAC
-        address and whether the address comes from DHCP, plus the proxy setting of
+        address, link speed and whether the address comes from DHCP, plus the proxy setting of
         the current user. An automatic 169.254.x.x address (APIPA) is reported as a
         Warning because it means no DHCP server answered.
 
@@ -51,6 +51,20 @@ function Get-NetworkHealth {
                 -Recommendation 'Check the network cable or Wi-Fi connection and make sure the adapter is enabled in Settings > Network & internet.'
         }
 
+        # Negotiated link speed of every connected adapter, by interface index. A gigabit
+        # card that only reaches 100 Mbps usually points to a bad cable or switch port.
+        $speeds = @{}
+        try {
+            foreach ($link in Get-CimInstance -ClassName Win32_NetworkAdapter -Filter 'NetEnabled = True' -ErrorAction Stop) {
+                if ($link.Speed) {
+                    $speeds[[int]$link.InterfaceIndex] = [double]$link.Speed
+                }
+            }
+        }
+        catch {
+            Write-Verbose "Could not read the link speed: $($_.Exception.Message)"
+        }
+
         foreach ($adapter in $adapters) {
             $ipv4 = @($adapter.IPAddress | Where-Object { $_ -match '^\d{1,3}(\.\d{1,3}){3}$' })
             $gateways = @($adapter.DefaultIPGateway | Where-Object { $_ -match '^\d{1,3}(\.\d{1,3}){3}$' })
@@ -67,6 +81,17 @@ function Get-NetworkHealth {
                 'DHCP: {0}' -f $(if ($adapter.DHCPEnabled) { 'Yes' } else { 'No' })
                 'MAC: {0}' -f $(if ($adapter.MACAddress) { $adapter.MACAddress } else { 'none' })
             )
+
+            $bitsPerSecond = $speeds[[int]$adapter.InterfaceIndex]
+            if ($bitsPerSecond) {
+                $speed = if ($bitsPerSecond -ge 1e9) {
+                    '{0} Gbps' -f [string][math]::Round($bitsPerSecond / 1e9, 1)
+                }
+                else {
+                    '{0} Mbps' -f [string][math]::Round($bitsPerSecond / 1e6)
+                }
+                $parts += 'Speed: {0}' -f $speed
+            }
 
             $isApipa = @($ipv4 | Where-Object { $_ -like '169.254.*' }).Count -gt 0
             if ($isApipa) {

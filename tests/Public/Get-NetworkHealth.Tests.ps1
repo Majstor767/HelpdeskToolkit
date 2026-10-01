@@ -16,7 +16,12 @@ Describe 'Get-NetworkHealth' {
                 DNSServerSearchOrder = @('10.20.30.10', '10.20.30.11')
                 DHCPEnabled          = $true
                 MACAddress           = '00:00:5E:00:53:2A'
+                InterfaceIndex       = 7
             }
+        }
+        # The link speed comes from a second WMI class and is matched by interface index.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_NetworkAdapter' } {
+            [PSCustomObject]@{ InterfaceIndex = 7; Speed = 1000000000 }
         }
         Mock -ModuleName HelpdeskToolkit Get-ProxySetting { 'Not configured' }
         Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $true; AverageMs = 12; Text = '12 ms' } }
@@ -32,7 +37,7 @@ Describe 'Get-NetworkHealth' {
         It 'reports the adapter configuration with IPv4 addresses only' {
             $adapter = $results | Where-Object Check -eq 'Adapter: Contoso Ethernet'
             $adapter.Status | Should -Be 'Info'
-            $adapter.Value | Should -Be 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A'
+            $adapter.Value | Should -Be 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 1 Gbps'
         }
 
         It 'reports <Check> as OK with value "<Value>"' -ForEach @(
@@ -59,6 +64,25 @@ Describe 'Get-NetworkHealth' {
             $ping = $results | Where-Object Check -eq 'Ping internet'
             $ping.Allowed | Should -Be '0 - 150 ms'
             $ping.Typical | Should -Be 'typical internet'
+        }
+    }
+
+    Context 'link speed' {
+        It 'shows <Bits> bits per second as "<Text>"' -ForEach @(
+            @{ Bits = 100000000; Text = 'Speed: 100 Mbps' }
+            @{ Bits = 2500000000; Text = 'Speed: 2.5 Gbps' }
+            @{ Bits = 866700000; Text = 'Speed: 867 Mbps' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_NetworkAdapter' } {
+                [PSCustomObject]@{ InterfaceIndex = 7; Speed = $Bits }
+            }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -like 'Adapter:*').Value | Should -Match ([regex]::Escape($Text) + '$')
+        }
+
+        It 'still reports the adapter when the link speed cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_NetworkAdapter' } { throw 'Query failed' }
+            $adapter = Get-NetworkHealth -SkipConnectivity | Where-Object Check -like 'Adapter:*'
+            $adapter.Value | Should -Match 'MAC: 00:00:5E:00:53:2A$'
         }
     }
 
@@ -89,7 +113,7 @@ Describe 'Get-NetworkHealth' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance {
                 [PSCustomObject]@{
                     Description = 'Contoso Wi-Fi'; IPAddress = @('169.254.10.20'); DefaultIPGateway = $null
-                    DNSServerSearchOrder = $null; DHCPEnabled = $true; MACAddress = $null
+                    DNSServerSearchOrder = $null; DHCPEnabled = $true; MACAddress = $null; InterfaceIndex = 12
                 }
             }
             $results = Get-NetworkHealth

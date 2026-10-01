@@ -19,6 +19,7 @@ Describe 'Get-HardwareHealth' {
             [PSCustomObject]@{ DeviceID = 'C:'; Size = 200GB; FreeSpace = 100GB }
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } { }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPEntity' } { }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_PhysicalDisk' } {
             [PSCustomObject]@{ FriendlyName = 'Contoso NVMe 256GB'; MediaType = 4; BusType = 17; Size = 256GB; HealthStatus = 0 }
         }
@@ -39,6 +40,7 @@ Describe 'Get-HardwareHealth' {
             @{ Check = 'Memory usage'; Status = 'OK'; Value = '50 % (8 GB of 16 GB used)' }
             @{ Check = 'Disk (C:)'; Status = 'OK'; Value = '50 % free (100 GB of 200 GB)' }
             @{ Check = 'Drive: Contoso NVMe 256GB'; Status = 'OK'; Value = 'SSD, NVMe, 256 GB, health: Healthy' }
+            @{ Check = 'Devices with problems'; Status = 'OK'; Value = 'None' }
             @{ Check = 'Battery'; Status = 'Info'; Value = 'No battery (desktop computer)' }
         ) {
             $result = $results | Where-Object Check -eq $Check
@@ -158,6 +160,34 @@ Describe 'Get-HardwareHealth' {
             $drive = $results | Where-Object Check -eq 'Drive: USB stick'
             $drive.Status | Should -Be 'Info'
             $drive.Value | Should -Be 'USB, 16 GB, health: Unknown'
+        }
+    }
+
+    Context 'devices without a working driver' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPEntity' } {
+                [PSCustomObject]@{ Name = 'Contoso USB Dock'; ConfigManagerErrorCode = 28 }
+                [PSCustomObject]@{ Name = $null; ConfigManagerErrorCode = 43 }
+                3..7 | ForEach-Object { [PSCustomObject]@{ Name = "Device $_"; ConfigManagerErrorCode = 10 } }
+            }
+            $devices = Get-HardwareHealth | Where-Object Check -eq 'Devices with problems'
+        }
+
+        It 'is a Warning that names the devices and their error codes' {
+            $devices.Status | Should -Be 'Warning'
+            $devices.Value | Should -Match '^7 devices: Contoso USB Dock \(code 28\), Unknown device \(code 43\)'
+            $devices.Recommendation | Should -Match 'Device Manager'
+        }
+
+        It 'shows the first five devices and keeps the rest as details' {
+            $devices.Value | Should -Match 'and 2 more$'
+            $devices.Details | Should -Be @('Device 6 (code 10)', 'Device 7 (code 10)')
+        }
+
+        It 'does not ask for devices that were disabled on purpose (code 22)' {
+            Should -Invoke -ModuleName HelpdeskToolkit Get-CimInstance -Scope Context -ParameterFilter {
+                $ClassName -eq 'Win32_PnPEntity' -and $Filter -match 'ConfigManagerErrorCode <> 22'
+            }
         }
     }
 
