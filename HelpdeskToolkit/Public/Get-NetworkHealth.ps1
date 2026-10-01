@@ -31,7 +31,7 @@ function Get-NetworkHealth {
         Reports only the adapter configuration.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
+        Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]

@@ -17,7 +17,7 @@ function Get-WindowsUpdateHealth {
         Returns the two Windows Update results.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
+        Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]

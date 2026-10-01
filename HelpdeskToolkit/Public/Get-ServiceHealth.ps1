@@ -21,7 +21,7 @@ function Get-ServiceHealth {
         Returns one result per configured service.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
+        Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -41,9 +41,13 @@ function Get-ServiceHealth {
     }
 
     foreach ($name in $names) {
+        # The display name is translated on non-English Windows, so the explanation
+        # is looked up by the service name, which is the same everywhere.
+        $description = Get-CheckDescription -Key ('Service:{0}' -f $name)
+
         $service = $services | Where-Object { $_.Name -eq $name } | Select-Object -First 1
         if (-not $service) {
-            New-CheckResult -Category $category -Check $name -Status Info -Value 'Not installed'
+            New-CheckResult -Category $category -Check $name -Status Info -Value 'Not installed' -Description $description
             continue
         }
 
@@ -51,18 +55,18 @@ function Get-ServiceHealth {
         $value = '{0} (start mode: {1})' -f $service.State, $service.StartMode
 
         if ($service.State -eq 'Running') {
-            New-CheckResult -Category $category -Check $check -Status OK -Value $value
+            New-CheckResult -Category $category -Check $check -Status OK -Value $value -Description $description
         }
         elseif ($service.StartMode -eq 'Disabled') {
-            New-CheckResult -Category $category -Check $check -Status Warning -Value $value `
+            New-CheckResult -Category $category -Check $check -Status Warning -Value $value -Description $description `
                 -Recommendation 'The service is disabled. Unless that was done on purpose, set its startup type back to the default in services.msc.'
         }
         elseif ($service.StartMode -eq 'Auto') {
-            New-CheckResult -Category $category -Check $check -Status Warning -Value $value `
+            New-CheckResult -Category $category -Check $check -Status Warning -Value $value -Description $description `
                 -Recommendation 'The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.'
         }
         else {
-            New-CheckResult -Category $category -Check $check -Status Info -Value $value
+            New-CheckResult -Category $category -Check $check -Status Info -Value $value -Description $description
         }
     }
 }

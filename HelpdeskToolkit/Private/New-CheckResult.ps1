@@ -6,6 +6,12 @@ function New-CheckResult {
         Every check in the module reports through this function, so the console
         summary, the JSON export and the HTML report can all rely on the same shape.
 
+        Description explains what the checked thing is. It is looked up by check name
+        in Config\Descriptions.psd1 unless it is passed explicitly.
+
+        Details holds the items that do not fit into Value (for example the rest of a
+        long list); the HTML report shows them in an expandable section.
+
         Allowed and Typical are only filled in for measurements (CPU load, free disk
         space, ping time and so on). They give the reader something to compare the
         measured value with: the range that still counts as OK and the value that is
@@ -29,6 +35,14 @@ function New-CheckResult {
         [AllowEmptyString()]
         [string]$Value = '',
 
+        # What the checked thing is and what it does. Looked up by check name when omitted.
+        [AllowEmptyString()]
+        [string]$Description = '',
+
+        # Additional items shown on demand, for example the rest of a long list.
+        [AllowEmptyCollection()]
+        [string[]]$Details = @(),
+
         # Range of values that is reported as OK, for example "0 - 85 %".
         [AllowEmptyString()]
         [string]$Allowed = '',
@@ -41,12 +55,19 @@ function New-CheckResult {
         [string]$Recommendation = ''
     )
 
+    if (-not $Description) {
+        $Description = Get-CheckDescription -Key $Check
+    }
+
     [PSCustomObject]@{
         PSTypeName     = 'HelpdeskToolkit.CheckResult'
         Category       = $Category
         Check          = $Check
+        Description    = $Description
         Status         = $Status
         Value          = $Value
+        # Empty entries are dropped so a null or blank item never counts as a detail.
+        Details        = @($Details | Where-Object { $_ })
         Allowed        = $Allowed
         Typical        = $Typical
         Recommendation = $Recommendation
