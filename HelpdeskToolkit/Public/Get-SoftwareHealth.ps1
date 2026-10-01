@@ -1,7 +1,7 @@
 function Get-SoftwareHealth {
     <#
     .SYNOPSIS
-        Reports installed programs, recent installations, application crashes and the default browser.
+        Reports installed programs, recent installations, application crashes, browser extensions and the default browser.
     .DESCRIPTION
         - Installed programs: how many there are and their names with versions. The
           first few are part of the value, the rest is returned in the Details property.
@@ -9,6 +9,7 @@ function Get-SoftwareHealth {
           recently?" is often the fastest way to the cause of a new problem.
         - Application crashes: how often programs crashed in the selected period and
           which ones. More crashes than the limit in Config\Thresholds.psd1 is a Warning.
+        - Browser extensions of Chrome, Edge, Brave and Opera, with their versions.
         - Default browser.
 
         Everything is read from the registry and the Application event log, without
@@ -117,6 +118,24 @@ function Get-SoftwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Application crashes' -ErrorRecord $_
+    }
+
+    # Browser extensions. They run inside the browser and see the pages the user
+    # opens, which makes them a frequent cause of slow, odd or ad-filled browsing.
+    try {
+        $extensions = @(Get-BrowserExtension)
+        if ($extensions.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Browser extensions' -Status Info -Value 'None found'
+        }
+        else {
+            $perBrowser = @($extensions | Group-Object -Property Browser | Sort-Object -Property Name | ForEach-Object { '{0} ({1})' -f $_.Name, $_.Count })
+            $names = @($extensions | Sort-Object -Property Browser, Name | ForEach-Object { ('{0}: {1} {2}' -f $_.Browser, $_.Name, $_.Version).Trim() })
+            New-CheckResult -Category $category -Check 'Browser extensions' -Status Info `
+                -Value ('{0} extensions: {1}' -f $extensions.Count, ($perBrowser -join ', ')) -Details $names
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Browser extensions' -ErrorRecord $_
     }
 
     # Default browser

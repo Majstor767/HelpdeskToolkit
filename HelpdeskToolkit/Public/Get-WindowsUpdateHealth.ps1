@@ -1,7 +1,7 @@
 function Get-WindowsUpdateHealth {
     <#
     .SYNOPSIS
-        Reports the last installed Windows update, a pending restart and paused updates.
+        Reports the last installed Windows update, a pending restart, paused, pending and failed updates.
     .DESCRIPTION
         - Last installed update: the newest entry returned by Get-HotFix. A Warning is
           raised when nothing was installed for longer than the limit in
@@ -10,6 +10,10 @@ function Get-WindowsUpdateHealth {
         - Pending restart: Windows needs a restart to finish installing updates.
         - Updates paused: Windows Update was paused in Settings and installs nothing
           until the pause ends.
+        - Pending updates: updates Windows has found but not installed yet. The answer
+          comes from the last search Windows made itself; no new search is started.
+        - Failed updates: updates whose last installation attempt in the past 30 days
+          failed, with the error code. They are a Warning.
 
         Nothing is installed, downloaded or changed, and no administrator rights are
         needed.
@@ -92,5 +96,77 @@ function Get-WindowsUpdateHealth {
     }
     else {
         New-CheckResult -Category $category -Check 'Updates paused' -Status OK -Value 'No'
+    }
+
+    # Updates that Windows has found but not installed yet
+    try {
+        $pending = @(Get-PendingUpdate)
+        if ($pending.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Pending updates' -Status OK -Value 'None'
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $pending -Label 'update' -Shown 3
+            New-CheckResult -Category $category -Check 'Pending updates' -Status Info -Value $list.Value -Details $list.Details `
+                -Recommendation 'Windows has found updates that are not installed yet. Install them in Settings > Windows Update.'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Pending updates' -ErrorRecord $_
+    }
+
+    # Updates that failed to install. Windows Update writes event 19 for every update
+    # it installed and event 20 for every attempt that failed. Windows tries again by
+    # itself, so an update only counts as failed when its last attempt failed.
+    try {
+        try {
+            $filter = @{
+                LogName      = 'System'
+                ProviderName = 'Microsoft-Windows-WindowsUpdateClient'
+                Id           = 19, 20
+                StartTime    = (Get-Date).AddDays(-$thresholds.FailedDays)
+            }
+            $events = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop)
+        }
+        catch {
+            if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {
+                throw
+            }
+            $events = @()
+        }
+
+        # Last result per kind of update, oldest event first. A failed event carries the
+        # error code and then the title; an installed event starts with the title.
+        #
+        # Updates of one kind replace each other: the security update of September
+        # contains the one of August, and antivirus definitions get a new version
+        # number several times a day. The month, the KB number and the version are
+        # therefore removed from the title to tell the kind, so a newer release that
+        # installed counts for an older one that failed.
+        $lastResult = [ordered]@{}
+        foreach ($entry in ($events | Sort-Object -Property TimeCreated)) {
+            $failed = $entry.Id -eq 20
+            $title = if ($failed) { [string]$entry.Properties[1].Value } else { [string]$entry.Properties[0].Value }
+            $kind = ($title -replace '^\d{4}-\d{2}\s+', '' -replace '\s*\((KB\d+|Version [\d.]+|[\d.]+)\)', '').Trim()
+
+            $lastResult[$kind] = if ($failed) {
+                '{0} (error 0x{1:X8})' -f $title.Trim(), [int]$entry.Properties[0].Value
+            }
+            else {
+                ''
+            }
+        }
+
+        $stillFailing = @($lastResult.Values | Where-Object { $_ })
+        if ($stillFailing.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Failed updates' -Status OK -Value ('None in the last {0} days' -f $thresholds.FailedDays)
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $stillFailing -Label 'update' -Shown 2
+            New-CheckResult -Category $category -Check 'Failed updates' -Status Warning -Value $list.Value -Details $list.Details `
+                -Recommendation 'These updates could not be installed. Restart the computer and check for updates again in Settings > Windows Update; make sure the system disk has free space. If an update keeps failing, search for its error code together with its KB number.'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Failed updates' -ErrorRecord $_
     }
 }

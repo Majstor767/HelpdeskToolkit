@@ -43,6 +43,10 @@ Describe 'Get-SystemHealth' {
         Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
         # 91H1 is a release of the test configuration that is supported for a long time.
         Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '91H1' }
+        Mock -ModuleName HelpdeskToolkit Get-ThirdPartyTask { }
+        Mock -ModuleName HelpdeskToolkit Get-PowerPlanName { 'Balanced' }
+        # HiberbootEnabled = 1: Fast Startup is on.
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'HiberbootEnabled' } { 1 }
     }
 
     Context 'on a healthy computer' {
@@ -64,6 +68,9 @@ Describe 'Get-SystemHealth' {
             @{ Check = 'Signed-in user'; Value = 'TEST-PC-01\tester' }
             @{ Check = 'Windows activation'; Value = 'Activated' }
             @{ Check = 'Startup programs'; Value = '3 programs: OneDrive, Teams, Updater' }
+            @{ Check = 'Scheduled tasks'; Value = '0 tasks' }
+            @{ Check = 'Power plan'; Value = 'Balanced' }
+            @{ Check = 'Fast Startup'; Value = 'Enabled' }
         ) {
             ($results | Where-Object Check -eq $Check).Value | Should -Be $Value
         }
@@ -292,6 +299,52 @@ Describe 'Get-SystemHealth' {
                 throw (New-Object -TypeName System.UnauthorizedAccessException -ArgumentList 'Access denied')
             }
             (Get-SystemHealth | Where-Object Check -eq 'Startup programs').Value | Should -Be 'Requires admin'
+        }
+    }
+
+    Context 'scheduled tasks that do not belong to Windows' {
+        It 'lists them by name and marks the disabled ones' {
+            Mock -ModuleName HelpdeskToolkit Get-ThirdPartyTask {
+                [PSCustomObject]@{ Name = 'Updater'; Author = 'Contoso'; Enabled = $true }
+                [PSCustomObject]@{ Name = 'Backup'; Author = 'Contoso'; Enabled = $false }
+            }
+            $tasks = Get-SystemHealth | Where-Object Check -eq 'Scheduled tasks'
+
+            $tasks.Status | Should -Be 'Info'
+            $tasks.Value | Should -Be '2 tasks: Backup (disabled), Updater'
+        }
+
+        It 'shows the first six and keeps the rest as details' {
+            Mock -ModuleName HelpdeskToolkit Get-ThirdPartyTask {
+                1..8 | ForEach-Object { [PSCustomObject]@{ Name = "Task$_"; Author = ''; Enabled = $true } }
+            }
+            $tasks = Get-SystemHealth | Where-Object Check -eq 'Scheduled tasks'
+
+            $tasks.Value | Should -Be '8 tasks: Task1, Task2, Task3, Task4, Task5, Task6 and 2 more'
+            $tasks.Details | Should -Be @('Task7', 'Task8')
+        }
+
+        It 'reports the tasks as unavailable when the task scheduler does not answer' {
+            Mock -ModuleName HelpdeskToolkit Get-ThirdPartyTask { throw 'The task scheduler service is not available' }
+            $results = Get-SystemHealth
+            ($results | Where-Object Check -eq 'Scheduled tasks').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Power plan').Value | Should -Be 'Balanced'
+        }
+    }
+
+    Context 'power plan and Fast Startup' {
+        It 'reports an unknown plan when the registry does not name it' {
+            Mock -ModuleName HelpdeskToolkit Get-PowerPlanName { }
+            (Get-SystemHealth | Where-Object Check -eq 'Power plan').Value | Should -Be 'Unknown'
+        }
+
+        It 'reports Fast Startup as <Expected> when the registry value is <Value>' -ForEach @(
+            @{ Value = 1; Expected = 'Enabled' }
+            @{ Value = 0; Expected = 'Disabled' }
+            @{ Value = $null; Expected = 'Unknown' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'HiberbootEnabled' } { $Value }
+            (Get-SystemHealth | Where-Object Check -eq 'Fast Startup').Value | Should -Be $Expected
         }
     }
 }

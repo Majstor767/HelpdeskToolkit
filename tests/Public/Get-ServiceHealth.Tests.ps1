@@ -12,6 +12,10 @@ Describe 'Get-ServiceHealth' {
             [PSCustomObject]@{ Name = 'Dhcp'; DisplayName = 'DHCP Client'; State = 'Running'; StartMode = 'Auto' }
             [PSCustomObject]@{ Name = 'BITS'; DisplayName = 'Background Intelligent Transfer Service'; State = 'Stopped'; StartMode = 'Manual' }
         }
+        # The second query asks for every service that starts automatically.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $Filter -eq "StartMode = 'Auto'" } {
+            [PSCustomObject]@{ DisplayName = 'Print Spooler'; State = 'Running'; PathName = "$env:SystemRoot\System32\spoolsv.exe" }
+        }
     }
 
     Context 'with the services in their normal state' {
@@ -25,7 +29,12 @@ Describe 'Get-ServiceHealth' {
                 'DHCP Client (Dhcp)'
                 'Background Intelligent Transfer Service (BITS)'
                 'Missing'
+                'Third-party services'
             )
+        }
+
+        It 'finds no service of another program' {
+            ($results | Where-Object Check -eq 'Third-party services').Value | Should -Be '0 services'
         }
 
         It 'reports a running service as OK' {
@@ -87,6 +96,35 @@ Describe 'Get-ServiceHealth' {
             $results = @(Get-ServiceHealth)
             $results.Count | Should -Be 1
             $results[0].Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'services installed by other programs' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $Filter -eq "StartMode = 'Auto'" } {
+                [PSCustomObject]@{ DisplayName = 'Contoso Updater'; State = 'Stopped'; PathName = '"C:\Program Files\Contoso\updater.exe" --service' }
+                [PSCustomObject]@{ DisplayName = 'Contoso Backup'; State = 'Running'; PathName = 'C:\Program Files\Contoso\backup.exe' }
+                # Not listed: part of Windows, products of Microsoft outside the Windows
+                # folder, and a service without a program path.
+                [PSCustomObject]@{ DisplayName = 'Print Spooler'; State = 'Running'; PathName = "$env:SystemRoot\System32\spoolsv.exe" }
+                [PSCustomObject]@{ DisplayName = 'Antivirus Service'; State = 'Running'; PathName = '"C:\ProgramData\Microsoft\Windows Defender\Platform\1.0\MsMpEng.exe"' }
+                [PSCustomObject]@{ DisplayName = 'Browser Update'; State = 'Stopped'; PathName = '"C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe" /svc' }
+                [PSCustomObject]@{ DisplayName = 'Store App Service'; State = 'Running'; PathName = 'C:\Program Files\WindowsApps\Microsoft.GamingServices_1.0\GamingServices.exe' }
+                [PSCustomObject]@{ DisplayName = 'Driver Service'; State = 'Running'; PathName = $null }
+            }
+            $thirdParty = Get-ServiceHealth | Where-Object Check -eq 'Third-party services'
+        }
+
+        It 'lists only the services that do not belong to Windows or Microsoft' {
+            $thirdParty.Status | Should -Be 'Info'
+            $thirdParty.Value | Should -Be '2 services: Contoso Backup, Contoso Updater (not running)'
+        }
+
+        It 'reports them as unavailable when they cannot be read, and keeps the monitored services' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $Filter -eq "StartMode = 'Auto'" } { throw 'Query failed' }
+            $results = Get-ServiceHealth
+            ($results | Where-Object Check -eq 'Third-party services').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Print Spooler (Spooler)').Status | Should -Be 'OK'
         }
     }
 }

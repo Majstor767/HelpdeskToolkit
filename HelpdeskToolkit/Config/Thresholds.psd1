@@ -93,6 +93,10 @@
         TimeoutMs           = 3000
         # User profiles are large, so they get more time each.
         ProfileTimeoutMs    = 5000
+        # "Largest folders" of a disk that is running full: time per folder and for
+        # the whole disk.
+        LargestFolderTimeoutMs = 3000
+        LargestFolderBudgetMs  = 15000
     }
 
     DriveDetail   = @{
@@ -114,8 +118,20 @@
 
     Battery       = @{
         # Charge below these percentages while running on battery.
-        WarningPercent  = 20
-        CriticalPercent = 10
+        WarningPercent        = 20
+        CriticalPercent       = 10
+        # Capacity the battery still has, in percent of its capacity when new, below these values.
+        HealthWarningPercent  = 60
+        HealthCriticalPercent = 40
+        TypicalHealth         = '80 - 100 %'
+    }
+
+    Drivers       = @{
+        # Drivers of other makers than Microsoft that are older than this many years are listed.
+        OldYears = 5
+        # Kinds of devices whose drivers are worth updating: graphics, network, sound,
+        # Bluetooth, cameras and scanners, printers, storage controllers.
+        Classes  = @('DISPLAY', 'NET', 'MEDIA', 'BLUETOOTH', 'IMAGE', 'CAMERA', 'PRINTER', 'HDC', 'SCSIADAPTER')
     }
 
     EventLog      = @{
@@ -150,6 +166,8 @@
         WarningDaysSinceLastUpdate = 45
         # Windows quality updates are released once a month.
         Typical                    = '0 - 30 days'
+        # Updates that failed to install are looked for in this many past days.
+        FailedDays                 = 30
     }
 
     Defender      = @{
@@ -189,6 +207,19 @@
         # Sign-in in a domain fails when the difference exceeds 5 minutes.
         ClockWarningSeconds = 120
         TypicalClock        = '0 - 5 seconds'
+        # Wi-Fi signal below this percentage = Warning.
+        WifiSignalWarningPercent = 40
+        TypicalWifiSignal        = '60 - 100 %'
+    }
+
+    Ports         = @{
+        # Ports that should not be open to other computers: the programs behind them
+        # send passwords unencrypted or are a common way into a computer.
+        Risky = @{
+            21   = 'FTP'
+            23   = 'Telnet'
+            5900 = 'VNC remote control'
+        }
     }
 
     # Services (by service name) whose state is reported in the Services category.

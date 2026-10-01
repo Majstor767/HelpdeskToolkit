@@ -263,6 +263,88 @@ function Get-SecurityHealth {
         New-FailureResult -Category $category -Check 'Shared folders' -ErrorRecord $_
     }
 
+    # Ports on which programs of this computer wait for connections from the network
+    try {
+        $ports = @(Get-ListeningPort | Where-Object { -not $_.LocalOnly })
+        $risky = (Get-HealthThreshold).Ports.Risky
+        $exposed = @($ports | Where-Object { $risky.ContainsKey([int]$_.Port) } |
+                ForEach-Object { '{0} ({1}, {2})' -f $_.Port, $risky[[int]$_.Port], $_.Process })
+
+        # "svchost: 135, 5040" - one entry per program
+        $byProgram = @($ports | Group-Object -Property Process | Sort-Object -Property Name |
+                ForEach-Object { '{0}: {1}' -f $_.Name, (($_.Group | ForEach-Object { $_.Port }) -join ', ') })
+        $list = ConvertTo-ListValue -Item $byProgram -Shown 4
+        $value = if ($ports.Count -gt 0) { '{0} ports open to the network: {1}' -f $ports.Count, $list.Value } else { 'None open to the network' }
+
+        if ($exposed.Count -gt 0) {
+            New-CheckResult -Category $category -Check 'Listening ports' -Status Warning -Value $value -Details $list.Details `
+                -Recommendation ('A program accepts connections on a port that should not be open: {0}. These services send passwords unencrypted or are a common way into a computer. Stop or uninstall the program unless it is really needed, and make sure the firewall is on.' -f ($exposed -join ', '))
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Listening ports' -Status Info -Value $value -Details $list.Details
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Listening ports' -ErrorRecord $_
+    }
+
+    # Backup of personal files: File History and OneDrive
+    $fileHistory = Get-FileHistoryTarget
+    $oneDriveAccounts = @(Get-ChildItem -Path 'HKCU:\Software\Microsoft\OneDrive\Accounts' -ErrorAction SilentlyContinue |
+            Where-Object { $_.GetValue('UserFolder') })
+    $oneDriveRunning = @(Get-Process -Name 'OneDrive' -ErrorAction SilentlyContinue).Count -gt 0
+
+    if ($fileHistory) {
+        New-CheckResult -Category $category -Check 'File History' -Status Info -Value ('Set up, saves to {0}' -f $fileHistory)
+    }
+    else {
+        # Without any sign of a backup the advice is given; another backup program may
+        # of course be in use, which is why this is not a warning.
+        $recommendation = if ($oneDriveAccounts.Count -eq 0) {
+            'No backup of the personal files was found (neither File History nor OneDrive). If no other backup program is used, set one up: a disk can fail without warning. File History is in Control Panel > File History.'
+        }
+        else {
+            ''
+        }
+        New-CheckResult -Category $category -Check 'File History' -Status Info -Value 'Not set up' -Recommendation $recommendation
+    }
+
+    $oneDriveValue = if ($oneDriveAccounts.Count -eq 0) {
+        'Not signed in'
+    }
+    elseif ($oneDriveRunning) {
+        'Signed in and running'
+    }
+    else {
+        'Signed in, but not running'
+    }
+    New-CheckResult -Category $category -Check 'OneDrive' -Status Info -Value $oneDriveValue
+
+    # System Restore. RPSessionInterval = 1 means protection is on for at least one drive.
+    $protection = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' -Name 'RPSessionInterval'
+    if ($protection -ne 1) {
+        New-CheckResult -Category $category -Check 'System Restore' -Status Info -Value 'Off' `
+            -Recommendation 'System Restore is off, so Windows cannot be taken back to an earlier state after a bad driver or update. It can be turned on in System Properties > System Protection.'
+    }
+    elseif (-not (Test-IsAdministrator)) {
+        New-CheckResult -Category $category -Check 'System Restore' -Status Info -Value 'On (the restore points are only shown to administrators)'
+    }
+    else {
+        try {
+            $points = @(Get-RestorePoint | Sort-Object -Descending)
+            $value = if ($points.Count -gt 0) {
+                'On, {0} restore points, newest from {1:yyyy-MM-dd}' -f $points.Count, $points[0]
+            }
+            else {
+                'On, no restore point yet'
+            }
+            New-CheckResult -Category $category -Check 'System Restore' -Status Info -Value $value
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'System Restore' -ErrorRecord $_
+        }
+    }
+
     # Secure Boot
     switch (Get-SecureBootState) {
         'Enabled' {

@@ -18,8 +18,10 @@ function Get-NetworkHealth {
         The answer to the HTTPS request also carries the time of the server, which is
         used to check how accurate the clock of the computer is.
 
-        Also reported: the network profile of each connection (Public, Private or
-        Domain), active entries in the hosts file and permanently mapped network drives.
+        Also reported: the Wi-Fi network in use with its signal strength and security
+        (a weak signal or a badly protected network is a Warning), the network profile
+        of each connection (Public, Private or Domain), active entries in the hosts
+        file and permanently mapped network drives.
 
         The test targets are defined in Config\Thresholds.psd1. No administrator
         rights are needed.
@@ -115,6 +117,41 @@ function Get-NetworkHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Network adapters' -ErrorRecord $_
+    }
+
+    # Wi-Fi: network name, signal strength and security. Only reported for a connected
+    # Wi-Fi adapter; a computer on a cable has no such result.
+    try {
+        foreach ($wifi in @(Get-WifiConnection)) {
+            $parts = @('{0} % signal' -f $wifi.SignalPercent)
+            if ($wifi.Band) {
+                $parts += $wifi.Band
+            }
+            if ($wifi.Radio) {
+                $parts += $wifi.Radio
+            }
+            $parts += 'security: {0}' -f $wifi.Security
+
+            $advice = @()
+            $status = 'OK'
+            # WEP and the first version of WPA can be broken within minutes; an open
+            # network does not encrypt at all.
+            if ($wifi.Security -eq 'Open' -or $wifi.Security -match 'WEP' -or $wifi.Security -match '^WPA(?![23])') {
+                $status = 'Warning'
+                $advice += 'This Wi-Fi network is not protected well: everybody nearby can read along or join it. Set the router to WPA2 or WPA3; on a public network, do not enter passwords on pages without https.'
+            }
+            if ($wifi.SignalPercent -lt $settings.WifiSignalWarningPercent) {
+                $status = 'Warning'
+                $advice += 'The Wi-Fi signal is weak, which makes the connection slow and unstable. Move closer to the router, remove obstacles between them, or use a cable.'
+            }
+
+            New-CheckResult -Category $category -Check ('Wi-Fi: {0}' -f $wifi.Ssid) -Status $status -Value ($parts -join ', ') `
+                -Recommendation ($advice -join ' ') `
+                -Allowed ('signal {0} - 100 %' -f $settings.WifiSignalWarningPercent) -Typical $settings.TypicalWifiSignal
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Wi-Fi' -ErrorRecord $_
     }
 
     # Network profile: decides which firewall profile applies to each connection.

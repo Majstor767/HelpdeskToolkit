@@ -9,8 +9,11 @@ function Get-HardwareHealth {
         - used physical memory and the five programs that use the most of it
         - health reported by every physical drive (SSD/HDD)
         - space that could be freed: temporary files, the Downloads folder and the Recycle Bin
+        - what takes up the space on a disk that is running full, and the size of the
+          hibernation file
         - page file usage
-        - devices without a working driver
+        - devices without a working driver, unsigned drivers and old drivers
+        - how much of its original capacity the battery still has
 
         Three checks need administrator rights and are otherwise marked "Requires
         admin": the details every drive reports about itself (temperature, wear,
@@ -150,6 +153,7 @@ function Get-HardwareHealth {
     }
 
     # Disks. DriveType 3 = local fixed disk (no USB sticks, network or optical drives).
+    $lowDisks = @()
     try {
         $disks = @(Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType = 3' -ErrorAction Stop)
         foreach ($disk in $disks) {
@@ -162,6 +166,9 @@ function Get-HardwareHealth {
             $freePercent = [math]::Round([double]$disk.FreeSpace / [double]$disk.Size * 100, 1)
             $status = Get-ThresholdStatus -Value $freePercent -LowerIsWorse `
                 -Warning $thresholds.Disk.WarningFreePercent -Critical $thresholds.Disk.CriticalFreePercent
+            if ($status -ne 'OK') {
+                $lowDisks += [string]$disk.DeviceID
+            }
             $recommendation = switch ($status) {
                 'Critical' { 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.' }
                 'Warning' { 'Free space is low. Run Disk Cleanup, empty the Recycle Bin and remove programs and files that are no longer needed.' }
@@ -178,9 +185,32 @@ function Get-HardwareHealth {
         New-FailureResult -Category $category -Check 'Disk space' -ErrorRecord $_
     }
 
+    # What takes up the space, for every disk that is running full. Measuring takes a
+    # while, so it is only done where the answer is needed.
+    $cleanup = $thresholds.Cleanup
+    foreach ($letter in $lowDisks) {
+        $check = 'Largest folders ({0})' -f $letter
+        try {
+            $largest = @(Get-LargestFolder -Path ('{0}\' -f $letter) -TimeoutMs $cleanup.LargestFolderTimeoutMs -BudgetMs $cleanup.LargestFolderBudgetMs |
+                    Select-Object -First 15 |
+                    ForEach-Object { '{0} {1}{2}' -f $_.Name, (Format-Gigabyte -Bytes $_.Bytes), $(if (-not $_.Complete) { ' or more' }) })
+
+            if ($largest.Count -eq 0) {
+                New-CheckResult -Category $category -Check $check -Status Info -Value 'Nothing could be measured'
+            }
+            else {
+                $list = ConvertTo-ListValue -Item $largest -Shown 6
+                New-CheckResult -Category $category -Check $check -Status Info -Value $list.Value -Details $list.Details `
+                    -Recommendation 'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.'
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check $check -ErrorRecord $_
+        }
+    }
+
     # Space that could be freed. These three places are where a full disk is usually
     # recovered first, so their sizes are reported next to the free space.
-    $cleanup = $thresholds.Cleanup
     try {
         $temp = Get-FolderSize -Path $env:TEMP -TimeoutMs $cleanup.TimeoutMs
         $status = Get-ThresholdStatus -Value ($temp.Bytes / 1GB) -Warning $cleanup.TempWarningGb
@@ -212,6 +242,24 @@ function Get-HardwareHealth {
         New-CheckResult -Category $category -Check 'Recycle Bin' -Status $status `
             -Value ('{0}{1}' -f (Format-Gigabyte -Bytes $bin.Bytes), $(if (-not $bin.Complete) { ' or more' })) `
             -Recommendation $recommendation -Allowed (Format-AllowedRange -Warning $cleanup.RecycleBinWarningGb -Unit 'GB')
+
+        # Hibernation file: Windows saves the memory into it for hibernation and for
+        # Fast Startup. It is about as large as 40 % of the RAM or more.
+        $hibernation = Get-ChildItem -LiteralPath ('{0}\' -f $env:SystemDrive) -Filter 'hiberfil.sys' -File -Force -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if (-not $hibernation) {
+            New-CheckResult -Category $category -Check 'Hibernation file' -Status Info -Value 'Not present (hibernation is off)'
+        }
+        else {
+            # The advice is only given where space is short.
+            $recommendation = if ($lowDisks -contains $env:SystemDrive) {
+                'The system disk is short of space and this file takes up a good part of it. On a computer that is never put into hibernation, an administrator can remove the file with "powercfg /hibernate off"; this also turns off Fast Startup, so starting Windows takes a little longer.'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'Hibernation file' -Status Info -Value (Format-Gigabyte -Bytes $hibernation.Length) -Recommendation $recommendation
+        }
     }
     catch {
         New-FailureResult -Category $category -Check 'Space that can be freed' -ErrorRecord $_
@@ -366,6 +414,49 @@ function Get-HardwareHealth {
         New-FailureResult -Category $category -Check 'Devices with problems' -ErrorRecord $_
     }
 
+    # Drivers. A driver without a valid signature may have been altered; an old driver of
+    # a graphics card, network adapter or sound card is a common cause of crashes.
+    try {
+        $drivers = @(Get-CimInstance -ClassName Win32_PnPSignedDriver -ErrorAction Stop | Where-Object { $_.DeviceName })
+
+        $unsigned = @($drivers | Where-Object { $_.IsSigned -eq $false } | ForEach-Object { [string]$_.DeviceName } | Sort-Object -Unique)
+        if ($unsigned.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Unsigned drivers' -Status OK -Value 'None'
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $unsigned -Label 'driver'
+            New-CheckResult -Category $category -Check 'Unsigned drivers' -Status Warning -Value $list.Value -Details $list.Details `
+                -Recommendation 'These drivers carry no valid digital signature, so nobody vouches that they are unchanged. Replace them with the current driver from Windows Update or from the web site of the device maker.'
+        }
+
+        # Chipset drivers of some makers carry a symbolic date decades in the past;
+        # dates before 2006 are therefore not taken as real.
+        $limits = $thresholds.Drivers
+        $oldBefore = (Get-Date).AddYears(-$limits.OldYears)
+        $old = @(
+            $drivers |
+                Where-Object {
+                    $_.DriverProviderName -and $_.DriverProviderName -notlike 'Microsoft*' -and
+                    $limits.Classes -contains $_.DeviceClass -and
+                    $_.DriverDate -and $_.DriverDate.Year -ge 2006 -and $_.DriverDate -lt $oldBefore
+                } |
+                Sort-Object -Property DriverDate |
+                ForEach-Object { '{0} ({1:yyyy-MM-dd})' -f $_.DeviceName, $_.DriverDate } |
+                Select-Object -Unique
+        )
+        if ($old.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Old drivers' -Status Info -Value ('None older than {0} years' -f $limits.OldYears)
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $old -Label 'driver'
+            New-CheckResult -Category $category -Check 'Old drivers' -Status Info -Value $list.Value -Details $list.Details `
+                -Recommendation ('These drivers are older than {0} years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try.' -f $limits.OldYears)
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Drivers' -ErrorRecord $_
+    }
+
     # Battery. Desktops simply have no Win32_Battery instance.
     try {
         $batteries = @(Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop)
@@ -392,6 +483,28 @@ function Get-HardwareHealth {
             New-CheckResult -Category $category -Check 'Battery' -Status $status `
                 -Value ('{0} % ({1})' -f $charge, $power) -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.Battery.WarningPercent -Critical $thresholds.Battery.CriticalPercent -Unit '%' -LowerIsWorse)
+        }
+
+        # Battery health: how much of its original capacity the battery still has.
+        if ($batteries.Count -gt 0) {
+            foreach ($capacity in @(Get-BatteryCapacity)) {
+                $health = [int][math]::Min(100, [math]::Round([double]$capacity.FullChargedCapacity / [double]$capacity.DesignedCapacity * 100))
+                $status = Get-ThresholdStatus -Value $health -LowerIsWorse `
+                    -Warning $thresholds.Battery.HealthWarningPercent -Critical $thresholds.Battery.HealthCriticalPercent
+                $value = '{0} % of the original capacity ({1} of {2} mWh)' -f $health, $capacity.FullChargedCapacity, $capacity.DesignedCapacity
+                if ($capacity.CycleCount) {
+                    $value = '{0}, {1} charge cycles' -f $value, $capacity.CycleCount
+                }
+                $recommendation = if ($status -ne 'OK') {
+                    'The battery has lost much of its capacity, so the computer runs for a much shorter time than when it was new. Plan to replace the battery.'
+                }
+                else {
+                    ''
+                }
+                New-CheckResult -Category $category -Check 'Battery health' -Status $status -Value $value -Recommendation $recommendation `
+                    -Allowed (Format-AllowedRange -Warning $thresholds.Battery.HealthWarningPercent -Critical $thresholds.Battery.HealthCriticalPercent -Unit '%' -LowerIsWorse -Maximum 100) `
+                    -Typical $thresholds.Battery.TypicalHealth
+            }
         }
     }
     catch {

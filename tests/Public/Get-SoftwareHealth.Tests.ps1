@@ -18,6 +18,7 @@ Describe 'Get-SoftwareHealth' {
         }
         Mock -ModuleName HelpdeskToolkit Get-DefaultBrowserPath { 'C:\Contoso\browser.exe' }
         Mock -ModuleName HelpdeskToolkit Get-FileProductName { 'Contoso Browser' }
+        Mock -ModuleName HelpdeskToolkit Get-BrowserExtension { }
     }
 
     Context 'on a typical computer' {
@@ -25,8 +26,8 @@ Describe 'Get-SoftwareHealth' {
             $results = Get-SoftwareHealth
         }
 
-        It 'returns four results in the Software category' {
-            @($results).Count | Should -Be 4
+        It 'returns five results in the Software category' {
+            @($results).Count | Should -Be 5
             $results.Category | Sort-Object -Unique | Should -Be 'Software'
         }
 
@@ -51,6 +52,10 @@ Describe 'Get-SoftwareHealth' {
 
         It 'reports the default browser by its product name' {
             ($results | Where-Object Check -eq 'Default browser').Value | Should -Be 'Contoso Browser'
+        }
+
+        It 'says so when no browser extension is installed' {
+            ($results | Where-Object Check -eq 'Browser extensions').Value | Should -Be 'None found'
         }
     }
 
@@ -123,6 +128,33 @@ Describe 'Get-SoftwareHealth' {
         It 'reports that none is set' {
             Mock -ModuleName HelpdeskToolkit Get-DefaultBrowserPath { }
             (Get-SoftwareHealth | Where-Object Check -eq 'Default browser').Value | Should -Be 'Not set'
+        }
+    }
+
+    Context 'browser extensions' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-BrowserExtension {
+                [PSCustomObject]@{ Browser = 'Edge'; Name = 'Password Manager'; Version = '3.1' }
+                [PSCustomObject]@{ Browser = 'Chrome'; Name = 'Shopping Helper'; Version = '1.0.2' }
+                [PSCustomObject]@{ Browser = 'Chrome'; Name = 'Ad Blocker'; Version = '' }
+            }
+            $extensions = Get-SoftwareHealth | Where-Object Check -eq 'Browser extensions'
+        }
+
+        It 'counts the extensions per browser' {
+            $extensions.Status | Should -Be 'Info'
+            $extensions.Value | Should -Be '3 extensions: Chrome (2), Edge (1)'
+        }
+
+        It 'lists every extension with its browser and version as details' {
+            $extensions.Details | Should -Be @('Chrome: Ad Blocker', 'Chrome: Shopping Helper 1.0.2', 'Edge: Password Manager 3.1')
+        }
+
+        It 'reports the extensions as unavailable when they cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-BrowserExtension { throw 'Profile is locked' }
+            $results = Get-SoftwareHealth
+            ($results | Where-Object Check -eq 'Browser extensions').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Default browser').Value | Should -Be 'Contoso Browser'
         }
     }
 }

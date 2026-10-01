@@ -44,6 +44,24 @@ Describe 'Get-SecurityHealth' {
         }
         Mock -ModuleName HelpdeskToolkit Get-SecureBootState { 'Enabled' }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
+        # Ports, backup and System Restore: nothing listening, File History set up,
+        # no OneDrive account, protection on (the registry mock above returns 1).
+        Mock -ModuleName HelpdeskToolkit Get-ListeningPort { }
+        Mock -ModuleName HelpdeskToolkit Get-FileHistoryTarget { 'Backup Drive (E:)' }
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem { }
+        Mock -ModuleName HelpdeskToolkit Get-Process { }
+        Mock -ModuleName HelpdeskToolkit Get-RestorePoint { throw 'Must only be called with administrator rights' }
+
+        # A registry key of a OneDrive account.
+        function New-TestOneDriveAccount {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+                Justification = 'Test helper that only builds objects in memory.')]
+            param([string]$Folder)
+
+            $key = [PSCustomObject]@{ Folder = $Folder }
+            $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param($Name) if ($Name -eq 'UserFolder') { $this.Folder } }
+            $key
+        }
     }
 
     Context 'on a well protected computer, without administrator rights' {
@@ -70,6 +88,10 @@ Describe 'Get-SecurityHealth' {
             @{ Check = 'Firewall - Private profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Public profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Secure Boot'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'Listening ports'; Status = 'Info'; Value = 'None open to the network' }
+            @{ Check = 'File History'; Status = 'Info'; Value = 'Set up, saves to Backup Drive (E:)' }
+            @{ Check = 'OneDrive'; Status = 'Info'; Value = 'Not signed in' }
+            @{ Check = 'System Restore'; Status = 'Info'; Value = 'On (the restore points are only shown to administrators)' }
         ) {
             $result = $results | Where-Object Check -eq $Check
             $result.Status | Should -Be $Status
@@ -426,6 +448,100 @@ Describe 'Get-SecurityHealth' {
         It 'reports BitLocker as not available when the volume is not found' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_EncryptableVolume' } { }
             (Get-SecurityHealth | Where-Object Check -like 'BitLocker*').Value | Should -Be 'Not available on this system'
+        }
+    }
+
+    Context 'listening ports' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-ListeningPort {
+                [PSCustomObject]@{ Port = 135; Process = 'svchost'; LocalOnly = $false }
+                [PSCustomObject]@{ Port = 445; Process = 'System'; LocalOnly = $false }
+                [PSCustomObject]@{ Port = 5040; Process = 'svchost'; LocalOnly = $false }
+                # Only reachable from this computer itself: not counted.
+                [PSCustomObject]@{ Port = 8080; Process = 'devserver'; LocalOnly = $true }
+            }
+        }
+
+        It 'lists the ports that are open to the network, per program' {
+            $ports = Get-SecurityHealth | Where-Object Check -eq 'Listening ports'
+            $ports.Status | Should -Be 'Info'
+            $ports.Value | Should -Be '3 ports open to the network: svchost: 135, 5040, System: 445'
+            $ports.Recommendation | Should -Be ''
+        }
+
+        It 'is a Warning when a program listens on a port that should not be open' {
+            Mock -ModuleName HelpdeskToolkit Get-ListeningPort {
+                [PSCustomObject]@{ Port = 23; Process = 'tlntsvr'; LocalOnly = $false }
+                [PSCustomObject]@{ Port = 135; Process = 'svchost'; LocalOnly = $false }
+            }
+            $ports = Get-SecurityHealth | Where-Object Check -eq 'Listening ports'
+            $ports.Status | Should -Be 'Warning'
+            $ports.Recommendation | Should -Match '23 \(Telnet, tlntsvr\)'
+        }
+
+        It 'does not warn about a risky port that is only open to this computer itself' {
+            Mock -ModuleName HelpdeskToolkit Get-ListeningPort { [PSCustomObject]@{ Port = 23; Process = 'tlntsvr'; LocalOnly = $true } }
+            $ports = Get-SecurityHealth | Where-Object Check -eq 'Listening ports'
+            $ports.Status | Should -Be 'Info'
+            $ports.Value | Should -Be 'None open to the network'
+        }
+
+        It 'reports the ports as unavailable when they cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-ListeningPort { throw 'Access denied by policy' }
+            (Get-SecurityHealth | Where-Object Check -eq 'Listening ports').Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'backup of personal files' {
+        It 'advises to set up a backup when neither File History nor OneDrive is in use' {
+            Mock -ModuleName HelpdeskToolkit Get-FileHistoryTarget { }
+            $history = Get-SecurityHealth | Where-Object Check -eq 'File History'
+            $history.Status | Should -Be 'Info'
+            $history.Value | Should -Be 'Not set up'
+            $history.Recommendation | Should -Match 'No backup of the personal files was found'
+        }
+
+        It 'gives no advice when the files are stored in OneDrive' {
+            Mock -ModuleName HelpdeskToolkit Get-FileHistoryTarget { }
+            Mock -ModuleName HelpdeskToolkit Get-ChildItem { New-TestOneDriveAccount -Folder 'C:\Users\tester\OneDrive' }
+            (Get-SecurityHealth | Where-Object Check -eq 'File History').Recommendation | Should -Be ''
+        }
+
+        It 'reports OneDrive as "<Expected>"' -ForEach @(
+            @{ Folder = 'C:\Users\tester\OneDrive'; Running = $true; Expected = 'Signed in and running' }
+            @{ Folder = 'C:\Users\tester\OneDrive'; Running = $false; Expected = 'Signed in, but not running' }
+            # An account entry without a folder is a leftover, not a sign-in.
+            @{ Folder = ''; Running = $true; Expected = 'Not signed in' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-ChildItem { New-TestOneDriveAccount -Folder $Folder }
+            Mock -ModuleName HelpdeskToolkit Get-Process { if ($Running) { [PSCustomObject]@{ ProcessName = 'OneDrive' } } }
+            (Get-SecurityHealth | Where-Object Check -eq 'OneDrive').Value | Should -Be $Expected
+        }
+    }
+
+    Context 'System Restore' {
+        It 'advises to turn it on when protection is off' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'RPSessionInterval' } { 0 }
+            $restore = Get-SecurityHealth | Where-Object Check -eq 'System Restore'
+            $restore.Status | Should -Be 'Info'
+            $restore.Value | Should -Be 'Off'
+            $restore.Recommendation | Should -Match 'System Protection'
+        }
+
+        It 'counts the restore points and shows the newest one for an administrator' {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -in 'Win32_Tpm', 'Win32_EncryptableVolume' } { }
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent { }
+            Mock -ModuleName HelpdeskToolkit Get-RestorePoint { [datetime]'2026-01-03 10:00'; [datetime]'2026-01-12 18:30'; [datetime]'2026-01-07 09:15' }
+            (Get-SecurityHealth | Where-Object Check -eq 'System Restore').Value | Should -Be 'On, 3 restore points, newest from 2026-01-12'
+        }
+
+        It 'says so when protection is on but no restore point exists yet' {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -in 'Win32_Tpm', 'Win32_EncryptableVolume' } { }
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent { }
+            Mock -ModuleName HelpdeskToolkit Get-RestorePoint { }
+            (Get-SecurityHealth | Where-Object Check -eq 'System Restore').Value | Should -Be 'On, no restore point yet'
         }
     }
 }

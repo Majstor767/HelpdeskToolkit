@@ -19,6 +19,9 @@ function Get-SystemHealth {
         - More startup programs than the configured limit is a Warning, because they
           slow down sign-in.
 
+        Also listed: the scheduled tasks that do not belong to Windows, the active
+        power plan and whether Fast Startup is on.
+
         Everything is read through CIM (WMI) and the registry and nothing on the system
         is changed. Two results need administrator rights and are otherwise marked
         "Requires admin": the duration of the last measured startup and the size of
@@ -176,6 +179,27 @@ function Get-SystemHealth {
     catch {
         New-FailureResult -Category $category -Check 'Startup programs' -ErrorRecord $_
     }
+
+    # Scheduled tasks that do not belong to Windows
+    try {
+        $tasks = @(Get-ThirdPartyTask | Sort-Object -Property Name |
+                ForEach-Object { if ($_.Enabled) { $_.Name } else { '{0} (disabled)' -f $_.Name } })
+        $list = ConvertTo-ListValue -Item $tasks -Label 'task' -Shown 6
+        New-CheckResult -Category $category -Check 'Scheduled tasks' -Status Info -Value $list.Value -Details $list.Details
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Scheduled tasks' -ErrorRecord $_
+    }
+
+    # Power plan and Fast Startup
+    $plan = Get-PowerPlanName
+    New-CheckResult -Category $category -Check 'Power plan' -Status Info -Value $(if ($plan) { $plan } else { 'Unknown' })
+
+    # HiberbootEnabled = 1: "Shut down" saves the core of Windows to disk instead of
+    # ending it, so the next start is faster but not a fresh one.
+    $fastStartup = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name 'HiberbootEnabled'
+    $fastStartupValue = if ($null -eq $fastStartup) { 'Unknown' } elseif ($fastStartup -eq 1) { 'Enabled' } else { 'Disabled' }
+    New-CheckResult -Category $category -Check 'Fast Startup' -Status Info -Value $fastStartupValue
 
     # Checks that Windows only allows for administrators.
     if (-not (Test-IsAdministrator)) {

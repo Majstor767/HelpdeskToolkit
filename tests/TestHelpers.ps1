@@ -39,7 +39,7 @@ function Set-TestThreshold {
                 WarningDaysBeforeEnd = 90
             }
             Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
-            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000 }
+            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderTimeoutMs = 1000; LargestFolderBudgetMs = 3000 }
             Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30 }
             DriveDetail   = @{ TemperatureWarning = 60; TemperatureCritical = 70; TypicalTemperature = '30 - 50'; WearWarningPercent = 80; WearCriticalPercent = 95 }
             SignIn        = @{ FailedWarningAbove = 20; TypicalFailed = 'typical failed sign-ins' }
@@ -49,7 +49,9 @@ function Set-TestThreshold {
             Cpu           = @{ WarningPercent = 85; CriticalPercent = 95; Typical = 'typical cpu' }
             Memory        = @{ WarningPercent = 85; CriticalPercent = 95; Typical = 'typical memory' }
             Disk          = @{ WarningFreePercent = 15; CriticalFreePercent = 5; Typical = 'typical disk' }
-            Battery       = @{ WarningPercent = 20; CriticalPercent = 10 }
+            Battery       = @{ WarningPercent = 20; CriticalPercent = 10; HealthWarningPercent = 60; HealthCriticalPercent = 40; TypicalHealth = 'typical battery health' }
+            Drivers       = @{ OldYears = 5; Classes = @('DISPLAY', 'NET') }
+            Ports         = @{ Risky = @{ 23 = 'Telnet' } }
             EventLog      = @{
                 CriticalEventWarningAbove      = 0
                 CriticalEventCriticalAbove     = 4
@@ -64,7 +66,7 @@ function Set-TestThreshold {
                 TypicalBlueScreens             = 'typical blue screens'
             }
             Software      = @{ RecentDays = 30; CrashWarningAbove = 5; TypicalCrashes = 'typical crashes' }
-            WindowsUpdate = @{ WarningDaysSinceLastUpdate = 45; Typical = 'typical update' }
+            WindowsUpdate = @{ WarningDaysSinceLastUpdate = 45; Typical = 'typical update'; FailedDays = 30 }
             Defender      = @{
                 SignatureWarningDays  = 3
                 SignatureCriticalDays = 7
@@ -82,6 +84,8 @@ function Set-TestThreshold {
                 TypicalInternetPing = 'typical internet'
                 ClockWarningSeconds = 120
                 TypicalClock        = 'typical clock'
+                WifiSignalWarningPercent = 40
+                TypicalWifiSignal   = 'typical wifi'
             }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }

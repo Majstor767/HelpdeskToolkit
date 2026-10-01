@@ -28,6 +28,8 @@ Describe 'Get-NetworkHealth' {
         }
         Mock -ModuleName HelpdeskToolkit Get-HostsFileEntry { }
         Mock -ModuleName HelpdeskToolkit Get-MappedDrive { }
+        # Connected by cable: no Wi-Fi.
+        Mock -ModuleName HelpdeskToolkit Get-WifiConnection { }
         Mock -ModuleName HelpdeskToolkit Get-ProxySetting { 'Not configured' }
         Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $true; AverageMs = 12; Text = '12 ms' } }
         Mock -ModuleName HelpdeskToolkit Resolve-HostAddress { '203.0.113.25' }
@@ -250,6 +252,71 @@ Describe 'Get-NetworkHealth' {
         It 'reports it as unavailable' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance { throw 'Query failed' }
             (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Network adapters').Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'Wi-Fi' {
+        It 'reports nothing for a computer that is connected by cable' {
+            Get-NetworkHealth -SkipConnectivity | Where-Object Check -like 'Wi-Fi*' | Should -BeNullOrEmpty
+        }
+
+        It 'reports the network with signal, band, standard and security' {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection {
+                [PSCustomObject]@{ Ssid = 'Office'; SignalPercent = 87; Radio = '802.11ax'; Band = '5 GHz'; Security = 'WPA2-Personal' }
+            }
+            $wifi = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Wi-Fi: Office'
+
+            $wifi.Status | Should -Be 'OK'
+            $wifi.Value | Should -Be '87 % signal, 5 GHz, 802.11ax, security: WPA2-Personal'
+            $wifi.Allowed | Should -Be 'signal 40 - 100 %'
+            $wifi.Typical | Should -Be 'typical wifi'
+            $wifi.Description | Should -Not -BeNullOrEmpty
+        }
+
+        It 'leaves out the band and the standard when Windows does not report them' {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection {
+                [PSCustomObject]@{ Ssid = 'Office'; SignalPercent = 60; Radio = ''; Band = ''; Security = 'WPA3-Personal' }
+            }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Wi-Fi: Office').Value | Should -Be '60 % signal, security: WPA3-Personal'
+        }
+
+        It 'is a Warning when the signal is weak' {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection {
+                [PSCustomObject]@{ Ssid = 'Office'; SignalPercent = 25; Radio = '802.11n'; Band = '2.4 GHz'; Security = 'WPA2-Personal' }
+            }
+            $wifi = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Wi-Fi: Office'
+            $wifi.Status | Should -Be 'Warning'
+            $wifi.Recommendation | Should -Match 'signal is weak'
+            $wifi.Recommendation | Should -Not -Match 'not protected'
+        }
+
+        It 'is a Warning on a network with the security "<Security>"' -ForEach @(
+            @{ Security = 'Open' }
+            @{ Security = 'WEP' }
+            @{ Security = 'WPA-Personal' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection {
+                [PSCustomObject]@{ Ssid = 'Cafe'; SignalPercent = 90; Radio = '802.11n'; Band = ''; Security = $Security }
+            }
+            $wifi = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Wi-Fi: Cafe'
+            $wifi.Status | Should -Be 'Warning'
+            $wifi.Recommendation | Should -Match 'not protected well'
+        }
+
+        It 'gives both pieces of advice when the network is weak and badly protected' {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection {
+                [PSCustomObject]@{ Ssid = 'Cafe'; SignalPercent = 20; Radio = ''; Band = ''; Security = 'Open' }
+            }
+            $wifi = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Wi-Fi: Cafe'
+            $wifi.Recommendation | Should -Match 'not protected well'
+            $wifi.Recommendation | Should -Match 'signal is weak'
+        }
+
+        It 'reports Wi-Fi as unavailable when it cannot be read, and still reports the rest' {
+            Mock -ModuleName HelpdeskToolkit Get-WifiConnection { throw 'The tool failed' }
+            $results = Get-NetworkHealth -SkipConnectivity
+            ($results | Where-Object Check -eq 'Wi-Fi').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Proxy').Value | Should -Be 'Not configured'
         }
     }
 }

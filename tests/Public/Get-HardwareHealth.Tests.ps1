@@ -39,6 +39,21 @@ Describe 'Get-HardwareHealth' {
             [PSCustomObject]@{ ProcessName = 'browser'; WorkingSet64 = 1GB }
             [PSCustomObject]@{ ProcessName = 'mail'; WorkingSet64 = 512MB }
         }
+        # No hibernation file, no drivers worth mentioning and no battery details,
+        # unless a test says otherwise.
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem { }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } { }
+        Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { }
+        Mock -ModuleName HelpdeskToolkit Get-LargestFolder { throw 'Must only be called for a disk that is running full' }
+
+        # A driver as Win32_PnPSignedDriver reports it.
+        function New-TestDriver {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+                Justification = 'Test helper that only builds objects in memory.')]
+            param([string]$Name, [string]$Provider = 'Contoso', [string]$Class = 'DISPLAY', $Date = (Get-Date).AddYears(-1), $Signed = $true)
+
+            [PSCustomObject]@{ DeviceName = $Name; DriverProviderName = $Provider; DeviceClass = $Class; DriverDate = $Date; IsSigned = $Signed }
+        }
     }
 
     Context 'on a healthy desktop computer' {
@@ -57,6 +72,9 @@ Describe 'Get-HardwareHealth' {
             @{ Check = 'Page file'; Status = 'OK'; Value = '12 % (512 MB of 4096 MB used)' }
             @{ Check = 'Devices with problems'; Status = 'OK'; Value = 'None' }
             @{ Check = 'Battery'; Status = 'Info'; Value = 'No battery (desktop computer)' }
+            @{ Check = 'Hibernation file'; Status = 'Info'; Value = 'Not present (hibernation is off)' }
+            @{ Check = 'Unsigned drivers'; Status = 'OK'; Value = 'None' }
+            @{ Check = 'Old drivers'; Status = 'Info'; Value = 'None older than 5 years' }
         ) {
             $result = $results | Where-Object Check -eq $Check
             $result.Status | Should -Be $Status
@@ -71,6 +89,11 @@ Describe 'Get-HardwareHealth' {
 
         It 'groups processes by name and sorts them by memory' {
             ($results | Where-Object Check -eq 'Top memory consumers').Value | Should -Be 'browser (2 GB), mail (0.5 GB)'
+        }
+
+        It 'does not measure the folders of a disk that has enough free space' {
+            $results | Where-Object Check -like 'Largest folders*' | Should -BeNullOrEmpty
+            $results | Where-Object Check -eq 'Battery health' | Should -BeNullOrEmpty
         }
     }
 
@@ -385,6 +408,174 @@ Describe 'Get-HardwareHealth' {
             $results = Get-HardwareHealth
             ($results | Where-Object Check -eq 'Disk space').Status | Should -Be 'Warning'
             ($results | Where-Object Check -eq 'CPU load').Status | Should -Be 'OK'
+        }
+    }
+
+    Context 'what takes up the space on a disk that is running full' {
+        BeforeAll {
+            # 4 GB of 200 GB free = 2 %, which is Critical
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_LogicalDisk' } {
+                [PSCustomObject]@{ DeviceID = 'C:'; Size = 200GB; FreeSpace = 4GB }
+                [PSCustomObject]@{ DeviceID = 'D:'; Size = 200GB; FreeSpace = 150GB }
+            }
+            Mock -ModuleName HelpdeskToolkit Get-LargestFolder {
+                [PSCustomObject]@{ Name = 'Users\tester\AppData'; Bytes = 60GB; Complete = $false }
+                [PSCustomObject]@{ Name = 'Program Files'; Bytes = 20GB; Complete = $true }
+                3..8 | ForEach-Object { [PSCustomObject]@{ Name = "Folder$_"; Bytes = (10 - $_) * 1GB; Complete = $true } }
+            }
+            $results = Get-HardwareHealth
+            $largest = $results | Where-Object Check -like 'Largest folders*'
+        }
+
+        It 'lists the largest folders of that disk only' {
+            @($largest).Count | Should -Be 1
+            $largest.Check | Should -Be 'Largest folders (C:)'
+            $largest.Status | Should -Be 'Info'
+        }
+
+        It 'shows the first six and marks a folder that could not be measured completely' {
+            $largest.Value | Should -Be 'Users\tester\AppData 60 GB or more, Program Files 20 GB, Folder3 7 GB, Folder4 6 GB, Folder5 5 GB, Folder6 4 GB and 2 more'
+            $largest.Details | Should -Be @('Folder7 3 GB', 'Folder8 2 GB')
+        }
+
+        It 'says where to start cleaning up' {
+            $largest.Recommendation | Should -Match 'Downloads'
+        }
+
+        It 'measures the root of the disk within the configured time' {
+            Should -Invoke -ModuleName HelpdeskToolkit Get-LargestFolder -Times 1 -Exactly -Scope Context -ParameterFilter {
+                $Path -eq 'C:\' -and $TimeoutMs -eq 1000 -and $BudgetMs -eq 3000
+            }
+        }
+
+        It 'says so when nothing could be measured' {
+            Mock -ModuleName HelpdeskToolkit Get-LargestFolder { }
+            (Get-HardwareHealth | Where-Object Check -eq 'Largest folders (C:)').Value | Should -Be 'Nothing could be measured'
+        }
+
+        It 'reports a failure for that disk and still returns the other checks' {
+            Mock -ModuleName HelpdeskToolkit Get-LargestFolder { throw 'Disk not ready' }
+            $failed = Get-HardwareHealth
+            ($failed | Where-Object Check -eq 'Largest folders (C:)').Value | Should -Be 'Unavailable'
+            ($failed | Where-Object Check -eq 'Page file').Status | Should -Be 'OK'
+        }
+    }
+
+    Context 'hibernation file' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-ChildItem { [PSCustomObject]@{ Name = 'hiberfil.sys'; Length = 12GB } }
+        }
+
+        It 'reports its size without advice while the system disk has room' {
+            $file = Get-HardwareHealth | Where-Object Check -eq 'Hibernation file'
+            $file.Status | Should -Be 'Info'
+            $file.Value | Should -Be '12 GB'
+            $file.Recommendation | Should -Be ''
+        }
+
+        It 'explains how to remove it when the system disk is running full' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_LogicalDisk' } {
+                [PSCustomObject]@{ DeviceID = $env:SystemDrive; Size = 200GB; FreeSpace = 4GB }
+            }
+            Mock -ModuleName HelpdeskToolkit Get-LargestFolder { }
+            (Get-HardwareHealth | Where-Object Check -eq 'Hibernation file').Recommendation | Should -Match 'powercfg /hibernate off'
+        }
+
+        It 'looks for the file in the root of the system disk, hidden files included' {
+            Get-HardwareHealth | Out-Null
+            Should -Invoke -ModuleName HelpdeskToolkit Get-ChildItem -ParameterFilter {
+                $LiteralPath -eq "$($env:SystemDrive)\" -and $Filter -eq 'hiberfil.sys' -and $Force
+            }
+        }
+    }
+
+    Context 'drivers' {
+        It 'is a Warning that names the drivers without a valid signature' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } {
+                New-TestDriver -Name 'Contoso Capture Card' -Signed $false
+                New-TestDriver -Name 'Contoso Graphics 770'
+                # Windows does not say whether this one is signed; that is not a finding.
+                New-TestDriver -Name 'Generic Device' -Signed $null
+            }
+            $unsigned = Get-HardwareHealth | Where-Object Check -eq 'Unsigned drivers'
+
+            $unsigned.Status | Should -Be 'Warning'
+            $unsigned.Value | Should -Be '1 driver: Contoso Capture Card'
+            $unsigned.Recommendation | Should -Match 'digital signature'
+        }
+
+        It 'lists third-party drivers of important devices that are older than the limit, oldest first' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } {
+                New-TestDriver -Name 'Contoso Graphics 770' -Date ([datetime]'2019-03-02')
+                New-TestDriver -Name 'Contoso Wi-Fi' -Class 'NET' -Date ([datetime]'2017-06-15')
+                # Not listed: new enough, made by Microsoft, a kind of device that does not
+                # matter here, and the symbolic date some chipset drivers carry.
+                New-TestDriver -Name 'Contoso Camera' -Date (Get-Date).AddYears(-2)
+                New-TestDriver -Name 'Basic Display' -Provider 'Microsoft' -Date ([datetime]'2006-06-21')
+                New-TestDriver -Name 'Contoso Chipset' -Class 'SYSTEM' -Date ([datetime]'2015-01-01')
+                New-TestDriver -Name 'Contoso Bridge' -Date ([datetime]'1968-07-18')
+            }
+            $old = Get-HardwareHealth | Where-Object Check -eq 'Old drivers'
+
+            $old.Status | Should -Be 'Info'
+            $old.Value | Should -Be '2 drivers: Contoso Wi-Fi (2017-06-15), Contoso Graphics 770 (2019-03-02)'
+            $old.Recommendation | Should -Match 'older than 5 years'
+        }
+
+        It 'lists a device with several entries of the same driver once' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } {
+                New-TestDriver -Name 'Contoso Audio' -Date ([datetime]'2018-01-01')
+                New-TestDriver -Name 'Contoso Audio' -Date ([datetime]'2018-01-01')
+            }
+            (Get-HardwareHealth | Where-Object Check -eq 'Old drivers').Value | Should -Be '1 driver: Contoso Audio (2018-01-01)'
+        }
+
+        It 'reports the drivers as unavailable when they cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } { throw 'Query failed' }
+            $results = Get-HardwareHealth
+            ($results | Where-Object Check -eq 'Drivers').Value | Should -Be 'Unavailable'
+            $results | Where-Object Check -eq 'Unsigned drivers' | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'battery health' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } {
+                [PSCustomObject]@{ EstimatedChargeRemaining = 80; BatteryStatus = 2 }
+            }
+        }
+
+        It 'is <Status> when the battery holds <Full> of 60000 mWh' -ForEach @(
+            @{ Full = 48000; Status = 'OK'; Percent = 80 }
+            @{ Full = 30000; Status = 'Warning'; Percent = 50 }
+            @{ Full = 18000; Status = 'Critical'; Percent = 30 }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { [PSCustomObject]@{ DesignedCapacity = 60000; FullChargedCapacity = $Full; CycleCount = $null } }
+            $health = Get-HardwareHealth | Where-Object Check -eq 'Battery health'
+
+            $health.Status | Should -Be $Status
+            $health.Value | Should -Be "$Percent % of the original capacity ($Full of 60000 mWh)"
+            $health.Allowed | Should -Be '60 - 100 % (critical below 40 %)'
+            $health.Typical | Should -Be 'typical battery health'
+        }
+
+        It 'recommends a new battery when the capacity is low' {
+            Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { [PSCustomObject]@{ DesignedCapacity = 60000; FullChargedCapacity = 30000; CycleCount = $null } }
+            (Get-HardwareHealth | Where-Object Check -eq 'Battery health').Recommendation | Should -Match 'replace the battery'
+        }
+
+        It 'adds the number of charge cycles when the battery counts them' {
+            Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { [PSCustomObject]@{ DesignedCapacity = 60000; FullChargedCapacity = 54000; CycleCount = 312 } }
+            (Get-HardwareHealth | Where-Object Check -eq 'Battery health').Value | Should -Be '90 % of the original capacity (54000 of 60000 mWh), 312 charge cycles'
+        }
+
+        It 'never shows more than 100 %, which a new battery can report' {
+            Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { [PSCustomObject]@{ DesignedCapacity = 60000; FullChargedCapacity = 61500; CycleCount = $null } }
+            (Get-HardwareHealth | Where-Object Check -eq 'Battery health').Value | Should -Match '^100 %'
+        }
+
+        It 'is left out when the battery reports no capacity' {
+            Get-HardwareHealth | Where-Object Check -eq 'Battery health' | Should -BeNullOrEmpty
         }
     }
 }

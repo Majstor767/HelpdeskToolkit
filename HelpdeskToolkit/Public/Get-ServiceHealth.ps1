@@ -13,6 +13,9 @@ function Get-ServiceHealth {
         - Stopped, start mode Auto     -> Warning (it should be running)
         - Disabled                     -> Warning
 
+        Also listed: the services that start automatically and were installed by other
+        programs (everything whose program file is outside the Windows folder and is not a Microsoft product).
+
         Services are only queried, never started or stopped. No administrator rights
         are needed.
     .EXAMPLE
@@ -68,5 +71,28 @@ function Get-ServiceHealth {
         else {
             New-CheckResult -Category $category -Check $check -Status Info -Value $value -Description $description
         }
+    }
+
+    # Services that start with Windows and do not belong to it. They were installed by
+    # other programs and run all the time, whether the program is used or not.
+    try {
+        $windowsFolder = [string]$env:SystemRoot
+        $thirdParty = @(
+            Get-CimInstance -ClassName Win32_Service -Filter "StartMode = 'Auto'" -ErrorAction Stop |
+                Where-Object {
+                    # Services of Windows live in the Windows folder; other services of
+                    # Microsoft (Defender, Edge, Office, Store apps) are recognized by
+                    # "Microsoft" or "Windows Defender" in the path of their program.
+                    $_.PathName -and ([string]$_.PathName).Trim('"') -notlike "$windowsFolder\*" -and
+                    [string]$_.PathName -notmatch '\\Microsoft([ .\\]|$)|\\Windows Defender'
+                } |
+                Sort-Object -Property DisplayName |
+                ForEach-Object { if ($_.State -eq 'Running') { [string]$_.DisplayName } else { '{0} (not running)' -f $_.DisplayName } }
+        )
+        $list = ConvertTo-ListValue -Item $thirdParty -Label 'service' -Shown 6
+        New-CheckResult -Category $category -Check 'Third-party services' -Status Info -Value $list.Value -Details $list.Details
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Third-party services' -ErrorRecord $_
     }
 }
