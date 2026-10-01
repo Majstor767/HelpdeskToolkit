@@ -6,10 +6,10 @@
     "IsElevated":  false,
     "EventLogDays":  7,
     "Summary":  {
-                    "OK":  25,
-                    "Warning":  8,
+                    "OK":  33,
+                    "Warning":  9,
                     "Critical":  1,
-                    "Info":  21
+                    "Info":  27
                 },
     "Results":  [
                     {
@@ -83,6 +83,19 @@
                         "Description":  "The account that is using the computer right now. Problems are often tied to one user profile rather than to the whole machine.",
                         "Status":  "Info",
                         "Value":  "CONTOSO\\m.horvat",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Time zone",
+                        "Description":  "The time zone the clock is set to. A wrong time zone shifts meeting times and can make sign-in to online services fail.",
+                        "Status":  "Info",
+                        "Value":  "(UTC+01:00) Sarajevo, Skopje, Warsaw, Zagreb",
                         "Details":  [
 
                                     ],
@@ -303,6 +316,19 @@
                     },
                     {
                         "Category":  "Hardware",
+                        "Check":  "Devices with problems",
+                        "Description":  "Hardware that Windows found but cannot use, shown with a yellow mark in Device Manager. Usually the driver is missing or failed to start.",
+                        "Status":  "OK",
+                        "Value":  "None",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Hardware",
                         "Check":  "Battery",
                         "Description":  "The charge of the laptop battery and whether the charger is connected.",
                         "Status":  "OK",
@@ -311,6 +337,61 @@
 
                                     ],
                         "Allowed":  "20 - 100 % (critical below 10 %)",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Installed programs",
+                        "Description":  "The programs listed under Installed apps in Settings. Useful to see what is on the computer and which versions.",
+                        "Status":  "Info",
+                        "Value":  "12 programs: 7-Zip 24.08, Chat Client 5.2, Contoso Office 16.0, Contoso VPN 3.1, Mail Client 12.4, PDF Reader 2025.1, Printer Assistant 2.0, Screenshot Tool 4.0 and 4 more",
+                        "Details":  [
+                                        "Teams 25.1",
+                                        "Touchpad Driver 19.5",
+                                        "Video Player 3.0",
+                                        "Web Meeting Client 6.2"
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Recently installed",
+                        "Description":  "Programs installed in the last weeks. When a problem is new, something installed recently is a likely cause.",
+                        "Status":  "Info",
+                        "Value":  "2 in the last 30 days: Screenshot Tool (2026-09-22), PDF Reader (2026-09-11)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Application crashes",
+                        "Description":  "How often programs stopped working unexpectedly, and which ones. A program that crashes again and again needs an update or a reinstall.",
+                        "Status":  "Warning",
+                        "Value":  "9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 5",
+                        "Typical":  "0 - 2 per week",
+                        "Recommendation":  "Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) \u003e Windows Logs \u003e Application, source \"Application Error\"."
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Default browser",
+                        "Description":  "The browser that opens when a link is clicked in e-mail or another program.",
+                        "Status":  "Info",
+                        "Value":  "Microsoft Edge",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
                         "Typical":  "",
                         "Recommendation":  ""
                     },
@@ -326,6 +407,19 @@
                         "Allowed":  "0",
                         "Typical":  "0",
                         "Recommendation":  "The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers."
+                    },
+                    {
+                        "Category":  "Event Log",
+                        "Check":  "Blue screens",
+                        "Description":  "How often Windows itself crashed and showed the blue stop screen. It points to a faulty driver or failing hardware.",
+                        "Status":  "OK",
+                        "Value":  "0 in the last 7 days",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0",
+                        "Typical":  "0",
+                        "Recommendation":  ""
                     },
                     {
                         "Category":  "Event Log",
@@ -432,6 +526,19 @@
                         "Recommendation":  "Restart the computer to finish installing updates."
                     },
                     {
+                        "Category":  "Windows Update",
+                        "Check":  "Updates paused",
+                        "Description":  "Whether Windows Update was paused in Settings. While it is paused no security updates are installed.",
+                        "Status":  "OK",
+                        "Value":  "No",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
                         "Category":  "Security",
                         "Check":  "Defender real-time protection",
                         "Description":  "The part of Microsoft Defender Antivirus that scans files and programs the moment they are opened. Without it malware is not stopped in time.",
@@ -455,6 +562,19 @@
                                     ],
                         "Allowed":  "0 - 3 days (critical above 7 days)",
                         "Typical":  "0 - 1 days",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Defender last scan",
+                        "Description":  "When Microsoft Defender last scanned the computer for malware that is already on it. Real-time protection only checks files as they are opened.",
+                        "Status":  "OK",
+                        "Value":  "3 days ago",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 14 days",
+                        "Typical":  "0 - 7 days",
                         "Recommendation":  ""
                     },
                     {
@@ -498,6 +618,45 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "User Account Control",
+                        "Description":  "UAC asks for confirmation before a program can make changes to Windows. It stops programs from silently taking administrator rights.",
+                        "Status":  "OK",
+                        "Value":  "Enabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Remote Desktop",
+                        "Description":  "A Windows feature that lets someone sign in to this computer from another one. Handy for support, but an open door if it is not needed.",
+                        "Status":  "OK",
+                        "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Account type",
+                        "Description":  "Whether the signed-in user is a standard user or a local administrator. An administrator account can change anything on the computer.",
+                        "Status":  "OK",
+                        "Value":  "Standard user",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Secure Boot",
                         "Description":  "A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.",
                         "Status":  "OK",
@@ -538,9 +697,9 @@
                     {
                         "Category":  "Network",
                         "Check":  "Adapter: Contoso Wi-Fi 6 AX200 160MHz",
-                        "Description":  "A network card (cable or Wi-Fi) and its settings: the IP address identifies the computer, the gateway is the router, DNS servers translate names and DHCP hands all of this out automatically.",
+                        "Description":  "A network card (cable or Wi-Fi) and its settings: the IP address identifies the computer, the gateway is the router, DNS servers translate names and DHCP hands all of this out automatically. Speed is the link speed the card negotiated.",
                         "Status":  "Info",
-                        "Value":  "IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A",
+                        "Value":  "IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 867 Mbps",
                         "Details":  [
 
                                     ],
@@ -606,6 +765,45 @@
                         "Description":  "A real web request over an encrypted connection. It confirms that the computer can actually reach web sites.",
                         "Status":  "OK",
                         "Value":  "https://www.microsoft.com reachable (HTTP 200)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Printers",
+                        "Check":  "Default printer",
+                        "Description":  "The printer that programs use when no other one is chosen. Printing to the wrong printer is often just a wrong default.",
+                        "Status":  "Info",
+                        "Value":  "Contoso LaserJet 400 (2nd floor)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Printers",
+                        "Check":  "Installed printers",
+                        "Description":  "The printers set up on this computer, including virtual ones such as \"Microsoft Print to PDF\".",
+                        "Status":  "Info",
+                        "Value":  "3 printers: Contoso LaserJet 400 (2nd floor), Microsoft Print to PDF, OneNote (Desktop)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Printers",
+                        "Check":  "Print queue",
+                        "Description":  "The documents waiting to be printed. One stuck document blocks every document behind it.",
+                        "Status":  "OK",
+                        "Value":  "0 documents waiting",
                         "Details":  [
 
                                     ],

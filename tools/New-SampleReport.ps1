@@ -44,6 +44,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'Manufacturer and model', 'Info', 'Contoso Ltd. ProBook 450', '')
         , @('System', 'Domain or workgroup', 'Info', 'Domain: corp.contoso.example', '')
         , @('System', 'Signed-in user', 'Info', 'CONTOSO\m.horvat', '')
+        , @('System', 'Time zone', 'Info', '(UTC+01:00) Sarajevo, Skopje, Warsaw, Zagreb', '')
         , @('System', 'Uptime', 'Warning', '12 d 4 h 37 min', 'Restart the computer; it has been running for more than 7 days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.')
         , @('System', 'Windows activation', 'OK', 'Activated', '')
         , @('System', 'Startup programs', 'OK', '12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more', '')
@@ -62,9 +63,16 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Drive: Contoso HDD 500GB', 'Warning', 'HDD, SATA, 465.8 GB, health: Warning', 'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.')
         , @('Hardware', 'Disk (C:)', 'Critical', '3.1 % free (7.4 GB of 237.9 GB)', 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.')
         , @('Hardware', 'Disk (D:)', 'OK', '61.4 % free (286.1 GB of 465.8 GB)', '')
+        , @('Hardware', 'Devices with problems', 'OK', 'None', '')
         , @('Hardware', 'Battery', 'OK', '64 % (plugged in)', '')
 
+        , @('Software', 'Installed programs', 'Info', '12 programs: 7-Zip 24.08, Chat Client 5.2, Contoso Office 16.0, Contoso VPN 3.1, Mail Client 12.4, PDF Reader 2025.1, Printer Assistant 2.0, Screenshot Tool 4.0 and 4 more', '')
+        , @('Software', 'Recently installed', 'Info', '2 in the last 30 days: Screenshot Tool (2026-09-22), PDF Reader (2026-09-11)', '')
+        , @('Software', 'Application crashes', 'Warning', '9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)', 'Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) > Windows Logs > Application, source "Application Error".')
+        , @('Software', 'Default browser', 'Info', 'Microsoft Edge', '')
+
         , @('Event Log', 'Unexpected shutdowns', 'Warning', '2 in the last 7 days', 'The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.')
+        , @('Event Log', 'Blue screens', 'OK', '0 in the last 7 days', '')
         , @('Event Log', 'System log - critical events', 'Warning', '2 in the last 7 days', 'Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) > Windows Logs > System and filter by level Critical.')
         , @('Event Log', 'System log - errors', 'OK', '31 in the last 7 days', '')
         , @('Event Log', 'System log - top sources', 'Info', 'Service Control Manager (14), Microsoft-Windows-DistributedCOM (11), disk (4), Microsoft-Windows-Kernel-Power (2), Netwtw14 (2)', '')
@@ -74,22 +82,31 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
 
         , @('Windows Update', 'Last installed update', 'OK', 'KB5000001 on 2026-09-18 (12 days ago)', '')
         , @('Windows Update', 'Pending restart', 'Warning', 'Yes (Windows Update)', 'Restart the computer to finish installing updates.')
+        , @('Windows Update', 'Updates paused', 'OK', 'No', '')
 
         , @('Security', 'Defender real-time protection', 'OK', 'Enabled', '')
         , @('Security', 'Defender definitions', 'OK', '1 day old (updated 2026-09-29 06:12)', '')
+        , @('Security', 'Defender last scan', 'OK', '3 days ago', '')
         , @('Security', 'Firewall - Domain profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Private profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Public profile', 'Warning', 'Disabled', 'Turn on Windows Defender Firewall for this profile (Windows Security > Firewall & network protection), unless a third-party firewall is installed.')
+        , @('Security', 'User Account Control', 'OK', 'Enabled', '')
+        , @('Security', 'Remote Desktop', 'OK', 'Disabled', '')
+        , @('Security', 'Account type', 'OK', 'Standard user', '')
         , @('Security', 'Secure Boot', 'OK', 'Enabled', '')
         , @('Security', 'TPM', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
         , @('Security', 'BitLocker (C:)', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
 
-        , @('Network', 'Adapter: Contoso Wi-Fi 6 AX200 160MHz', 'Info', 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A', '')
+        , @('Network', 'Adapter: Contoso Wi-Fi 6 AX200 160MHz', 'Info', 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 867 Mbps', '')
         , @('Network', 'Proxy', 'Info', 'Not configured', '')
         , @('Network', 'Ping default gateway', 'OK', '10.20.30.1 replied in 3 ms', '')
         , @('Network', 'Ping internet', 'OK', '1.1.1.1 replied in 18 ms', '')
         , @('Network', 'DNS resolution', 'OK', 'microsoft.com -> 203.0.113.25', '')
         , @('Network', 'HTTPS access', 'OK', 'https://www.microsoft.com reachable (HTTP 200)', '')
+
+        , @('Printers', 'Default printer', 'Info', 'Contoso LaserJet 400 (2nd floor)', '')
+        , @('Printers', 'Installed printers', 'Info', '3 printers: Contoso LaserJet 400 (2nd floor), Microsoft Print to PDF, OneNote (Desktop)', '')
+        , @('Printers', 'Print queue', 'OK', '0 documents waiting', '')
 
         , @('Services', 'DHCP Client (Dhcp)', 'OK', 'Running (start mode: Auto)', '')
         , @('Services', 'DNS Client (Dnscache)', 'OK', 'Running (start mode: Auto)', '')
@@ -122,11 +139,15 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Defender definitions'              = @((Format-AllowedRange -Warning $limits.Defender.SignatureWarningDays -Critical $limits.Defender.SignatureCriticalDays -Unit 'days'), $limits.Defender.Typical)
         'Ping default gateway'              = @('', $limits.Network.TypicalGatewayPing)
         'Ping internet'                     = @((Format-AllowedRange -Warning $limits.Network.PingWarningMs -Unit 'ms'), $limits.Network.TypicalInternetPing)
+        'Application crashes'               = @((Format-AllowedRange -Warning $limits.Software.CrashWarningAbove), $limits.Software.TypicalCrashes)
+        'Blue screens'                      = @((Format-AllowedRange -Warning $limits.EventLog.BlueScreenWarningAbove), $limits.EventLog.TypicalBlueScreens)
+        'Defender last scan'                = @((Format-AllowedRange -Warning $limits.Defender.ScanWarningDays -Unit 'days'), $limits.Defender.TypicalScan)
     }
 
     # Items behind the "Show N more" section, by check name.
     $details = @{
-        'Startup programs' = @('Screenshot Tool', 'SecurityHealth', 'Teams', 'Touchpad Driver')
+        'Startup programs'   = @('Screenshot Tool', 'SecurityHealth', 'Teams', 'Touchpad Driver')
+        'Installed programs' = @('Teams 25.1', 'Touchpad Driver 19.5', 'Video Player 3.0', 'Web Meeting Client 6.2')
     }
 
     $results = @(

@@ -22,20 +22,23 @@ Sučelje i izvještaj su na engleskom jeziku.
 
 | Kategorija | Provjere |
 |---|---|
-| System | Ime računala, verzija i build Windowsa, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, uptime, aktivacija Windowsa, programi koji se pokreću sa sustavom |
+| System | Ime računala, verzija i build Windowsa, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, aktivacija Windowsa, programi koji se pokreću sa sustavom |
 | Specifications | Procesor, memorijski moduli i slobodni utori, grafičke kartice, matična ploča, BIOS/UEFI, serijski broj |
-| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, baterija |
-| Event Log | Neočekivana gašenja, kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
-| Windows Update | Zadnje instalirano ažuriranje, čeka li se restart |
-| Security | Zaštita u stvarnom vremenu i starost definicija Microsoft Defendera, firewall profili, Secure Boot, TPM\*, BitLocker\* |
-| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC), proxy, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup |
+| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, uređaji bez ispravnog drivera, baterija |
+| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, zadani preglednik |
+| Event Log | Neočekivana gašenja, plavi ekrani, kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
+| Windows Update | Zadnje instalirano ažuriranje, čeka li se restart, jesu li ažuriranja pauzirana |
+| Security | Zaštita u stvarnom vremenu, starost definicija i zadnje skeniranje Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, Secure Boot, TPM\*, BitLocker\* |
+| Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), proxy, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup |
+| Printers | Zadani pisač, instalirani pisači i oni koji su offline, dokumenti zaglavljeni u redu za ispis |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
 \* traži administratorska prava; inače je označeno s "Requires admin".
 
 Svaki rezultat ima status (**OK**, **Warning**, **Critical** ili **Info**), kratko
-objašnjenje što je to što se provjerava i preporuku kad nešto nije u redu. Uz mjerenja
-se prikazuju i dopušteni raspon te tipična vrijednost za usporedbu.
+objašnjenje što je to što se provjerava i preporučeno rješenje kad god je status Warning
+ili Critical. Uz mjerenja se prikazuju i dopušteni raspon te tipična vrijednost za
+usporedbu.
 
 ## Izvještaj
 
@@ -96,9 +99,11 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 Show-PCHealthCheck
 ```
 
-Klikni **Run check**. Odaberi redak da vidiš što provjera znači, njezin dopušteni raspon
-i preporuku. **Open HTML report** sprema izvještaj i otvara ga u pregledniku, a
-**Save as...** ga sprema kao HTML ili JSON na mjesto koje odabereš.
+Klikni **Run check**. Stranica **Overview** prikazuje sve probleme s preporučenim
+rješenjem. Odaberi kategoriju lijevo (System, Hardware, Network, ...) da vidiš sve što je
+u njoj provjereno; točka i broj uz svaku kategoriju pokazuju gdje su problemi.
+**Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
+sprema kao HTML ili JSON na mjesto koje odabereš.
 
 ### Naredbeni redak
 
@@ -117,7 +122,7 @@ Invoke-PCHealthCheck -NoOpen -SkipNetwork -PassThru |
 | Parametar | Značenje |
 |---|---|
 | `-OutputPath` | Mapa za izvještaj. Zadano: `Documents\HelpdeskToolkit`. |
-| `-Days` | Koliko dana Event Loga se analizira. Zadano: 7. |
+| `-Days` | Koliko dana Event Loga i rušenja aplikacija se analizira. Zadano: 7. |
 | `-Format` | `Html` (zadano), `Json` ili `Both`. |
 | `-SkipNetwork` | Preskače ping, DNS i HTTPS testove. Konfiguracija adaptera se i dalje ispisuje. |
 | `-NoOpen` | Ne otvara HTML izvještaj u pregledniku. |
@@ -140,8 +145,8 @@ $report.Results | Where-Object Status -eq 'Critical'
 
 Dostupne naredbe: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Get-SystemHealth`, `Get-ComputerSpecification`, `Get-HardwareHealth`,
-`Get-EventLogHealth`, `Get-WindowsUpdateHealth`, `Get-SecurityHealth`,
-`Get-NetworkHealth`, `Get-ServiceHealth`. Svaka ima potpunu pomoć: `Get-Help <naredba> -Full`.
+`Get-SoftwareHealth`, `Get-EventLogHealth`, `Get-WindowsUpdateHealth`,
+`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`. Svaka ima potpunu pomoć: `Get-Help <naredba> -Full`.
 
 Svaki rezultat je objekt s istim svojstvima:
 

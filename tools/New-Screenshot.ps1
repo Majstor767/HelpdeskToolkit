@@ -92,12 +92,8 @@ $windowPicture = Join-Path -Path $outputFolder -ChildPath 'screenshot-window.png
     $window.Show()
 
     try {
+        # Shows the Overview page: the verdict, the counts and the problems with their fixes.
         Show-WindowReport -Gui $gui -Report $Report
-
-        # Select a result with a recommendation, so the detail panel is filled in.
-        $selected = $Report.Results | Where-Object { $_.Check -eq 'Uptime' } | Select-Object -First 1
-        $gui.Controls.ResultsGrid.SelectedItem = $selected
-        Show-WindowResultDetail -Gui $gui -Result $selected
 
         # Let WPF finish layout and drawing before the picture is taken.
         $window.Dispatcher.Invoke([action] { }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)

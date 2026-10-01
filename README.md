@@ -20,20 +20,23 @@ problems it found and what to do about them.
 
 | Category | Checks |
 |---|---|
-| System | Computer name, Windows version and build, install date, manufacturer and model, domain or workgroup, signed-in user, uptime, Windows activation, startup programs |
+| System | Computer name, Windows version and build, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, Windows activation, startup programs |
 | Specifications | Processor, memory modules and free slots, graphics adapters, motherboard, BIOS/UEFI, serial number |
-| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, battery |
-| Event Log | Unexpected shutdowns, critical events and errors in the System and Application logs for the last N days, top sources |
-| Windows Update | Last installed update, pending restart |
-| Security | Microsoft Defender real-time protection and definition age, firewall profiles, Secure Boot, TPM\*, BitLocker\* |
-| Network | Adapters (IPv4, gateway, DNS, DHCP, MAC), proxy, ping to the gateway and to the internet, DNS resolution, HTTPS access |
+| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, devices without a working driver, battery |
+| Software | Installed programs with versions, recently installed programs, application crashes per program, default browser |
+| Event Log | Unexpected shutdowns, blue screens, critical events and errors in the System and Application logs for the last N days, top sources |
+| Windows Update | Last installed update, pending restart, paused updates |
+| Security | Microsoft Defender real-time protection, definition age and last scan, firewall profiles, User Account Control, Remote Desktop, account type, Secure Boot, TPM\*, BitLocker\* |
+| Network | Adapters (IPv4, gateway, DNS, DHCP, MAC, link speed), proxy, ping to the gateway and to the internet, DNS resolution, HTTPS access |
+| Printers | Default printer, installed printers and offline ones, documents stuck in the print queue |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
 \* needs administrator rights; otherwise marked "Requires admin".
 
 Every result has a status (**OK**, **Warning**, **Critical** or **Info**), a short
-explanation of what the checked thing is, and a recommendation when something is wrong.
-Measurements also show the allowed range and a typical value for comparison.
+explanation of what the checked thing is, and a recommended fix whenever the status is
+Warning or Critical. Measurements also show the allowed range and a typical value for
+comparison.
 
 ## The report
 
@@ -94,9 +97,11 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 Show-PCHealthCheck
 ```
 
-Click **Run check**. Select a row to see what the check means, its allowed range and the
-recommendation. **Open HTML report** saves the report and opens it in the browser;
-**Save as...** saves it as HTML or JSON wherever you choose.
+Click **Run check**. The **Overview** page lists every problem with its recommended fix.
+Choose a category on the left (System, Hardware, Network, ...) to see everything it
+checked; the dot and the number next to each category show where the problems are.
+**Open HTML report** saves the report and opens it in the browser; **Save as...** saves
+it as HTML or JSON wherever you choose.
 
 ### The command line
 
@@ -115,7 +120,7 @@ Invoke-PCHealthCheck -NoOpen -SkipNetwork -PassThru |
 | Parameter | Meaning |
 |---|---|
 | `-OutputPath` | Folder for the report. Default: `Documents\HelpdeskToolkit`. |
-| `-Days` | Days of event log history to analyze. Default: 7. |
+| `-Days` | Days of event log and crash history to analyze. Default: 7. |
 | `-Format` | `Html` (default), `Json` or `Both`. |
 | `-SkipNetwork` | Skip ping, DNS and HTTPS tests. The adapter configuration is still reported. |
 | `-NoOpen` | Do not open the HTML report in the browser. |
@@ -138,8 +143,8 @@ $report.Results | Where-Object Status -eq 'Critical'
 
 Available commands: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Get-SystemHealth`, `Get-ComputerSpecification`, `Get-HardwareHealth`,
-`Get-EventLogHealth`, `Get-WindowsUpdateHealth`, `Get-SecurityHealth`,
-`Get-NetworkHealth`, `Get-ServiceHealth`. Each has full help: `Get-Help <command> -Full`.
+`Get-SoftwareHealth`, `Get-EventLogHealth`, `Get-WindowsUpdateHealth`,
+`Get-SecurityHealth`, `Get-NetworkHealth`, `Get-PrinterHealth`, `Get-ServiceHealth`. Each has full help: `Get-Help <command> -Full`.
 
 Every result is an object with the same properties:
 
