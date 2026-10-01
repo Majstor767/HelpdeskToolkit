@@ -49,6 +49,11 @@ Describe 'Get-PCHealthReport' {
             $report.Summary.Info | Should -Be 3
         }
 
+        It 'condenses the result into a score' {
+            # 100 - 15 for the critical result - 4 for the warning
+            $report.Score | Should -Be 81
+        }
+
         It 'reports progress under one activity name, which the window relies on' {
             Should -Invoke -ModuleName HelpdeskToolkit Write-Progress -Scope Context -ParameterFilter {
                 $Activity -eq 'PC Health Check' -and $Status -eq 'Network'
@@ -81,6 +86,18 @@ Describe 'Get-PCHealthReport' {
 
         It 'rejects -Days outside 1 - 365' {
             { Get-PCHealthReport -Days 0 } | Should -Throw
+        }
+
+        It 'hands the work to another computer with -ComputerName and runs nothing here' {
+            Mock -ModuleName HelpdeskToolkit Get-RemoteHealthReport { New-TestReport -Result @(New-TestResult) }
+            $computer = 'PC-014'
+            $remote = Get-PCHealthReport -ComputerName $computer -Days 30 -SkipNetwork
+
+            @($remote.Results).Count | Should -Be 1
+            Should -Invoke -ModuleName HelpdeskToolkit Get-RemoteHealthReport -Times 1 -Exactly -ParameterFilter {
+                $ComputerName -eq 'PC-014' -and $Days -eq 30 -and $SkipNetwork
+            }
+            Should -Invoke -ModuleName HelpdeskToolkit Get-SystemHealth -Times 0 -Exactly
         }
     }
 

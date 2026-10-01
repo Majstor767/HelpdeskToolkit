@@ -1,12 +1,15 @@
 function Invoke-PCHealthCheck {
     <#
     .SYNOPSIS
-        Runs all health checks on the local computer and saves a report.
+        Runs all health checks, prints a summary and saves a report.
     .DESCRIPTION
         Runs every check category (system, specifications, hardware, software, event log,
         Windows Update, security, network, printers and services), prints a short colored summary to the
-        console, saves the full result as an HTML and/or JSON report and opens the
-        HTML report in the default browser.
+        console, saves the full result as a report (HTML, JSON, CSV or PDF) and opens
+        the HTML report in the default browser.
+
+        With -ComputerName the checks run on another computer through PowerShell
+        remoting; the report is saved on this computer.
 
         The command only reads information. The single thing it writes is the report
         file itself. It does not need administrator rights; checks that do are
@@ -17,8 +20,15 @@ function Invoke-PCHealthCheck {
     .PARAMETER Days
         How many days of event log history to analyze. The default is 7.
     .PARAMETER Format
-        Report format: Html (default), Json or Both. The HTML report is a single
-        self-contained file meant for people; JSON is meant for further processing.
+        Report format: Html (default), Json, Csv, Pdf, Both (HTML and JSON) or All.
+        The HTML report is a single self-contained file meant for people; JSON is
+        meant for further processing; CSV opens in a spreadsheet program; the PDF is
+        the HTML report printed to a file, which needs Microsoft Edge or Google Chrome.
+    .PARAMETER ComputerName
+        Name of another computer to check instead of this one. PowerShell remoting
+        must be enabled there and the account must be an administrator on it.
+    .PARAMETER Credential
+        Account to use on the other computer. Without it the current account is used.
     .PARAMETER SkipNetwork
         Skip the connectivity tests (ping, DNS, HTTPS). The adapter configuration is
         still reported. Use it on computers that are offline on purpose.
@@ -44,6 +54,10 @@ function Invoke-PCHealthCheck {
         Invoke-PCHealthCheck -NoOpen -PassThru | Where-Object Status -in 'Warning', 'Critical'
 
         Does not open the browser and returns only the checks that need attention.
+    .EXAMPLE
+        Invoke-PCHealthCheck -ComputerName PC-014 -Format All -NoOpen
+
+        Checks the computer PC-014 over the network and saves its report here in all formats.
     .OUTPUTS
         None by default. HelpdeskToolkit.CheckResult objects when -PassThru is used.
     #>
@@ -56,8 +70,15 @@ function Invoke-PCHealthCheck {
         [ValidateRange(1, 365)]
         [int]$Days = 7,
 
-        [ValidateSet('Html', 'Json', 'Both')]
+        [ValidateSet('Html', 'Json', 'Csv', 'Pdf', 'Both', 'All')]
         [string]$Format = 'Html',
+
+        [ValidateNotNullOrEmpty()]
+        [string]$ComputerName,
+
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [switch]$SkipNetwork,
 
@@ -66,7 +87,12 @@ function Invoke-PCHealthCheck {
         [switch]$PassThru
     )
 
-    $report = Get-PCHealthReport -Days $Days -SkipNetwork:$SkipNetwork
+    $checkParameters = @{ Days = $Days; SkipNetwork = $SkipNetwork }
+    if ($ComputerName) {
+        $checkParameters.ComputerName = $ComputerName
+        $checkParameters.Credential = $Credential
+    }
+    $report = Get-PCHealthReport @checkParameters
     $results = @($report.Results)
 
     $outputFolder = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputPath)
@@ -78,12 +104,18 @@ function Invoke-PCHealthCheck {
     $reportPaths = @()
     $htmlPath = $null
 
-    if ($Format -in 'Html', 'Both') {
+    if ($Format -in 'Html', 'Both', 'All') {
         $htmlPath = Export-HealthReportHtml -Report $report -Path "$basePath.html"
         $reportPaths += $htmlPath
     }
-    if ($Format -in 'Json', 'Both') {
+    if ($Format -in 'Json', 'Both', 'All') {
         $reportPaths += Export-HealthReportJson -Report $report -Path "$basePath.json"
+    }
+    if ($Format -in 'Csv', 'All') {
+        $reportPaths += Export-HealthReportCsv -Report $report -Path "$basePath.csv"
+    }
+    if ($Format -in 'Pdf', 'All') {
+        $reportPaths += Export-HealthReportPdf -Report $report -Path "$basePath.pdf"
     }
 
     Write-HealthSummary -Report $report -ReportPath $reportPaths

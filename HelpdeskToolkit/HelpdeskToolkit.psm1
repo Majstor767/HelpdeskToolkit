@@ -6,6 +6,9 @@ $script:Descriptions = $null
 $script:HealthCheckWindow = $null
 $script:VideoMemoryCache = $null
 $script:DriveHealthCache = $null
+# Only set when the functions were sent to another computer, where there is no manifest
+# to read the version from (see Get-ToolVersion).
+$script:ToolVersion = $null
 
 # Name of the progress bar of a run. The window uses it to tell the progress of the
 # health check apart from progress written by Windows cmdlets.

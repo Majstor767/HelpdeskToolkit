@@ -22,6 +22,8 @@ Describe 'Invoke-PCHealthCheck' {
         Mock -ModuleName HelpdeskToolkit Write-HealthSummary { }
         Mock -ModuleName HelpdeskToolkit Open-HealthReport { }
         Mock -ModuleName HelpdeskToolkit Write-Progress { }
+        # The PDF is made by a browser; here a file with the right name stands in for it.
+        Mock -ModuleName HelpdeskToolkit Export-HealthReportPdf { [System.IO.File]::WriteAllText($Path, '%PDF-test'); $Path }
     }
 
     Context 'by default' {
@@ -66,6 +68,9 @@ Describe 'Invoke-PCHealthCheck' {
             @{ Format = 'Html'; Extensions = '.html' }
             @{ Format = 'Json'; Extensions = '.json' }
             @{ Format = 'Both'; Extensions = '.html .json' }
+            @{ Format = 'Csv'; Extensions = '.csv' }
+            @{ Format = 'Pdf'; Extensions = '.pdf' }
+            @{ Format = 'All'; Extensions = '.csv .html .json .pdf' }
         ) {
             $folder = Join-Path -Path $TestDrive -ChildPath "format-$Format"
             Invoke-PCHealthCheck -OutputPath $folder -Format $Format -NoOpen
@@ -78,7 +83,7 @@ Describe 'Invoke-PCHealthCheck' {
         }
 
         It 'rejects an unknown format' {
-            { Invoke-PCHealthCheck -OutputPath $TestDrive -Format Pdf } | Should -Throw
+            { Invoke-PCHealthCheck -OutputPath $TestDrive -Format Docx } | Should -Throw
         }
     }
 
@@ -102,6 +107,8 @@ Describe 'Invoke-PCHealthCheck' {
             $data.Summary.Warning | Should -Be 1
             $data.Summary.Critical | Should -Be 1
             $data.Summary.Info | Should -Be 3
+            # 100 - 15 for the critical result - 4 for the warning
+            $data.Score | Should -Be 81
             $data.Results.Category | Should -Be @('System', 'Specifications', 'Hardware', 'Software', 'Event Log', 'Windows Update', 'Security', 'Network', 'Printers', 'Services')
         }
     }
@@ -145,6 +152,35 @@ Describe 'Invoke-PCHealthCheck' {
             $failed.Check | Should -Be 'Check execution'
             $failed.Status | Should -Be 'Warning'
             $failed.Recommendation | Should -Match 'Unexpected failure in the security check'
+        }
+    }
+
+    Context 'checking another computer' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-RemoteHealthReport {
+                $report = New-TestReport -Result @(New-TestResult -Category 'System' -Check 'Uptime' -Status Warning) -IsElevated $true
+                $report.ComputerName = 'PC-014'
+                $report
+            }
+            $folder = Join-Path -Path $TestDrive -ChildPath 'remote'
+            $computer = 'PC-014'
+            $results = Invoke-PCHealthCheck -ComputerName $computer -OutputPath $folder -Format Json -Days 14 -SkipNetwork -PassThru
+        }
+
+        It 'runs the checks there and not on this computer' {
+            Should -Invoke -ModuleName HelpdeskToolkit Get-RemoteHealthReport -Times 1 -Exactly -Scope Context -ParameterFilter {
+                $ComputerName -eq 'PC-014' -and $Days -eq 14 -and $SkipNetwork
+            }
+            Should -Invoke -ModuleName HelpdeskToolkit Get-SystemHealth -Times 0 -Exactly -Scope Context
+        }
+
+        It 'saves the report of that computer here, named after it' {
+            (Get-ChildItem -Path $folder).Name | Should -Match '^PCHealth_PC-014_.+\.json$'
+        }
+
+        It 'returns the results of that computer' {
+            @($results).Count | Should -Be 1
+            $results[0].Status | Should -Be 'Warning'
         }
     }
 }

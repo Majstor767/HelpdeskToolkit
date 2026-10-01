@@ -35,6 +35,7 @@ Describe 'Build-Release.ps1' {
             'HelpdeskToolkit/Public/Show-PCHealthCheck.ps1'
             'Start-HelpdeskToolkit.cmd'
             'Start-HelpdeskToolkit.ps1'
+            'Invoke-HealthCheck.ps1'
             'LICENSE'
         ) {
             $entries | Should -Contain $_
@@ -132,5 +133,71 @@ Describe 'Application icon' {
         [System.BitConverter]::ToUInt16($bytes, 0) | Should -Be 0
         [System.BitConverter]::ToUInt16($bytes, 2) | Should -Be 1
         [System.BitConverter]::ToUInt16($bytes, 4) | Should -BeGreaterThan 3
+    }
+}
+
+Describe 'Invoke-HealthCheck.ps1' {
+    BeforeAll {
+        # The script is copied next to a stand-in module whose Invoke-PCHealthCheck
+        # returns the statuses named in an environment variable, so the real checks do
+        # not run. The script is started as a program, because its result is an exit code.
+        $folder = Join-Path -Path $TestDrive -ChildPath 'automation'
+        $moduleFolder = Join-Path -Path $folder -ChildPath 'HelpdeskToolkit'
+        New-Item -Path $moduleFolder -ItemType Directory -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path -Path $root -ChildPath 'Invoke-HealthCheck.ps1') -Destination $folder
+
+        Set-Content -LiteralPath (Join-Path -Path $moduleFolder -ChildPath 'HelpdeskToolkit.psd1') -Value "@{ RootModule = 'HelpdeskToolkit.psm1'; ModuleVersion = '0.0.1'; FunctionsToExport = @('Invoke-PCHealthCheck') }"
+        Set-Content -LiteralPath (Join-Path -Path $moduleFolder -ChildPath 'HelpdeskToolkit.psm1') -Value @"
+function Invoke-PCHealthCheck {
+    [CmdletBinding()]
+    param(`$OutputPath, `$Days, `$Format, [switch]`$SkipNetwork, [switch]`$NoOpen, [switch]`$PassThru, `$ComputerName)
+    if (`$env:HELPDESKTOOLKIT_TEST_STATUS -eq 'throw') { throw 'The checks are broken' }
+    Write-Host ("summary; NoOpen={0}; Format={1}" -f `$NoOpen.IsPresent, `$Format)
+    foreach (`$status in (`$env:HELPDESKTOOLKIT_TEST_STATUS -split ',')) { [PSCustomObject]@{ Status = `$status } }
+}
+"@
+        $script = Join-Path -Path $folder -ChildPath 'Invoke-HealthCheck.ps1'
+
+        function Invoke-TestScript {
+            param([string]$Status, [string[]]$Argument = @())
+
+            $env:HELPDESKTOOLKIT_TEST_STATUS = $Status
+            try {
+                $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script @Argument 2>&1
+                [PSCustomObject]@{ ExitCode = $LASTEXITCODE; Output = ($output | Out-String) }
+            }
+            finally {
+                Remove-Item -Path Env:\HELPDESKTOOLKIT_TEST_STATUS -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    It 'ends with exit code <Code> when the results are <Status>' -ForEach @(
+        @{ Status = 'OK,Info,OK'; Code = 0 }
+        @{ Status = 'OK,Warning,Info'; Code = 1 }
+        @{ Status = 'Warning,Critical,OK'; Code = 2 }
+    ) {
+        (Invoke-TestScript -Status $Status).ExitCode | Should -Be $Code
+    }
+
+    It 'ends with exit code 3 and says why when the check itself fails' {
+        $run = Invoke-TestScript -Status 'throw'
+        $run.ExitCode | Should -Be 3
+        $run.Output | Should -Match 'could not run: The checks are broken'
+    }
+
+    It 'prints the summary, does not open the browser and passes the format on' {
+        $run = Invoke-TestScript -Status 'OK' -Argument '-Format', 'Json'
+        $run.Output | Should -Match 'summary; NoOpen=True; Format=Json'
+    }
+
+    It 'opens the browser only with -Open' {
+        (Invoke-TestScript -Status 'OK' -Argument '-Open').Output | Should -Match 'NoOpen=False'
+    }
+
+    It 'prints nothing with -Quiet and still returns the exit code' {
+        $run = Invoke-TestScript -Status 'Critical' -Argument '-Quiet'
+        $run.Output.Trim() | Should -Be ''
+        $run.ExitCode | Should -Be 2
     }
 }
