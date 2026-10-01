@@ -12,6 +12,7 @@
     # Listed explicitly (no wildcards) so the module auto-loads quickly and
     # nothing internal is exported by accident.
     FunctionsToExport    = @(
+        'Get-ComputerSpecification'
         'Get-EventLogHealth'
         'Get-HardwareHealth'
         'Get-NetworkHealth'

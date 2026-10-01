@@ -3,8 +3,8 @@ function Invoke-PCHealthCheck {
     .SYNOPSIS
         Runs all health checks on the local computer and saves a report.
     .DESCRIPTION
-        Runs every check category (system, hardware, event log, Windows Update,
-        security, network and services), prints a short colored summary to the
+        Runs every check category (system, specifications, hardware, event log, Windows
+        Update, security, network and services), prints a short colored summary to the
         console, saves the full result as an HTML and/or JSON report and opens the
         HTML report in the default browser.
 
@@ -72,6 +72,7 @@ function Invoke-PCHealthCheck {
     # Category name -> function that produces its results, with its parameters.
     $checks = [ordered]@{
         'System'         = @{ Command = 'Get-SystemHealth'; Parameters = @{} }
+        'Specifications' = @{ Command = 'Get-ComputerSpecification'; Parameters = @{} }
         'Hardware'       = @{ Command = 'Get-HardwareHealth'; Parameters = @{} }
         'Event Log'      = @{ Command = 'Get-EventLogHealth'; Parameters = @{ Days = $Days } }
         'Windows Update' = @{ Command = 'Get-WindowsUpdateHealth'; Parameters = @{} }

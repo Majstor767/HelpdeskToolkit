@@ -7,6 +7,11 @@
         WarningDays = 7
     }
 
+    Startup       = @{
+        # More programs than this starting with Windows = Warning.
+        WarningProgramCount = 15
+    }
+
     Cpu           = @{
         # CPU load above these percentages.
         WarningPercent  = 85
@@ -34,9 +39,11 @@
     EventLog      = @{
         # Number of events per log in the selected period (-Days).
         # More than this many = Warning / Critical.
-        CriticalEventWarningAbove  = 0
-        CriticalEventCriticalAbove = 4
-        ErrorEventWarningAbove     = 50
+        CriticalEventWarningAbove      = 0
+        CriticalEventCriticalAbove     = 4
+        ErrorEventWarningAbove         = 50
+        # Unexpected shutdowns (power loss, crash, forced power-off).
+        UnexpectedShutdownWarningAbove = 0
     }
 
     WindowsUpdate = @{
