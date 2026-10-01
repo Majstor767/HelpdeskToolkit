@@ -137,6 +137,8 @@ function Invoke-PCHealthCheck {
     }
 
     if ($PassThru) {
-        $results
+        foreach ($result in $results) {
+            $result
+        }
     }
 }
