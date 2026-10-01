@@ -24,6 +24,12 @@ function New-HealthCheckWindow {
     $reader = New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $xaml
     $window = [System.Windows.Markup.XamlReader]::Load($reader)
 
+    # Without an icon of its own the window would show the PowerShell icon.
+    $iconPath = Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\HelpdeskToolkit.ico'
+    if (Test-Path -LiteralPath $iconPath) {
+        $window.Icon = [System.Windows.Media.Imaging.BitmapFrame]::Create((New-Object -TypeName System.Uri -ArgumentList $iconPath))
+    }
+
     # Collect the named elements, so the code can write $controls.RunButton
     # instead of calling FindName everywhere.
     $xamlNamespace = 'http://schemas.microsoft.com/winfx/2006/xaml'

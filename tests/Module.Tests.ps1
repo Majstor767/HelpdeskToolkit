@@ -64,7 +64,8 @@ Describe 'Comment-based help of <Name>' -ForEach $publicFunctions {
 
 Describe 'Source files' {
     It 'contain only ASCII characters, so Windows PowerShell 5.1 reads them correctly without a BOM' {
-        $files = Get-ChildItem -Path $moduleRoot -Recurse -File
+        # Text files only; the icon is binary.
+        $files = Get-ChildItem -Path $moduleRoot -Recurse -File -Include '*.ps1', '*.psm1', '*.psd1', '*.xaml', '*.css'
         foreach ($file in $files) {
             $nonAscii = [System.IO.File]::ReadAllBytes($file.FullName) | Where-Object { $_ -gt 127 }
             @($nonAscii).Count | Should -Be 0 -Because "$($file.Name) must be plain ASCII"
