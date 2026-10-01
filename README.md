@@ -43,21 +43,40 @@ comparison.
 The **Live monitor** page of the window needs no health check. It shows what the
 computer is doing right now and refreshes about every two seconds:
 
-- load of every logical processor, total load and current clock speed
-- memory in use and committed memory
-- load and memory of the graphics adapter
-- activity, read rate and write rate of every physical disk
-- download and upload rate of every network adapter
-- the programs that use the most processor time
+- **Processor:** total load with a history graph, the speed it really runs at (turbo
+  included), load of every logical processor, number of processes, threads and handles,
+  time since Windows started
+- **Memory:** share in use with a history graph, available, cached and committed memory,
+  kernel pools, page file usage
+- **Graphics:** load with a history graph, load per engine (3D, copy, video decode,
+  video encode), dedicated and shared memory
+- **Disks:** activity, read rate, write rate and queue length of every physical disk,
+  and the used space of every drive letter (the meter turns orange and red by the same
+  limits as the disk space check)
+- **Network:** download rate, upload rate and link speed of every adapter
+- **Sensors:** temperature, fan speed and power draw of NVIDIA graphics cards; thermal
+  zones and battery where the computer has them; temperature, wear and power-on hours of
+  the drives\*
+- **Programs:** the ones that use the most processor time, the most memory, and read and
+  write the most data
+
+\* needs administrator rights.
 
 ![The Live monitor page](docs/screenshot-monitor.png)
 
+![The lower half of the Live monitor page](docs/screenshot-monitor-details.png)
+
 The same data is available in scripts through `Get-PerformanceSnapshot`.
 
-Temperatures, fan speeds and voltages are not shown. Windows does not expose them to
-programs; tools that display them install a hardware driver of their own, which this
-tool deliberately does not do. The temperature of the drives is the exception: it is
-part of the drive details that are read with administrator rights.
+Where the sensor values come from, and what is missing on purpose:
+
+- The values of NVIDIA graphics cards are read with `nvidia-smi`, the status tool that
+  the NVIDIA driver itself installs. It is started from the Windows `System32` folder by
+  its full path. Cards of other makes have no comparable tool, so they show load and
+  memory only.
+- The temperature of the processor, the fans of the motherboard and voltages are not
+  shown. Windows does not expose them to programs; tools that display them install a
+  hardware driver of their own, which this tool deliberately does not do.
 
 ## Administrator rights
 

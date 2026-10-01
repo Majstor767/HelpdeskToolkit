@@ -45,21 +45,39 @@ usporedbu.
 Stranica **Live monitor** u prozoru ne traži provjeru. Prikazuje što računalo radi u
 ovom trenutku i osvježava se otprilike svake dvije sekunde:
 
-- opterećenje svakog logičkog procesora, ukupno opterećenje i trenutni takt
-- zauzeta i rezervirana (committed) memorija
-- opterećenje i memorija grafičke kartice
-- aktivnost te brzina čitanja i pisanja svakog fizičkog diska
-- brzina preuzimanja i slanja svakog mrežnog adaptera
-- programi koji troše najviše procesorskog vremena
+- **Procesor:** ukupno opterećenje s grafom povijesti, takt na kojem stvarno radi
+  (uključujući turbo), opterećenje svakog logičkog procesora, broj procesa, niti i
+  handleova, vrijeme od pokretanja Windowsa
+- **Memorija:** zauzeće s grafom povijesti, dostupna, predmemorirana (cached) i
+  rezervirana (committed) memorija, kernel poolovi, zauzeće page filea
+- **Grafika:** opterećenje s grafom povijesti, opterećenje po engineu (3D, copy, video
+  decode, video encode), vlastita i dijeljena memorija
+- **Diskovi:** aktivnost, brzina čitanja i pisanja te red čekanja svakog fizičkog diska,
+  i zauzeti prostor svakog slova diska (mjerač postaje narančast i crven prema istim
+  pragovima kao provjera prostora na disku)
+- **Mreža:** brzina preuzimanja i slanja te brzina veze svakog adaptera
+- **Senzori:** temperatura, brzina ventilatora i potrošnja NVIDIA grafičkih kartica;
+  termalne zone i baterija na računalima koja ih imaju; temperatura, istrošenost i sati
+  rada diskova\*
+- **Programi:** oni koji troše najviše procesorskog vremena, najviše memorije te čitaju i
+  pišu najviše podataka
+
+\* traži administratorska prava.
 
 ![Stranica Live monitor](docs/screenshot-monitor.png)
 
+![Donja polovica stranice Live monitor](docs/screenshot-monitor-details.png)
+
 Isti podaci dostupni su u skriptama kroz `Get-PerformanceSnapshot`.
 
-Temperature, brzine ventilatora i naponi se ne prikazuju. Windows ih ne daje
-programima; alati koji ih prikazuju instaliraju vlastiti hardverski driver, što ovaj
-alat namjerno ne radi. Iznimka je temperatura diskova: ona je dio detalja diska koji se
-čitaju s administratorskim pravima.
+Odakle dolaze vrijednosti senzora i što namjerno nedostaje:
+
+- Vrijednosti NVIDIA grafičkih kartica čitaju se alatom `nvidia-smi`, koji instalira sam
+  NVIDIA driver. Pokreće se iz Windowsove mape `System32` punom putanjom. Kartice drugih
+  proizvođača nemaju usporediv alat, pa se za njih prikazuju samo opterećenje i memorija.
+- Temperatura procesora, ventilatori matične ploče i naponi se ne prikazuju. Windows ih
+  ne daje programima; alati koji ih prikazuju instaliraju vlastiti hardverski driver, što
+  ovaj alat namjerno ne radi.
 
 ## Administratorska prava
 
