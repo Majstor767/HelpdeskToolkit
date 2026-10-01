@@ -25,7 +25,7 @@ function Get-ComputerSpecification {
         Shows the specification as a compact table.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]

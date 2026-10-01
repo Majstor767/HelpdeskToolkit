@@ -17,7 +17,7 @@ function Get-WindowsUpdateHealth {
         Returns the two Windows Update results.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -47,7 +47,8 @@ function Get-WindowsUpdateHealth {
             }
             New-CheckResult -Category $category -Check 'Last installed update' -Status $status `
                 -Value ('{0} on {1:yyyy-MM-dd} ({2} days ago)' -f $latest.HotFixID, $latest.InstalledOn, $daysAgo) `
-                -Recommendation $recommendation
+                -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.WarningDaysSinceLastUpdate -Unit 'days') -Typical $thresholds.Typical
         }
     }
     catch {

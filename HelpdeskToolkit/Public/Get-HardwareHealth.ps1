@@ -23,7 +23,7 @@ function Get-HardwareHealth {
         Shows only the disk space results.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -51,7 +51,9 @@ function Get-HardwareHealth {
                 ''
             }
             New-CheckResult -Category $category -Check 'CPU load' -Status $status `
-                -Value ('{0} % ({1})' -f $load, ([string]$processors[0].Name).Trim()) -Recommendation $recommendation
+                -Value ('{0} % ({1})' -f $load, ([string]$processors[0].Name).Trim()) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.Cpu.WarningPercent -Critical $thresholds.Cpu.CriticalPercent -Unit '%') `
+                -Typical $thresholds.Cpu.Typical
         }
     }
     catch {
@@ -74,7 +76,9 @@ function Get-HardwareHealth {
         }
         New-CheckResult -Category $category -Check 'Memory usage' -Status $status `
             -Value ('{0} % ({1} of {2} used)' -f $usedPercent, (Format-Gigabyte -Bytes $usedBytes), (Format-Gigabyte -Bytes $totalBytes)) `
-            -Recommendation $recommendation
+            -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.Memory.WarningPercent -Critical $thresholds.Memory.CriticalPercent -Unit '%') `
+            -Typical $thresholds.Memory.Typical
     }
     catch {
         New-FailureResult -Category $category -Check 'Memory usage' -ErrorRecord $_
@@ -158,7 +162,9 @@ function Get-HardwareHealth {
             }
             New-CheckResult -Category $category -Check $check -Status $status `
                 -Value ('{0} % free ({1} of {2})' -f [string]$freePercent, (Format-Gigabyte -Bytes $disk.FreeSpace), (Format-Gigabyte -Bytes $disk.Size)) `
-                -Recommendation $recommendation
+                -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.Disk.WarningFreePercent -Critical $thresholds.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse) `
+                -Typical $thresholds.Disk.Typical
         }
     }
     catch {
@@ -189,7 +195,8 @@ function Get-HardwareHealth {
 
             $recommendation = if ($status -ne 'OK') { 'Battery charge is low. Connect the charger.' } else { '' }
             New-CheckResult -Category $category -Check 'Battery' -Status $status `
-                -Value ('{0} % ({1})' -f $charge, $power) -Recommendation $recommendation
+                -Value ('{0} % ({1})' -f $charge, $power) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.Battery.WarningPercent -Critical $thresholds.Battery.CriticalPercent -Unit '%' -LowerIsWorse)
         }
     }
     catch {

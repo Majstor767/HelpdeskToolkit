@@ -31,7 +31,7 @@ function Get-NetworkHealth {
         Reports only the adapter configuration.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -98,7 +98,7 @@ function Get-NetworkHealth {
         $ping = Test-PingHost -Target $gateway
         if ($ping.Success) {
             New-CheckResult -Category $category -Check 'Ping default gateway' -Status OK `
-                -Value ('{0} replied in {1}' -f $gateway, $ping.Text)
+                -Value ('{0} replied in {1}' -f $gateway, $ping.Text) -Typical $settings.TypicalGatewayPing
         }
         else {
             New-CheckResult -Category $category -Check 'Ping default gateway' -Status Warning `
@@ -122,7 +122,8 @@ function Get-NetworkHealth {
             ''
         }
         New-CheckResult -Category $category -Check 'Ping internet' -Status $status `
-            -Value ('{0} replied in {1}' -f $settings.PingTarget, $ping.Text) -Recommendation $recommendation
+            -Value ('{0} replied in {1}' -f $settings.PingTarget, $ping.Text) -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $settings.PingWarningMs -Unit 'ms') -Typical $settings.TypicalInternetPing
     }
     else {
         New-CheckResult -Category $category -Check 'Ping internet' -Status Warning `

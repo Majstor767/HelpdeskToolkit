@@ -25,7 +25,7 @@ function Get-EventLogHealth {
         Summarizes the last 30 days.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -63,7 +63,8 @@ function Get-EventLogHealth {
             ''
         }
         New-CheckResult -Category $category -Check 'Unexpected shutdowns' -Status $status `
-            -Value ('{0} {1}' -f $shutdownCount, $period) -Recommendation $recommendation
+            -Value ('{0} {1}' -f $shutdownCount, $period) -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.UnexpectedShutdownWarningAbove) -Typical $thresholds.TypicalUnexpectedShutdowns
     }
 
     foreach ($logName in 'System', 'Application') {
@@ -96,7 +97,9 @@ function Get-EventLogHealth {
             ''
         }
         New-CheckResult -Category $category -Check "$logName log - critical events" -Status $status `
-            -Value ('{0} {1}' -f $criticalCount, $period) -Recommendation $recommendation
+            -Value ('{0} {1}' -f $criticalCount, $period) -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.CriticalEventWarningAbove -Critical $thresholds.CriticalEventCriticalAbove) `
+            -Typical $thresholds.TypicalCriticalEvents
 
         $status = Get-ThresholdStatus -Value $errorCount -Warning $thresholds.ErrorEventWarningAbove
         $recommendation = if ($status -ne 'OK') {
@@ -106,7 +109,8 @@ function Get-EventLogHealth {
             ''
         }
         New-CheckResult -Category $category -Check "$logName log - errors" -Status $status `
-            -Value ('{0} {1}' -f $errorCount, $period) -Recommendation $recommendation
+            -Value ('{0} {1}' -f $errorCount, $period) -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.ErrorEventWarningAbove) -Typical $thresholds.TypicalErrorEvents
 
         $topSources = @(
             $entries |

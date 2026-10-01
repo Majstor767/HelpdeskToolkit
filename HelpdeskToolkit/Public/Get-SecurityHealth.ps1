@@ -24,7 +24,7 @@ function Get-SecurityHealth {
         Shows only the security findings that need attention.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -64,7 +64,9 @@ function Get-SecurityHealth {
             }
             New-CheckResult -Category $category -Check 'Defender definitions' -Status $status `
                 -Value ('{0} {1} old (updated {2:yyyy-MM-dd HH:mm})' -f $age, $(if ($age -eq 1) { 'day' } else { 'days' }), $defender.AntivirusSignatureLastUpdated) `
-                -Recommendation $recommendation
+                -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.SignatureWarningDays -Critical $thresholds.SignatureCriticalDays -Unit 'days') `
+                -Typical $thresholds.Typical
         }
     }
     catch {

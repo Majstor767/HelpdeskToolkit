@@ -26,7 +26,7 @@ function Get-SystemHealth {
         Shows only the checks that have an actual verdict (OK, Warning or Critical).
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value and Recommendation.
+        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -78,7 +78,8 @@ function Get-SystemHealth {
     else {
         ''
     }
-    New-CheckResult -Category $category -Check 'Uptime' -Status $status -Value $uptimeValue -Recommendation $recommendation
+    New-CheckResult -Category $category -Check 'Uptime' -Status $status -Value $uptimeValue -Recommendation $recommendation `
+        -Allowed (Format-AllowedRange -Warning $thresholds.Uptime.WarningDays -Unit 'days') -Typical $thresholds.Uptime.Typical
 
     # Activation. The filter selects the Windows license that has a product key installed;
     # LicenseStatus 1 means licensed.
@@ -120,7 +121,8 @@ function Get-SystemHealth {
         else {
             ''
         }
-        New-CheckResult -Category $category -Check 'Startup programs' -Status $status -Value $value -Recommendation $recommendation
+        New-CheckResult -Category $category -Check 'Startup programs' -Status $status -Value $value -Recommendation $recommendation `
+            -Allowed (Format-AllowedRange -Warning $thresholds.Startup.WarningProgramCount) -Typical $thresholds.Startup.Typical
     }
     catch {
         New-FailureResult -Category $category -Check 'Startup programs' -ErrorRecord $_
