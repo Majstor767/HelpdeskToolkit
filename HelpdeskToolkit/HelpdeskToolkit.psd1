@@ -34,9 +34,10 @@
 
     PrivateData          = @{
         PSData = @{
-            Tags       = @('Helpdesk', 'Diagnostics', 'HealthCheck', 'Windows', 'ITSupport')
-            ProjectUri = 'https://github.com/Majstor767/HelpdeskToolkit'
-            LicenseUri = 'https://github.com/Majstor767/HelpdeskToolkit/blob/main/LICENSE'
+            Tags         = @('Helpdesk', 'Diagnostics', 'HealthCheck', 'Windows', 'ITSupport', 'Troubleshooting', 'Monitoring', 'Report', 'PSEdition_Desktop', 'PSEdition_Core')
+            ProjectUri   = 'https://github.com/Majstor767/HelpdeskToolkit'
+            LicenseUri   = 'https://github.com/Majstor767/HelpdeskToolkit/blob/main/LICENSE'
+            ReleaseNotes = 'https://github.com/Majstor767/HelpdeskToolkit/blob/main/CHANGELOG.md'
         }
     }
 }
