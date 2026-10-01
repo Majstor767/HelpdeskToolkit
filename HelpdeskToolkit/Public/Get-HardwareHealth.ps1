@@ -7,7 +7,8 @@ function Get-HardwareHealth {
         changes nothing on the system:
 
         - CPU load at the time of the check
-        - used physical memory
+        - used physical memory and the five programs that use the most of it
+        - health reported by every physical drive (SSD/HDD)
         - free space on every local fixed disk
         - battery charge, when the computer has a battery
 
@@ -77,6 +78,64 @@ function Get-HardwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Memory usage' -ErrorRecord $_
+    }
+
+    # Which programs hold the memory. Processes are grouped by name because browsers
+    # and similar applications run as many processes.
+    try {
+        $consumers = @(
+            Get-Process -ErrorAction Stop |
+                Group-Object -Property ProcessName |
+                ForEach-Object {
+                    [PSCustomObject]@{
+                        Name  = $_.Name
+                        Bytes = ($_.Group | Measure-Object -Property WorkingSet64 -Sum).Sum
+                    }
+                } |
+                Sort-Object -Property Bytes -Descending |
+                Select-Object -First 5 |
+                ForEach-Object { '{0} ({1})' -f $_.Name, (Format-Gigabyte -Bytes $_.Bytes) }
+        )
+        New-CheckResult -Category $category -Check 'Top memory consumers' -Status Info -Value ($consumers -join ', ')
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Top memory consumers' -ErrorRecord $_
+    }
+
+    # Physical drives and the health state they report themselves (based on SMART).
+    try {
+        $mediaTypes = @{ 3 = 'HDD'; 4 = 'SSD' }
+        $busTypes = @{ 7 = 'USB'; 11 = 'SATA'; 17 = 'NVMe' }
+        $drives = @(Get-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ErrorAction Stop)
+
+        foreach ($drive in $drives) {
+            $media = $mediaTypes[[int]$drive.MediaType]
+            $bus = $busTypes[[int]$drive.BusType]
+            $kind = (@($media, $bus) | Where-Object { $_ }) -join ', '
+            if (-not $kind) {
+                $kind = 'Unknown type'
+            }
+
+            switch ([int]$drive.HealthStatus) {
+                0 { $status = 'OK'; $health = 'Healthy' }
+                1 { $status = 'Warning'; $health = 'Warning' }
+                2 { $status = 'Critical'; $health = 'Unhealthy' }
+                default { $status = 'Info'; $health = 'Unknown' }
+            }
+            $recommendation = if ($status -in 'Warning', 'Critical') {
+                'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.'
+            }
+            else {
+                ''
+            }
+
+            New-CheckResult -Category $category -Check ('Drive: {0}' -f $drive.FriendlyName) -Status $status `
+                -Value ('{0}, {1}, health: {2}' -f $kind, (Format-Gigabyte -Bytes $drive.Size), $health) `
+                -Recommendation $recommendation
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Drive health' -ErrorRecord $_
     }
 
     # Disks. DriveType 3 = local fixed disk (no USB sticks, network or optical drives).
