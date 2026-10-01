@@ -24,6 +24,14 @@ Describe 'Get-ComputerSpecification' {
                 CurrentHorizontalResolution = 1920; CurrentVerticalResolution = 1080; CurrentRefreshRate = 60
             }
         }
+        # Monitors describe themselves with character codes, padded with zeros.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'WmiMonitorID' } {
+            [PSCustomObject]@{
+                UserFriendlyName  = [uint16[]](@([char[]]'Contoso 27Q' | ForEach-Object { [int]$_ }) + 0, 0)
+                ManufacturerName  = [uint16[]](@([char[]]'CTS' | ForEach-Object { [int]$_ }) + 0)
+                YearOfManufacture = 2024
+            }
+        }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BaseBoard' } {
             [PSCustomObject]@{ Manufacturer = 'Contoso'; Product = 'MB-100' }
         }
@@ -46,6 +54,7 @@ Describe 'Get-ComputerSpecification' {
             @{ Check = 'Processor'; Value = 'Contoso Core 8, 8 cores / 16 threads, 2.4 GHz' }
             @{ Check = 'Memory'; Value = '16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 4 slots used' }
             @{ Check = 'Graphics'; Value = 'Contoso Graphics 770 (driver 31.0.101), 1920 x 1080 @ 60 Hz' }
+            @{ Check = 'Display'; Value = 'Contoso 27Q (CTS, 2024)' }
             @{ Check = 'Motherboard'; Value = 'Contoso MB-100' }
             @{ Check = 'Serial number'; Value = 'CNT4012XYZ' }
         ) {
@@ -87,6 +96,35 @@ Describe 'Get-ComputerSpecification' {
         }
     }
 
+    Context 'displays' {
+        It 'returns one result per connected display' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'WmiMonitorID' } {
+                foreach ($name in 'Display A', 'Display B') {
+                    [PSCustomObject]@{
+                        UserFriendlyName  = [uint16[]](@([char[]]$name | ForEach-Object { [int]$_ }))
+                        ManufacturerName  = [uint16[]](@([char[]]'CTS' | ForEach-Object { [int]$_ }))
+                        YearOfManufacture = 2023
+                    }
+                }
+            }
+            (Get-ComputerSpecification | Where-Object Check -eq 'Display').Value | Should -Be @('Display A (CTS, 2023)', 'Display B (CTS, 2023)')
+        }
+
+        It 'names a display that does not report a name' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'WmiMonitorID' } {
+                [PSCustomObject]@{ UserFriendlyName = $null; ManufacturerName = $null; YearOfManufacture = $null }
+            }
+            (Get-ComputerSpecification | Where-Object Check -eq 'Display').Value | Should -Be 'Built-in or generic display'
+        }
+
+        It 'leaves the displays out, without an error, where Windows has no monitor information' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'WmiMonitorID' } { throw 'Not supported' }
+            $results = Get-ComputerSpecification
+            $results | Where-Object Check -eq 'Display' | Should -BeNullOrEmpty
+            $results | Where-Object Value -eq 'Unavailable' | Should -BeNullOrEmpty
+        }
+    }
+
     Context 'with a placeholder serial number' {
         It 'reports "<Serial>" as not set by the manufacturer' -ForEach @(
             @{ Serial = 'To Be Filled By O.E.M.' }
@@ -102,7 +140,15 @@ Describe 'Get-ComputerSpecification' {
 
     Context 'when one component cannot be read' {
         It 'reports that component as unavailable and still returns the others' {
-            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BaseBoard' } { throw 'Query failed' }
+            # Monitors describe themselves with character codes, padded with zeros.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'WmiMonitorID' } {
+            [PSCustomObject]@{
+                UserFriendlyName  = [uint16[]](@([char[]]'Contoso 27Q' | ForEach-Object { [int]$_ }) + 0, 0)
+                ManufacturerName  = [uint16[]](@([char[]]'CTS' | ForEach-Object { [int]$_ }) + 0)
+                YearOfManufacture = 2024
+            }
+        }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BaseBoard' } { throw 'Query failed' }
             $results = Get-ComputerSpecification
             ($results | Where-Object Check -eq 'Motherboard').Status | Should -Be 'Warning'
             ($results | Where-Object Check -eq 'Processor').Status | Should -Be 'Info'

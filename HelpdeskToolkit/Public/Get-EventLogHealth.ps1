@@ -9,7 +9,8 @@ function Get-EventLogHealth {
         recurring problem and where to look in Event Viewer.
 
         It also counts unexpected shutdowns (event 6008: power loss, crashes and
-        forced power-offs) and blue screens (event 1001).
+        forced power-offs), blue screens (event 1001), problems reported by the disk
+        drivers and the file system, and errors reported by the hardware itself (WHEA).
 
         Both logs are readable by standard users, so no administrator rights are
         needed. The limits come from Config\Thresholds.psd1.
@@ -93,6 +94,48 @@ function Get-EventLogHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Blue screens' -ErrorRecord $_
+    }
+
+    # Two kinds of events that point at failing hardware: problems reported by the disk
+    # drivers and the file system, and errors the hardware itself reported (WHEA).
+    $hardwareChecks = @(
+        @{
+            Check          = 'Disk errors'
+            Providers      = 'disk', 'Ntfs', 'volmgr'
+            WarningAbove   = $thresholds.DiskErrorWarningAbove
+            Recommendation = 'The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run "chkdsk /scan" as administrator. Repeated errors usually mean the drive or its cable is failing.'
+        }
+        @{
+            Check          = 'Hardware errors'
+            Providers      = 'Microsoft-Windows-WHEA-Logger'
+            WarningAbove   = $thresholds.HardwareErrorWarningAbove
+            Recommendation = 'The hardware reported errors to Windows. Typical causes are faulty memory, overheating or an unstable power supply: clean the cooling, test the memory with Windows Memory Diagnostic (mdsched.exe) and update the BIOS and chipset drivers.'
+        }
+    )
+
+    foreach ($hardwareCheck in $hardwareChecks) {
+        try {
+            try {
+                # Levels 1 to 3: critical, error and warning.
+                $filter = @{ LogName = 'System'; ProviderName = $hardwareCheck.Providers; Level = 1, 2, 3; StartTime = $since }
+                $count = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop).Count
+            }
+            catch {
+                if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {
+                    throw
+                }
+                $count = 0
+            }
+
+            $status = Get-ThresholdStatus -Value $count -Warning $hardwareCheck.WarningAbove
+            $recommendation = if ($status -ne 'OK') { $hardwareCheck.Recommendation } else { '' }
+            New-CheckResult -Category $category -Check $hardwareCheck.Check -Status $status `
+                -Value ('{0} {1}' -f $count, $period) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $hardwareCheck.WarningAbove) -Typical '0'
+        }
+        catch {
+            New-FailureResult -Category $category -Check $hardwareCheck.Check -ErrorRecord $_
+        }
     }
 
     foreach ($logName in 'System', 'Application') {

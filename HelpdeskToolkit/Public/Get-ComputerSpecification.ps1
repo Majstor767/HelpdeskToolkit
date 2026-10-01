@@ -9,6 +9,7 @@ function Get-ComputerSpecification {
         - processor model, cores, threads and clock speed
         - installed memory, module layout, type, speed and free slots
         - graphics adapters with driver version and current resolution
+        - connected displays with manufacturer code and year of manufacture
         - motherboard, BIOS/UEFI version and date
         - serial number, for warranty and inventory lookups
 
@@ -107,6 +108,26 @@ function Get-ComputerSpecification {
     }
     catch {
         New-FailureResult -Category $category -Check 'Graphics' -ErrorRecord $_
+    }
+
+    # Displays. A monitor describes itself to Windows; the texts arrive as lists of
+    # character codes padded with zeros.
+    try {
+        $monitors = @(Get-CimInstance -Namespace 'root/wmi' -ClassName WmiMonitorID -ErrorAction Stop)
+        foreach ($monitor in $monitors) {
+            $name = -join ($monitor.UserFriendlyName | Where-Object { $_ } | ForEach-Object { [char]$_ })
+            $maker = -join ($monitor.ManufacturerName | Where-Object { $_ } | ForEach-Object { [char]$_ })
+            if (-not $name) {
+                $name = 'Built-in or generic display'
+            }
+            $details = @($maker, $monitor.YearOfManufacture) | Where-Object { $_ }
+            $value = if ($details) { '{0} ({1})' -f $name.Trim(), ($details -join ', ') } else { $name.Trim() }
+            New-CheckResult -Category $category -Check 'Display' -Status Info -Value $value
+        }
+    }
+    catch {
+        # Virtual machines and remote sessions have no monitor information; that is not a fault.
+        Write-Verbose "No monitor information available: $($_.Exception.Message)"
     }
 
     # Motherboard

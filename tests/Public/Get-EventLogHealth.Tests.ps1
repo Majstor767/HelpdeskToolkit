@@ -6,8 +6,9 @@ BeforeAll {
 
 Describe 'Get-EventLogHealth' {
     BeforeAll {
-        # Four queries are made: unexpected shutdowns (event 6008), blue screens (event
-        # 1001), then critical/error events of the System and of the Application log.
+        # These queries are made: unexpected shutdowns (event 6008), blue screens (event
+        # 1001), disk and hardware errors (by event source), then the critical/error
+        # events of the System and of the Application log.
         Mock -ModuleName HelpdeskToolkit Get-WinEvent { throw "Unexpected event log query" }
         Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 1001 } {
             throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
@@ -16,7 +17,12 @@ Describe 'Get-EventLogHealth' {
             throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
         }
         Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter {
-            $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id')
+            $FilterHashtable[0].ContainsKey('ProviderName') -and -not $FilterHashtable[0].ContainsKey('Id')
+        } {
+            throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
+        }
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter {
+            $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id') -and -not $FilterHashtable[0].ContainsKey('ProviderName')
         } {
             New-TestEvent -Level 2 -Source 'Service Control Manager' -Count 3
             New-TestEvent -Level 2 -Source 'Disk' -Count 1
@@ -31,14 +37,16 @@ Describe 'Get-EventLogHealth' {
             $results = Get-EventLogHealth
         }
 
-        It 'returns eight results in the Event Log category' {
-            @($results).Count | Should -Be 8
+        It 'returns ten results in the Event Log category' {
+            @($results).Count | Should -Be 10
             $results.Category | Sort-Object -Unique | Should -Be 'Event Log'
         }
 
         It 'reports <Check> as <Status> with value "<Value>"' -ForEach @(
             @{ Check = 'Unexpected shutdowns'; Status = 'OK'; Value = '0 in the last 7 days' }
             @{ Check = 'Blue screens'; Status = 'OK'; Value = '0 in the last 7 days' }
+            @{ Check = 'Disk errors'; Status = 'OK'; Value = '0 in the last 7 days' }
+            @{ Check = 'Hardware errors'; Status = 'OK'; Value = '0 in the last 7 days' }
             @{ Check = 'System log - critical events'; Status = 'OK'; Value = '0 in the last 7 days' }
             @{ Check = 'System log - errors'; Status = 'OK'; Value = '4 in the last 7 days' }
             @{ Check = 'System log - top sources'; Status = 'Info'; Value = 'Service Control Manager (3), Disk (1)' }
@@ -88,7 +96,7 @@ Describe 'Get-EventLogHealth' {
             @{ Count = 5; Status = 'Critical' }
         ) {
             Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter {
-                $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id')
+                $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id') -and -not $FilterHashtable[0].ContainsKey('ProviderName')
             } {
                 New-TestEvent -Level 1 -Source 'Microsoft-Windows-Kernel-Power' -Count $Count
             }
@@ -101,7 +109,7 @@ Describe 'Get-EventLogHealth' {
     Context 'with many errors from many sources' {
         BeforeAll {
             Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter {
-                $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id')
+                $FilterHashtable[0].LogName -eq 'System' -and -not $FilterHashtable[0].ContainsKey('Id') -and -not $FilterHashtable[0].ContainsKey('ProviderName')
             } {
                 New-TestEvent -Level 2 -Source 'SourceA' -Count 30
                 New-TestEvent -Level 2 -Source 'SourceB' -Count 12
@@ -153,6 +161,30 @@ Describe 'Get-EventLogHealth' {
         It 'is reported as unavailable when the query fails' {
             Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].Id -eq 1001 } { throw 'Query failed' }
             (Get-EventLogHealth | Where-Object Check -eq 'Blue screens').Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'with events that point at failing hardware' {
+        It 'is a Warning when the disk drivers or the file system reported problems' {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].ProviderName -contains 'disk' } {
+                New-TestEvent -Level 3 -Source 'disk' -Count 2
+                New-TestEvent -Level 2 -Source 'Ntfs' -Count 1
+            }
+            $disk = Get-EventLogHealth | Where-Object Check -eq 'Disk errors'
+            $disk.Status | Should -Be 'Warning'
+            $disk.Value | Should -Be '3 in the last 7 days'
+            $disk.Recommendation | Should -Match 'Back up'
+        }
+
+        It 'is a Warning when the hardware itself reported errors (WHEA)' {
+            Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable[0].ProviderName -contains 'Microsoft-Windows-WHEA-Logger' } {
+                New-TestEvent -Level 2 -Source 'Microsoft-Windows-WHEA-Logger' -Count 4
+            }
+            $results = Get-EventLogHealth
+            ($results | Where-Object Check -eq 'Hardware errors').Status | Should -Be 'Warning'
+            ($results | Where-Object Check -eq 'Hardware errors').Recommendation | Should -Match 'memory'
+            # The two checks look at different event sources.
+            ($results | Where-Object Check -eq 'Disk errors').Status | Should -Be 'OK'
         }
     }
 
