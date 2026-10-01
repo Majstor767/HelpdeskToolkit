@@ -5,7 +5,8 @@ function Invoke-PCHealthCheck {
     .DESCRIPTION
         Runs every check category (system, hardware, event log, Windows Update,
         security, network and services), prints a short colored summary to the
-        console and saves the full result as a JSON file in the output folder.
+        console, saves the full result as an HTML and/or JSON report and opens the
+        HTML report in the default browser.
 
         The command only reads information. The single thing it writes is the report
         file itself. It does not need administrator rights; checks that do are
@@ -15,24 +16,34 @@ function Invoke-PCHealthCheck {
         Defaults to a HelpdeskToolkit folder inside the current user's Documents.
     .PARAMETER Days
         How many days of event log history to analyze. The default is 7.
+    .PARAMETER Format
+        Report format: Html (default), Json or Both. The HTML report is a single
+        self-contained file meant for people; JSON is meant for further processing.
     .PARAMETER SkipNetwork
         Skip the connectivity tests (ping, DNS, HTTPS). The adapter configuration is
         still reported. Use it on computers that are offline on purpose.
+    .PARAMETER NoOpen
+        Do not open the HTML report in the browser after it is saved.
     .PARAMETER PassThru
         Also returns the check results as objects, so they can be filtered or
         processed further in the pipeline.
     .EXAMPLE
         Invoke-PCHealthCheck
 
-        Runs all checks and saves the report to Documents\HelpdeskToolkit.
+        Runs all checks, saves an HTML report to Documents\HelpdeskToolkit and opens it.
     .EXAMPLE
-        Invoke-PCHealthCheck -OutputPath C:\Temp\Reports -Days 30
+        Invoke-PCHealthCheck -OutputPath C:\Temp\Reports -Days 30 -Format Both
 
-        Analyzes 30 days of event logs and saves the report to C:\Temp\Reports.
+        Analyzes 30 days of event logs and saves an HTML and a JSON report to
+        C:\Temp\Reports.
     .EXAMPLE
-        Invoke-PCHealthCheck -SkipNetwork -PassThru | Where-Object Status -in 'Warning', 'Critical'
+        Invoke-PCHealthCheck -Format Json -SkipNetwork
 
-        Skips the connectivity tests and returns only the checks that need attention.
+        Saves only a JSON report and skips the connectivity tests.
+    .EXAMPLE
+        Invoke-PCHealthCheck -NoOpen -PassThru | Where-Object Status -in 'Warning', 'Critical'
+
+        Does not open the browser and returns only the checks that need attention.
     .OUTPUTS
         None by default. HelpdeskToolkit.CheckResult objects when -PassThru is used.
     #>
@@ -45,7 +56,12 @@ function Invoke-PCHealthCheck {
         [ValidateRange(1, 365)]
         [int]$Days = 7,
 
+        [ValidateSet('Html', 'Json', 'Both')]
+        [string]$Format = 'Html',
+
         [switch]$SkipNetwork,
+
+        [switch]$NoOpen,
 
         [switch]$PassThru
     )
@@ -101,10 +117,29 @@ function Invoke-PCHealthCheck {
         New-Item -Path $outputFolder -ItemType Directory -Force | Out-Null
     }
 
-    $baseName = 'PCHealth_{0}_{1:yyyyMMdd-HHmmss}' -f $env:COMPUTERNAME, $startedAt
-    $jsonPath = Export-HealthReportJson -Report $report -Path (Join-Path -Path $outputFolder -ChildPath "$baseName.json")
+    $basePath = Join-Path -Path $outputFolder -ChildPath ('PCHealth_{0}_{1:yyyyMMdd-HHmmss}' -f $env:COMPUTERNAME, $startedAt)
+    $reportPaths = @()
+    $htmlPath = $null
 
-    Write-HealthSummary -Report $report -ReportPath $jsonPath
+    if ($Format -in 'Html', 'Both') {
+        $htmlPath = Export-HealthReportHtml -Report $report -Path "$basePath.html"
+        $reportPaths += $htmlPath
+    }
+    if ($Format -in 'Json', 'Both') {
+        $reportPaths += Export-HealthReportJson -Report $report -Path "$basePath.json"
+    }
+
+    Write-HealthSummary -Report $report -ReportPath $reportPaths
+
+    if ($htmlPath -and -not $NoOpen) {
+        try {
+            # Opens the report with the default application for .html files (the browser).
+            Invoke-Item -LiteralPath $htmlPath -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "The report was saved but could not be opened automatically: $($_.Exception.Message)"
+        }
+    }
 
     if ($PassThru) {
         $results
