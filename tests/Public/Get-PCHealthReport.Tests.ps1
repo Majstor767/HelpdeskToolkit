@@ -57,9 +57,11 @@ Describe 'Get-PCHealthReport' {
     }
 
     Context 'parameters' {
-        It 'passes -Days to the event log check' {
+        It 'passes -Days to the event log, software and security checks' {
             Get-PCHealthReport -Days 30 | Out-Null
             Should -Invoke -ModuleName HelpdeskToolkit Get-EventLogHealth -Times 1 -Exactly -ParameterFilter { $Days -eq 30 }
+            Should -Invoke -ModuleName HelpdeskToolkit Get-SoftwareHealth -Times 1 -Exactly -ParameterFilter { $Days -eq 30 }
+            Should -Invoke -ModuleName HelpdeskToolkit Get-SecurityHealth -Times 1 -Exactly -ParameterFilter { $Days -eq 30 }
         }
 
         It 'passes -SkipNetwork to the network check' {

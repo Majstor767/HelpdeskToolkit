@@ -11,14 +11,19 @@ function Get-SecurityHealth {
         - State of the Domain, Private and Public firewall profiles.
         - User Account Control, Remote Desktop and whether the signed-in user is a
           local administrator.
-        - Local accounts (with a warning for an enabled Guest account) and folders
-          shared on the network.
+        - Threats Defender has found, with a Critical result for one that is still active.
+        - The members of the Administrators group, automatic sign-in, local accounts
+          (with a warning for an enabled Guest account) and folders shared on the network.
         - Secure Boot state.
-        - TPM presence and version, and BitLocker protection of the system drive.
-          Windows only exposes these two to administrators, so without elevation
-          they are skipped and marked "Requires admin".
+        - TPM presence and version, BitLocker protection of every drive, and failed
+          sign-ins and account lockouts from the Security log. Windows only exposes
+          these to administrators, so without elevation they are skipped and marked
+          "Requires admin".
 
         Nothing is changed on the system. The limits come from Config\Thresholds.psd1.
+    .PARAMETER Days
+        How many days of the Security log to analyze for failed sign-ins and account
+        lockouts. The default is 7. Only used with administrator rights.
     .EXAMPLE
         Get-SecurityHealth
 
@@ -33,7 +38,10 @@ function Get-SecurityHealth {
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
-    param()
+    param(
+        [ValidateRange(1, 365)]
+        [int]$Days = 7
+    )
 
     $category = 'Security'
     $thresholds = (Get-HealthThreshold).Defender
@@ -104,6 +112,34 @@ function Get-SecurityHealth {
         New-FailureResult -Category $category -Check 'Microsoft Defender' -ErrorRecord $_
     }
 
+    # Threats Defender has found so far
+    try {
+        $threats = @(Get-DefenderThreat)
+        $active = @($threats | Where-Object { $_.IsActive })
+
+        if ($active.Count -gt 0) {
+            New-CheckResult -Category $category -Check 'Threat history' -Status Critical `
+                -Value ('{0} active: {1}' -f $active.Count, (($active | ForEach-Object { $_.Name }) -join ', ')) `
+                -Recommendation 'Malware is active on this computer. Open Windows Security > Virus & threat protection > Protection history, apply the recommended action and run a full scan. Disconnect the computer from the network if it holds sensitive data.'
+        }
+        elseif ($threats.Count -gt 0) {
+            $names = @($threats | ForEach-Object { $_.Name })
+            $shown = 3
+            $remaining = @($names | Select-Object -Skip $shown)
+            $value = '{0} found earlier and handled: {1}' -f $threats.Count, (($names | Select-Object -First $shown) -join ', ')
+            if ($remaining.Count -gt 0) {
+                $value = '{0} and {1} more' -f $value, $remaining.Count
+            }
+            New-CheckResult -Category $category -Check 'Threat history' -Status Info -Value $value -Details $remaining
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Threat history' -Status OK -Value 'No threats found'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Threat history' -ErrorRecord $_
+    }
+
     # Firewall profiles
     try {
         $firewallProfiles = @(Get-FirewallProfileState)
@@ -155,6 +191,26 @@ function Get-SecurityHealth {
     }
     else {
         New-CheckResult -Category $category -Check 'Account type' -Status OK -Value 'Standard user'
+    }
+
+    # Who has full control over this computer
+    try {
+        $administrators = @(Get-AdministratorGroupMember)
+        New-CheckResult -Category $category -Check 'Administrators' -Status Info `
+            -Value ('{0} members: {1}' -f $administrators.Count, $(if ($administrators.Count -gt 0) { $administrators -join ', ' } else { 'none' }))
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Administrators' -ErrorRecord $_
+    }
+
+    # Automatic sign-in. AutoAdminLogon = 1 signs a stored account in at every start.
+    $autoSignIn = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'AutoAdminLogon'
+    if ([string]$autoSignIn -eq '1') {
+        New-CheckResult -Category $category -Check 'Automatic sign-in' -Status Warning -Value 'Enabled' `
+            -Recommendation 'Windows signs in without asking for a password, so anyone who switches the computer on can use that account. Turn it off: run "netplwiz" and tick "Users must enter a user name and password to use this computer".'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Automatic sign-in' -Status OK -Value 'Disabled'
     }
 
     # Local accounts. The built-in accounts are recognized by the end of their security
@@ -251,29 +307,85 @@ function Get-SecurityHealth {
         }
     }
 
-    # BitLocker on the system drive (administrators only)
-    $check = 'BitLocker ({0})' -f $env:SystemDrive
+    # BitLocker on every drive (administrators only)
     if (-not (Test-IsAdministrator)) {
-        New-AdminRequiredResult -Category $category -Check $check
+        New-AdminRequiredResult -Category $category -Check ('BitLocker ({0})' -f $env:SystemDrive)
     }
     else {
         try {
-            $volume = Get-CimInstance -Namespace 'root/CIMV2/Security/MicrosoftVolumeEncryption' `
-                -ClassName Win32_EncryptableVolume -Filter ("DriveLetter = '{0}'" -f $env:SystemDrive) -ErrorAction Stop
+            $volumes = @(Get-CimInstance -Namespace 'root/CIMV2/Security/MicrosoftVolumeEncryption' `
+                    -ClassName Win32_EncryptableVolume -ErrorAction Stop |
+                    Where-Object { $_.DriveLetter } | Sort-Object -Property DriveLetter)
 
-            if (-not $volume) {
-                New-CheckResult -Category $category -Check $check -Status Info -Value 'Not available on this system'
+            if ($volumes.Count -eq 0) {
+                New-CheckResult -Category $category -Check 'BitLocker' -Status Info -Value 'Not available on this system'
             }
-            elseif ($volume.ProtectionStatus -eq 1) {
-                New-CheckResult -Category $category -Check $check -Status OK -Value 'Protection on'
-            }
-            else {
-                New-CheckResult -Category $category -Check $check -Status Info -Value 'Protection off' `
-                    -Recommendation 'The system drive is not encrypted. Consider turning on BitLocker, especially on laptops.'
+
+            foreach ($volume in $volumes) {
+                $check = 'BitLocker ({0})' -f $volume.DriveLetter
+                if ($volume.ProtectionStatus -eq 1) {
+                    New-CheckResult -Category $category -Check $check -Status OK -Value 'Protection on'
+                }
+                else {
+                    New-CheckResult -Category $category -Check $check -Status Info -Value 'Protection off' `
+                        -Recommendation 'The drive is not encrypted, so its data can be read by anyone who removes it from the computer. Consider turning on BitLocker, especially on laptops.'
+                }
             }
         }
         catch {
-            New-FailureResult -Category $category -Check $check -ErrorRecord $_
+            New-FailureResult -Category $category -Check 'BitLocker' -ErrorRecord $_
+        }
+    }
+
+    # Sign-in problems from the Security log (administrators only). Without elevation
+    # Windows does not answer "access denied" for this log but finds no events, which
+    # would look like a clean result, so the check is not attempted at all.
+    if (-not (Test-IsAdministrator)) {
+        New-AdminRequiredResult -Category $category -Check 'Failed sign-ins'
+        New-AdminRequiredResult -Category $category -Check 'Account lockouts'
+    }
+    else {
+        $since = (Get-Date).AddDays(-$Days)
+        $period = if ($Days -eq 1) { 'in the last day' } else { 'in the last {0} days' -f $Days }
+        $signIn = (Get-HealthThreshold).SignIn
+
+        try {
+            $failed = @(Get-SignInEvent -Kind FailedSignIn -Since $since)
+            $value = '{0} {1}' -f $failed.Count, $period
+            if ($failed.Count -gt 0) {
+                $byAccount = @($failed | Group-Object | Sort-Object -Property Count -Descending | Select-Object -First 3 |
+                        ForEach-Object { '{0} ({1})' -f $_.Name, $_.Count })
+                $value = '{0}, most for: {1}' -f $value, ($byAccount -join ', ')
+            }
+
+            $status = Get-ThresholdStatus -Value $failed.Count -Warning $signIn.FailedWarningAbove
+            $recommendation = if ($status -ne 'OK') {
+                'There were unusually many sign-ins with a wrong password. If the user did not cause them, someone may be guessing the password: change it and check which device keeps trying (Event Viewer > Windows Logs > Security, event 4625).'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'Failed sign-ins' -Status $status -Value $value -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $signIn.FailedWarningAbove) -Typical $signIn.TypicalFailed
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'Failed sign-ins' -ErrorRecord $_
+        }
+
+        try {
+            $lockouts = @(Get-SignInEvent -Kind Lockout -Since $since)
+            if ($lockouts.Count -gt 0) {
+                $accounts = @($lockouts | Sort-Object -Unique)
+                New-CheckResult -Category $category -Check 'Account lockouts' -Status Warning `
+                    -Value ('{0} {1}: {2}' -f $lockouts.Count, $period, ($accounts -join ', ')) `
+                    -Recommendation 'An account was locked after too many wrong passwords. A common cause is an old password saved on a phone, in a mapped drive or in a scheduled task; update or remove it there.'
+            }
+            else {
+                New-CheckResult -Category $category -Check 'Account lockouts' -Status OK -Value ('0 {0}' -f $period)
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'Account lockouts' -ErrorRecord $_
         }
     }
 }

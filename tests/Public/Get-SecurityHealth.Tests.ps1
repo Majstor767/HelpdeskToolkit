@@ -18,8 +18,12 @@ Describe 'Get-SecurityHealth' {
                 IsTamperProtected             = $true
             }
         }
-        # Registry: UAC on (EnableLUA = 1), Remote Desktop off (fDenyTSConnections = 1).
+        # Registry: UAC on (EnableLUA = 1), Remote Desktop off (fDenyTSConnections = 1),
+        # no automatic sign-in (AutoAdminLogon = 0).
         Mock -ModuleName HelpdeskToolkit Get-RegistryValue { 1 }
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'AutoAdminLogon' } { '0' }
+        Mock -ModuleName HelpdeskToolkit Get-DefenderThreat { }
+        Mock -ModuleName HelpdeskToolkit Get-AdministratorGroupMember { 'Administrator', 'support' }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministratorMember { $false }
         # Local accounts: the built-in ones are identified by the end of their SID.
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserAccount' } {
@@ -59,6 +63,9 @@ Describe 'Get-SecurityHealth' {
             @{ Check = 'Guest account'; Status = 'OK'; Value = 'Disabled' }
             @{ Check = 'Built-in Administrator account'; Status = 'OK'; Value = 'Disabled' }
             @{ Check = 'Shared folders'; Status = 'OK'; Value = 'None' }
+            @{ Check = 'Threat history'; Status = 'OK'; Value = 'No threats found' }
+            @{ Check = 'Administrators'; Status = 'Info'; Value = '2 members: Administrator, support' }
+            @{ Check = 'Automatic sign-in'; Status = 'OK'; Value = 'Disabled' }
             @{ Check = 'Firewall - Domain profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Private profile'; Status = 'OK'; Value = 'Enabled' }
             @{ Check = 'Firewall - Public profile'; Status = 'OK'; Value = 'Enabled' }
@@ -76,6 +83,8 @@ Describe 'Get-SecurityHealth' {
             $tpm.Status | Should -Be 'Info'
             $tpm.Value | Should -Be 'Requires admin'
             $bitLocker.Value | Should -Be 'Requires admin'
+            ($results | Where-Object Check -eq 'Failed sign-ins').Value | Should -Be 'Requires admin'
+            ($results | Where-Object Check -eq 'Account lockouts').Value | Should -Be 'Requires admin'
         }
 
         It 'does not query the admin-only WMI classes at all' {
@@ -266,6 +275,46 @@ Describe 'Get-SecurityHealth' {
         }
     }
 
+    Context 'threat history, administrators and automatic sign-in' {
+        It 'is Critical while a threat is still active' {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderThreat {
+                [PSCustomObject]@{ Name = 'Trojan:Win32/Test'; IsActive = $true }
+                [PSCustomObject]@{ Name = 'PUA:Win32/Old'; IsActive = $false }
+            }
+            $threats = Get-SecurityHealth | Where-Object Check -eq 'Threat history'
+            $threats.Status | Should -Be 'Critical'
+            $threats.Value | Should -Be '1 active: Trojan:Win32/Test'
+            $threats.Recommendation | Should -Match 'full scan'
+        }
+
+        It 'reports threats that were handled as information, the first three in the value' {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderThreat {
+                'One', 'Two', 'Three', 'Four' | ForEach-Object { [PSCustomObject]@{ Name = "PUA:Win32/$_"; IsActive = $false } }
+            }
+            $threats = Get-SecurityHealth | Where-Object Check -eq 'Threat history'
+            $threats.Status | Should -Be 'Info'
+            $threats.Value | Should -Be '4 found earlier and handled: PUA:Win32/One, PUA:Win32/Two, PUA:Win32/Three and 1 more'
+            $threats.Details | Should -Be @('PUA:Win32/Four')
+        }
+
+        It 'reports the threat history as unavailable when Defender cannot be asked' {
+            Mock -ModuleName HelpdeskToolkit Get-DefenderThreat { throw 'The Defender module is not installed' }
+            (Get-SecurityHealth | Where-Object Check -eq 'Threat history').Value | Should -Be 'Unavailable'
+        }
+
+        It 'is a Warning when Windows signs in automatically' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'AutoAdminLogon' } { '1' }
+            $autoSignIn = Get-SecurityHealth | Where-Object Check -eq 'Automatic sign-in'
+            $autoSignIn.Status | Should -Be 'Warning'
+            $autoSignIn.Recommendation | Should -Match 'netplwiz'
+        }
+
+        It 'treats a missing automatic sign-in setting as disabled' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'AutoAdminLogon' } { }
+            (Get-SecurityHealth | Where-Object Check -eq 'Automatic sign-in').Status | Should -Be 'OK'
+        }
+    }
+
     Context 'Secure Boot' {
         It 'reports state <State> as <Status> with value "<Value>"' -ForEach @(
             @{ State = 'Disabled'; Status = 'Info'; Value = 'Disabled' }
@@ -285,8 +334,9 @@ Describe 'Get-SecurityHealth' {
                 [PSCustomObject]@{ IsEnabled_InitialValue = $true; SpecVersion = '2.0, 0, 1.59' }
             }
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_EncryptableVolume' } {
-                [PSCustomObject]@{ ProtectionStatus = 1 }
+                [PSCustomObject]@{ DriveLetter = 'C:'; ProtectionStatus = 1 }
             }
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent { }
         }
 
         It 'reports an enabled TPM with its version' {
@@ -315,12 +365,62 @@ Describe 'Get-SecurityHealth' {
 
         It 'reports BitLocker protection that is off as information with advice' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_EncryptableVolume' } {
-                [PSCustomObject]@{ ProtectionStatus = 0 }
+                [PSCustomObject]@{ DriveLetter = 'C:'; ProtectionStatus = 0 }
             }
             $bitLocker = Get-SecurityHealth | Where-Object Check -like 'BitLocker*'
             $bitLocker.Status | Should -Be 'Info'
             $bitLocker.Value | Should -Be 'Protection off'
             $bitLocker.Recommendation | Should -Match 'BitLocker'
+        }
+
+        It 'reports every drive, not only the system drive' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_EncryptableVolume' } {
+                [PSCustomObject]@{ DriveLetter = 'D:'; ProtectionStatus = 0 }
+                [PSCustomObject]@{ DriveLetter = 'C:'; ProtectionStatus = 1 }
+                [PSCustomObject]@{ DriveLetter = $null; ProtectionStatus = 0 }
+            }
+            $bitLocker = @(Get-SecurityHealth | Where-Object Check -like 'BitLocker*')
+            $bitLocker.Check | Should -Be @('BitLocker (C:)', 'BitLocker (D:)')
+            $bitLocker.Value | Should -Be @('Protection on', 'Protection off')
+        }
+
+        It 'reports no failed sign-ins and no lockouts as OK' {
+            $results = Get-SecurityHealth
+            $failed = $results | Where-Object Check -eq 'Failed sign-ins'
+            $failed.Status | Should -Be 'OK'
+            $failed.Value | Should -Be '0 in the last 7 days'
+            $failed.Allowed | Should -Be '0 - 20'
+            ($results | Where-Object Check -eq 'Account lockouts').Value | Should -Be '0 in the last 7 days'
+        }
+
+        It 'counts failed sign-ins and names the accounts they were for' {
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent -ParameterFilter { $Kind -eq 'FailedSignIn' } {
+                'm.horvat', 'm.horvat', 'm.horvat', 'administrator'
+            }
+            $failed = Get-SecurityHealth | Where-Object Check -eq 'Failed sign-ins'
+            $failed.Status | Should -Be 'OK'
+            $failed.Value | Should -Be '4 in the last 7 days, most for: m.horvat (3), administrator (1)'
+        }
+
+        It 'is a Warning when there are more failed sign-ins than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent -ParameterFilter { $Kind -eq 'FailedSignIn' } { 1..25 | ForEach-Object { 'm.horvat' } }
+            $failed = Get-SecurityHealth | Where-Object Check -eq 'Failed sign-ins'
+            $failed.Status | Should -Be 'Warning'
+            $failed.Recommendation | Should -Match 'guessing the password'
+        }
+
+        It 'is a Warning when an account was locked out' {
+            Mock -ModuleName HelpdeskToolkit Get-SignInEvent -ParameterFilter { $Kind -eq 'Lockout' } { 'm.horvat', 'm.horvat' }
+            $lockouts = Get-SecurityHealth | Where-Object Check -eq 'Account lockouts'
+            $lockouts.Status | Should -Be 'Warning'
+            $lockouts.Value | Should -Be '2 in the last 7 days: m.horvat'
+        }
+
+        It 'looks back the requested number of days in the Security log' {
+            Get-SecurityHealth -Days 30 | Out-Null
+            Should -Invoke -ModuleName HelpdeskToolkit Get-SignInEvent -ParameterFilter {
+                $Kind -eq 'FailedSignIn' -and [math]::Abs(($Since - (Get-Date).AddDays(-30)).TotalMinutes) -lt 5
+            }
         }
 
         It 'reports BitLocker as not available when the volume is not found' {

@@ -54,7 +54,7 @@ function Get-PCHealthReport {
         'Software'       = @{ Command = 'Get-SoftwareHealth'; Parameters = @{ Days = $Days } }
         'Event Log'      = @{ Command = 'Get-EventLogHealth'; Parameters = @{ Days = $Days } }
         'Windows Update' = @{ Command = 'Get-WindowsUpdateHealth'; Parameters = @{} }
-        'Security'       = @{ Command = 'Get-SecurityHealth'; Parameters = @{} }
+        'Security'       = @{ Command = 'Get-SecurityHealth'; Parameters = @{ Days = $Days } }
         'Network'        = @{ Command = 'Get-NetworkHealth'; Parameters = @{ SkipConnectivity = $SkipNetwork.IsPresent } }
         'Printers'       = @{ Command = 'Get-PrinterHealth'; Parameters = @{} }
         'Services'       = @{ Command = 'Get-ServiceHealth'; Parameters = @{} }

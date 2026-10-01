@@ -16,5 +16,5 @@ function New-AdminRequiredResult {
     )
 
     New-CheckResult -Category $Category -Check $Check -Status Info -Value 'Requires admin' `
-        -Recommendation 'Run PowerShell as administrator to include this check.'
+        -Recommendation 'Windows only shows this to administrators. Start the tool as administrator to include it: in the window use "Restart as administrator", in a console open PowerShell with "Run as administrator".'
 }
