@@ -20,6 +20,15 @@ Describe 'Get-HardwareHealth' {
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } { }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPEntity' } { }
+        # Page file: 4096 MB allocated, 512 MB in use
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' } {
+            [PSCustomObject]@{ AllocatedBaseSize = 4096; CurrentUsage = 512 }
+        }
+        # Folder sizes are replaced, so the tests never read the real disk.
+        Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 1GB; FileCount = 40; Complete = $true } }
+        Mock -ModuleName HelpdeskToolkit Get-RecycleBinSize { [PSCustomObject]@{ Bytes = 2GB; Complete = $true } }
+        # The Downloads folder is treated as present, whatever the test machine looks like.
+        Mock -ModuleName HelpdeskToolkit Test-Path { $true }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_PhysicalDisk' } {
             [PSCustomObject]@{ FriendlyName = 'Contoso NVMe 256GB'; MediaType = 4; BusType = 17; Size = 256GB; HealthStatus = 0 }
         }
@@ -40,6 +49,10 @@ Describe 'Get-HardwareHealth' {
             @{ Check = 'Memory usage'; Status = 'OK'; Value = '50 % (8 GB of 16 GB used)' }
             @{ Check = 'Disk (C:)'; Status = 'OK'; Value = '50 % free (100 GB of 200 GB)' }
             @{ Check = 'Drive: Contoso NVMe 256GB'; Status = 'OK'; Value = 'SSD, NVMe, 256 GB, health: Healthy' }
+            @{ Check = 'Temporary files'; Status = 'OK'; Value = '1 GB' }
+            @{ Check = 'Downloads folder'; Status = 'Info'; Value = '1 GB in 40 files' }
+            @{ Check = 'Recycle Bin'; Status = 'OK'; Value = '2 GB' }
+            @{ Check = 'Page file'; Status = 'OK'; Value = '12 % (512 MB of 4096 MB used)' }
             @{ Check = 'Devices with problems'; Status = 'OK'; Value = 'None' }
             @{ Check = 'Battery'; Status = 'Info'; Value = 'No battery (desktop computer)' }
         ) {
@@ -160,6 +173,56 @@ Describe 'Get-HardwareHealth' {
             $drive = $results | Where-Object Check -eq 'Drive: USB stick'
             $drive.Status | Should -Be 'Info'
             $drive.Value | Should -Be 'USB, 16 GB, health: Unknown'
+        }
+    }
+
+    Context 'space that can be freed' {
+        It 'is a Warning when the temporary files are larger than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 8GB; FileCount = 9000; Complete = $true } }
+            $temp = Get-HardwareHealth | Where-Object Check -eq 'Temporary files'
+            $temp.Status | Should -Be 'Warning'
+            $temp.Value | Should -Be '8 GB'
+            $temp.Allowed | Should -Be '0 - 5 GB'
+            $temp.Recommendation | Should -Match 'Temporary files'
+        }
+
+        It 'says "or more" when counting was stopped by the time limit' {
+            Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 3GB; FileCount = 50000; Complete = $false } }
+            $results = Get-HardwareHealth
+            ($results | Where-Object Check -eq 'Temporary files').Value | Should -Be '3 GB or more'
+            ($results | Where-Object Check -eq 'Downloads folder').Value | Should -Be '3 GB or more in 50000 files'
+        }
+
+        It 'is a Warning when the Recycle Bin is larger than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-RecycleBinSize { [PSCustomObject]@{ Bytes = 25GB; Complete = $true } }
+            $bin = Get-HardwareHealth | Where-Object Check -eq 'Recycle Bin'
+            $bin.Status | Should -Be 'Warning'
+            $bin.Recommendation | Should -Match 'Empty Recycle Bin'
+        }
+
+        It 'reports the sizes as unavailable instead of failing when they cannot be measured' {
+            Mock -ModuleName HelpdeskToolkit Get-FolderSize { throw 'Disk error' }
+            $results = Get-HardwareHealth
+            ($results | Where-Object Check -eq 'Space that can be freed').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'CPU load').Status | Should -Be 'OK'
+        }
+    }
+
+    Context 'page file' {
+        It 'is a Warning when most of the page file is in use' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' } {
+                [PSCustomObject]@{ AllocatedBaseSize = 2048; CurrentUsage = 1900 }
+                [PSCustomObject]@{ AllocatedBaseSize = 2048; CurrentUsage = 1800 }
+            }
+            $pageFile = Get-HardwareHealth | Where-Object Check -eq 'Page file'
+            $pageFile.Status | Should -Be 'Warning'
+            $pageFile.Value | Should -Be '90 % (3700 MB of 4096 MB used)'
+            $pageFile.Recommendation | Should -Match 'more RAM'
+        }
+
+        It 'says so when Windows runs without a page file' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PageFileUsage' } { }
+            (Get-HardwareHealth | Where-Object Check -eq 'Page file').Value | Should -Be 'No page file'
         }
     }
 

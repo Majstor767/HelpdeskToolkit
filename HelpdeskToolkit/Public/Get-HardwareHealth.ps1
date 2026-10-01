@@ -9,6 +9,8 @@ function Get-HardwareHealth {
         - CPU load at the time of the check
         - used physical memory and the five programs that use the most of it
         - health reported by every physical drive (SSD/HDD)
+        - space that could be freed: temporary files, the Downloads folder and the Recycle Bin
+        - page file usage
         - devices without a working driver
         - free space on every local fixed disk
         - battery charge, when the computer has a battery
@@ -170,6 +172,71 @@ function Get-HardwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Disk space' -ErrorRecord $_
+    }
+
+    # Space that could be freed. These three places are where a full disk is usually
+    # recovered first, so their sizes are reported next to the free space.
+    $cleanup = $thresholds.Cleanup
+    try {
+        $temp = Get-FolderSize -Path $env:TEMP -TimeoutMs $cleanup.TimeoutMs
+        $status = Get-ThresholdStatus -Value ($temp.Bytes / 1GB) -Warning $cleanup.TempWarningGb
+        $recommendation = if ($status -ne 'OK') {
+            'Temporary files take up a lot of space. Remove them in Settings > System > Storage > Temporary files.'
+        }
+        else {
+            ''
+        }
+        New-CheckResult -Category $category -Check 'Temporary files' -Status $status `
+            -Value ('{0}{1}' -f (Format-Gigabyte -Bytes $temp.Bytes), $(if (-not $temp.Complete) { ' or more' })) `
+            -Recommendation $recommendation -Allowed (Format-AllowedRange -Warning $cleanup.TempWarningGb -Unit 'GB')
+
+        $downloads = Join-Path -Path $env:USERPROFILE -ChildPath 'Downloads'
+        if (Test-Path -LiteralPath $downloads) {
+            $size = Get-FolderSize -Path $downloads -TimeoutMs $cleanup.TimeoutMs
+            New-CheckResult -Category $category -Check 'Downloads folder' -Status Info `
+                -Value ('{0}{1} in {2} files' -f (Format-Gigabyte -Bytes $size.Bytes), $(if (-not $size.Complete) { ' or more' }), $size.FileCount)
+        }
+
+        $bin = Get-RecycleBinSize -TimeoutMs $cleanup.TimeoutMs
+        $status = Get-ThresholdStatus -Value ($bin.Bytes / 1GB) -Warning $cleanup.RecycleBinWarningGb
+        $recommendation = if ($status -ne 'OK') {
+            'Deleted files still take up a lot of space. Right-click the Recycle Bin on the desktop and choose "Empty Recycle Bin".'
+        }
+        else {
+            ''
+        }
+        New-CheckResult -Category $category -Check 'Recycle Bin' -Status $status `
+            -Value ('{0}{1}' -f (Format-Gigabyte -Bytes $bin.Bytes), $(if (-not $bin.Complete) { ' or more' })) `
+            -Recommendation $recommendation -Allowed (Format-AllowedRange -Warning $cleanup.RecycleBinWarningGb -Unit 'GB')
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Space that can be freed' -ErrorRecord $_
+    }
+
+    # Page file: the file Windows uses as extra memory when the RAM is full.
+    try {
+        $pageFiles = @(Get-CimInstance -ClassName Win32_PageFileUsage -ErrorAction Stop)
+        $allocatedMb = if ($pageFiles.Count -gt 0) { ($pageFiles | Measure-Object -Property AllocatedBaseSize -Sum).Sum } else { 0 }
+        if (-not $allocatedMb) {
+            New-CheckResult -Category $category -Check 'Page file' -Status Info -Value 'No page file'
+        }
+        else {
+            $usedMb = ($pageFiles | Measure-Object -Property CurrentUsage -Sum).Sum
+            $usedPercent = [int][math]::Round($usedMb / $allocatedMb * 100)
+            $status = Get-ThresholdStatus -Value $usedPercent -Warning $thresholds.PageFile.WarningPercent
+            $recommendation = if ($status -ne 'OK') {
+                'The page file is almost full, which means the computer regularly runs out of memory. Close programs that are not needed; if it keeps happening, the computer needs more RAM.'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'Page file' -Status $status `
+                -Value ('{0} % ({1} MB of {2} MB used)' -f $usedPercent, $usedMb, $allocatedMb) -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.PageFile.WarningPercent -Unit '%') -Typical $thresholds.PageFile.Typical
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Page file' -ErrorRecord $_
     }
 
     # Devices that Device Manager marks with a yellow warning sign. Error code 0 means
