@@ -1,46 +1,68 @@
 function Get-PerformanceSnapshot {
     <#
     .SYNOPSIS
-        Returns what the computer is doing right now: load per processor, memory, disks, network, graphics and the busiest programs.
+        Returns what the computer is doing right now: load per processor, memory, graphics, disks, network, sensors and the busiest programs.
     .DESCRIPTION
         Takes one measurement of the live performance data that Windows keeps:
 
-        - Cpu:       total load and current clock speed, and the same for every logical
-                     processor (a core with hyper-threading counts as two)
-        - Memory:    physical memory in use, and committed memory against its limit
-        - Disks:     how busy each physical disk is, and its read and write rate
-        - Network:   receive and send rate of each network adapter
-        - Gpu:       load and dedicated memory in use of each graphics adapter
-        - Processes: the programs using the most processor time, grouped by name
+        - Cpu:             total load, current and base clock speed, and load, speed and
+                           parking state of every logical processor (a core with
+                           hyper-threading counts as two)
+        - System:          number of processes, threads and handles, and the time since
+                           Windows started
+        - Memory:          physical memory in use, available and cached; committed memory
+                           against its limit; kernel pools; page file usage
+        - Gpu:             load (in total and per engine: 3D, copy, video decode, video
+                           encode) and dedicated and shared memory of each graphics adapter
+        - GpuSensors:      temperature, fan speed and power draw of NVIDIA graphics
+                           cards, read with the nvidia-smi tool of the installed driver
+        - Disks:           how busy each physical disk is, its read and write rate and
+                           its queue length
+        - Volumes:         used and free space of every drive letter
+        - DriveHealth:     temperature, wear and power-on hours of every drive
+                           (administrator rights needed; otherwise State is "RequiresAdmin")
+        - Network:         receive and send rate and link speed of each network adapter
+        - Thermal:         temperature of the thermal zones the firmware reports (mostly
+                           on laptops)
+        - Battery:         charge and remaining time, on computers that have a battery
+        - Processes:       the programs using the most processor time, grouped by name
+        - MemoryProcesses: the programs using the most memory, grouped by name
+        - IoProcesses:     the programs reading and writing the most data (files, network
+                           and devices together), grouped by name
 
         The window (Show-PCHealthCheck) calls this command again and again for its
         "Live monitor" page. In a script it can be used for logging or for a quick look.
 
         The data comes from the performance classes of WMI, whose names are the same in
-        every Windows language. No administrator rights are needed and nothing is
-        changed. One measurement takes about two seconds.
+        every Windows language. Nothing is changed, and apart from DriveHealth no
+        administrator rights are needed. One measurement takes about two seconds.
 
-        Temperatures, fan speeds and voltages are not included: Windows does not expose
-        them, and tools that show them install their own hardware driver.
+        Processor temperature, fan speeds and voltages of the motherboard are not
+        included: Windows does not expose them, and tools that show them install their
+        own hardware driver.
 
         A part that cannot be read is returned empty; the other parts are still filled in.
     .PARAMETER TopProcessCount
-        How many of the busiest programs to return. The default is 5.
+        How many programs to return in Processes, MemoryProcesses and IoProcesses. The default is 5.
     .EXAMPLE
         Get-PerformanceSnapshot
 
         Returns one snapshot object.
     .EXAMPLE
-        (Get-PerformanceSnapshot).Cpu.Processors | Format-Table Name, Percent, FrequencyMHz
+        (Get-PerformanceSnapshot).Cpu.Processors | Format-Table Name, Percent, FrequencyMHz, Parked
 
         Shows the load and the clock speed of every logical processor.
+    .EXAMPLE
+        (Get-PerformanceSnapshot).MemoryProcesses | Format-Table Name, @{ n = 'GB'; e = { [math]::Round($_.MemoryBytes / 1GB, 1) } }
+
+        Shows the programs that use the most memory.
     .EXAMPLE
         while ($true) { (Get-PerformanceSnapshot).Processes | Format-Table; Start-Sleep -Seconds 5 }
 
         Prints the busiest programs every few seconds until Ctrl+C is pressed.
     .OUTPUTS
         HelpdeskToolkit.PerformanceSnapshot
-        An object with the properties TakenAt, Cpu, Memory, Disks, Network, Gpu and Processes.
+        An object with the properties TakenAt, Cpu, System, Memory, Gpu, GpuSensors, Disks, Volumes, DriveHealth, Network, Thermal, Battery, Processes, MemoryProcesses and IoProcesses.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.PerformanceSnapshot')]
@@ -68,13 +90,26 @@ function Get-PerformanceSnapshot {
             $logicalCount = $logical.Count
         }
 
+        # ProcessorFrequency is the base speed. "Processor performance" says how fast the
+        # processor really runs compared with it: 150 means 1.5 times the base speed (turbo).
+        $toSpeed = {
+            param($Row)
+            $speed = [double]$Row.ProcessorFrequency
+            if ($Row.PercentProcessorPerformance -gt 0) {
+                $speed = $speed * [double]$Row.PercentProcessorPerformance / 100
+            }
+            [int][math]::Round($speed)
+        }
+
         $index = 0
         $processors = @(
             foreach ($row in $logical) {
                 [PSCustomObject]@{
                     Name         = 'CPU {0}' -f $index
                     Percent      = & $limit $row.PercentProcessorUtility
-                    FrequencyMHz = [int]$row.ProcessorFrequency
+                    FrequencyMHz = & $toSpeed $row
+                    # Windows parks a processor it does not need, to save power.
+                    Parked       = [bool]$row.ParkingStatus
                 }
                 $index++
             }
@@ -82,9 +117,10 @@ function Get-PerformanceSnapshot {
 
         if ($total) {
             $cpu = [PSCustomObject]@{
-                Percent      = & $limit $total.PercentProcessorUtility
-                FrequencyMHz = [int]$total.ProcessorFrequency
-                Processors   = $processors
+                Percent          = & $limit $total.PercentProcessorUtility
+                FrequencyMHz     = & $toSpeed $total
+                BaseFrequencyMHz = [int]$total.ProcessorFrequency
+                Processors       = $processors
             }
         }
     }
@@ -92,24 +128,54 @@ function Get-PerformanceSnapshot {
         Write-Verbose "Processor data is not available: $($_.Exception.Message)"
     }
 
-    # --- Memory (both values are reported in kilobytes) --------------------------
+    # --- Memory (Win32_OperatingSystem reports kilobytes) -------------------------
     $memory = $null
+    $os = $null
     try {
         $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
         $totalBytes = [double]$os.TotalVisibleMemorySize * 1KB
-        $usedBytes = $totalBytes - ([double]$os.FreePhysicalMemory * 1KB)
+        $availableBytes = [double]$os.FreePhysicalMemory * 1KB
+        $usedBytes = $totalBytes - $availableBytes
         $commitLimit = [double]$os.TotalVirtualMemorySize * 1KB
 
         $memory = [PSCustomObject]@{
-            TotalBytes       = $totalBytes
-            UsedBytes        = $usedBytes
-            Percent          = & $limit ($usedBytes / $totalBytes * 100)
-            CommittedBytes   = $commitLimit - ([double]$os.FreeVirtualMemory * 1KB)
-            CommitLimitBytes = $commitLimit
+            TotalBytes        = $totalBytes
+            UsedBytes         = $usedBytes
+            AvailableBytes    = $availableBytes
+            Percent           = & $limit ($usedBytes / $totalBytes * 100)
+            CommittedBytes    = $commitLimit - ([double]$os.FreeVirtualMemory * 1KB)
+            CommitLimitBytes  = $commitLimit
+            CachedBytes       = $null
+            PagedPoolBytes    = $null
+            NonPagedPoolBytes = $null
+            PageFilePercent   = $null
         }
     }
     catch {
         Write-Verbose "Memory data is not available: $($_.Exception.Message)"
+    }
+
+    # The breakdown of the memory. These are plain amounts, so the "raw" class is used:
+    # it answers at once, while a "formatted" class first measures for a moment.
+    if ($memory) {
+        try {
+            $detail = Get-CimInstance -ClassName Win32_PerfRawData_PerfOS_Memory -ErrorAction Stop | Select-Object -First 1
+            # "Cached" as in Task Manager: memory that holds data of files and closed
+            # programs and is given back the moment a program needs it.
+            $memory.CachedBytes = [double]$detail.StandbyCacheNormalPriorityBytes + [double]$detail.StandbyCacheReserveBytes +
+                [double]$detail.StandbyCacheCoreBytes + [double]$detail.ModifiedPageListBytes
+            $memory.PagedPoolBytes = [double]$detail.PoolPagedBytes
+            $memory.NonPagedPoolBytes = [double]$detail.PoolNonpagedBytes
+
+            $pageFile = Get-CimInstance -ClassName Win32_PerfFormattedData_PerfOS_PagingFile -ErrorAction Stop |
+                Where-Object { $_.Name -eq '_Total' } | Select-Object -First 1
+            if ($pageFile) {
+                $memory.PageFilePercent = & $limit $pageFile.PercentUsage
+            }
+        }
+        catch {
+            Write-Verbose "Memory details are not available: $($_.Exception.Message)"
+        }
     }
 
     # --- Disks -------------------------------------------------------------------
@@ -127,12 +193,66 @@ function Get-PerformanceSnapshot {
                         Percent             = & $limit (100 - [double]$_.PercentIdleTime)
                         ReadBytesPerSecond  = [double]$_.DiskReadBytesPersec
                         WriteBytesPerSecond = [double]$_.DiskWriteBytesPersec
+                        # Requests waiting for the disk; a queue that stays long means the disk is the bottleneck.
+                        QueueLength         = [int]$_.CurrentDiskQueueLength
                     }
                 }
         )
     }
     catch {
         Write-Verbose "Disk data is not available: $($_.Exception.Message)"
+    }
+
+    # --- Volumes (drive letters on fixed disks) -----------------------------------
+    $volumes = @()
+    try {
+        $volumes = @(
+            Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType = 3' -ErrorAction Stop |
+                Where-Object { $_.Size -gt 0 } |
+                Sort-Object -Property DeviceID |
+                ForEach-Object {
+                    [PSCustomObject]@{
+                        Name       = [string]$_.DeviceID
+                        Label      = [string]$_.VolumeName
+                        TotalBytes = [double]$_.Size
+                        FreeBytes  = [double]$_.FreeSpace
+                        Percent    = & $limit (([double]$_.Size - [double]$_.FreeSpace) / [double]$_.Size * 100)
+                    }
+                }
+        )
+    }
+    catch {
+        Write-Verbose "Volume data is not available: $($_.Exception.Message)"
+    }
+
+    # --- Drive health (administrators only) ---------------------------------------
+    # The drives are asked at most every 30 seconds: the values change slowly and the
+    # question takes a moment.
+    $driveHealth = [PSCustomObject]@{ State = 'RequiresAdmin'; Message = ''; Drives = @() }
+    if (Test-IsAdministrator) {
+        $cache = $script:DriveHealthCache
+        if ($cache -and ((Get-Date) - $cache.At).TotalSeconds -lt 30) {
+            $driveHealth = $cache.Value
+        }
+        else {
+            try {
+                $drives = @(
+                    Get-DriveReliability | ForEach-Object {
+                        [PSCustomObject]@{
+                            Name         = $_.Name
+                            TemperatureC = $_.Temperature
+                            WearPercent  = $_.Wear
+                            PowerOnHours = $_.PowerOnHours
+                        }
+                    }
+                )
+                $driveHealth = [PSCustomObject]@{ State = 'OK'; Message = ''; Drives = $drives }
+            }
+            catch {
+                $driveHealth = [PSCustomObject]@{ State = 'Unavailable'; Message = $_.Exception.Message; Drives = @() }
+            }
+            $script:DriveHealthCache = @{ At = Get-Date; Value = $driveHealth }
+        }
     }
 
     # --- Network -----------------------------------------------------------------
@@ -147,6 +267,7 @@ function Get-PerformanceSnapshot {
                         Name                   = [string]$_.Name
                         ReceivedBytesPerSecond = [double]$_.BytesReceivedPersec
                         SentBytesPerSecond     = [double]$_.BytesSentPersec
+                        LinkBitsPerSecond      = [double]$_.CurrentBandwidth
                     }
                 }
         )
@@ -162,14 +283,26 @@ function Get-PerformanceSnapshot {
     $gpu = @()
     try {
         $adapterPattern = 'luid_0x[0-9A-Fa-f]+_0x[0-9A-Fa-f]+_phys_\d+'
+        $engineNames = [ordered]@{ '3D' = '3D'; 'Copy' = 'Copy'; 'VideoDecode' = 'Video decode'; 'VideoEncode' = 'Video encode' }
         $load = @{}
+        $engineLoad = @{}
         $engines = @(Get-CimInstance -ClassName Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -ErrorAction Stop |
                 Where-Object { $_.Name -match $adapterPattern })
 
         foreach ($group in ($engines | Group-Object -Property { [regex]::Match($_.Name, $adapterPattern).Value })) {
-            $perEngine = $group.Group | Group-Object -Property { ($_.Name -split 'engtype_')[-1] } |
-                ForEach-Object { ($_.Group | Measure-Object -Property UtilizationPercentage -Sum).Sum }
-            $load[$group.Name] = ($perEngine | Measure-Object -Maximum).Maximum
+            # Load per engine type, added up over all programs
+            $perEngine = @{}
+            foreach ($engineGroup in ($group.Group | Group-Object -Property { ($_.Name -split 'engtype_')[-1] })) {
+                $perEngine[$engineGroup.Name] = ($engineGroup.Group | Measure-Object -Property UtilizationPercentage -Sum).Sum
+            }
+            $load[$group.Name] = ($perEngine.Values | Measure-Object -Maximum).Maximum
+            $engineLoad[$group.Name] = @(
+                foreach ($type in $engineNames.Keys) {
+                    if ($perEngine.ContainsKey($type)) {
+                        [PSCustomObject]@{ Name = $engineNames[$type]; Percent = & $limit $perEngine[$type] }
+                    }
+                }
+            )
         }
 
         $adapters = @(Get-CimInstance -ClassName Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory -ErrorAction Stop)
@@ -193,8 +326,11 @@ function Get-PerformanceSnapshot {
                 [PSCustomObject]@{
                     Name                = if ($single) { $known[0].Name } else { 'GPU {0}' -f $index }
                     Percent             = & $limit $load[$adapter.Name]
+                    Engines             = @($engineLoad[$adapter.Name] | Where-Object { $_ })
                     DedicatedUsedBytes  = [double]$adapter.DedicatedUsage
                     DedicatedTotalBytes = if ($single) { [double]$known[0].Bytes } else { 0 }
+                    # Ordinary RAM the adapter borrows when its own memory is not enough.
+                    SharedUsedBytes     = [double]$adapter.SharedUsage
                 }
                 $index++
             }
@@ -204,40 +340,129 @@ function Get-PerformanceSnapshot {
         Write-Verbose "Graphics data is not available: $($_.Exception.Message)"
     }
 
-    # --- Busiest programs --------------------------------------------------------
-    $processes = @()
+    # --- Sensors of the graphics card (NVIDIA only) -------------------------------
+    $gpuSensors = @()
     try {
-        $processes = @(
-            Get-CimInstance -ClassName Win32_PerfFormattedData_PerfProc_Process -ErrorAction Stop |
+        $gpuSensors = @(Get-NvidiaGpuStatus)
+    }
+    catch {
+        Write-Verbose "Graphics sensors are not available: $($_.Exception.Message)"
+    }
+
+    # --- Thermal zones -------------------------------------------------------------
+    # Temperatures the firmware itself reports, in tenths of a kelvin. Laptops usually
+    # have them, desktops rarely. Zones that report nothing useful are left out.
+    $thermal = @()
+    try {
+        $thermal = @(
+            Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ThermalZoneInformation -ErrorAction Stop |
+                Sort-Object -Property Name |
+                ForEach-Object {
+                    $kelvin = if ($_.HighPrecisionTemperature -gt 0) { [double]$_.HighPrecisionTemperature / 10 } else { [double]$_.Temperature }
+                    if ($kelvin -gt 273) {
+                        [PSCustomObject]@{
+                            # "\_TZ.TZ00" is shown as "TZ00"
+                            Name         = ([string]$_.Name -split '\.')[-1].Trim('\', '_')
+                            TemperatureC = [int][math]::Round($kelvin - 273.15)
+                        }
+                    }
+                }
+        )
+    }
+    catch {
+        Write-Verbose "Thermal zone data is not available: $($_.Exception.Message)"
+    }
+
+    # --- Battery -----------------------------------------------------------------
+    $battery = $null
+    try {
+        $cell = Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop | Select-Object -First 1
+        if ($cell) {
+            # Status 1, 4 and 5 mean the computer runs on the battery.
+            $pluggedIn = [int]$cell.BatteryStatus -notin 1, 4, 5
+            # While plugged in, the remaining time is reported as a very large number.
+            $minutes = if (-not $pluggedIn -and $cell.EstimatedRunTime -gt 0 -and $cell.EstimatedRunTime -lt 6000) { [int]$cell.EstimatedRunTime } else { $null }
+            $battery = [PSCustomObject]@{
+                Percent          = & $limit $cell.EstimatedChargeRemaining
+                PluggedIn        = $pluggedIn
+                MinutesRemaining = $minutes
+            }
+        }
+    }
+    catch {
+        Write-Verbose "Battery data is not available: $($_.Exception.Message)"
+    }
+
+    # --- Programs ----------------------------------------------------------------
+    $processes = @()
+    $memoryProcesses = @()
+    $ioProcesses = @()
+    $threads = $null
+    $handles = $null
+    try {
+        $processRows = @(Get-CimInstance -ClassName Win32_PerfFormattedData_PerfProc_Process -ErrorAction Stop)
+
+        $allProcesses = $processRows | Where-Object { $_.Name -eq '_Total' } | Select-Object -First 1
+        if ($allProcesses) {
+            $threads = [int]$allProcesses.ThreadCount
+            $handles = [int]$allProcesses.HandleCount
+        }
+
+        $programs = @(
+            $processRows |
                 Where-Object { $_.Name -notin '_Total', 'Idle' } |
                 # Several processes of one program are named "chrome", "chrome#1", ...
                 Group-Object -Property { $_.Name -replace '#\d+$', '' } |
                 ForEach-Object {
                     $processorTime = ($_.Group | Measure-Object -Property PercentProcessorTime -Sum).Sum
                     [PSCustomObject]@{
-                        Name        = $_.Name
+                        Name             = $_.Name
                         # The counter adds up all logical processors: 200 means two of them
                         # fully used. Divided by their number it matches Task Manager.
-                        Percent     = & $limit ($processorTime / $logicalCount)
-                        MemoryBytes = [double]($_.Group | Measure-Object -Property WorkingSetPrivate -Sum).Sum
+                        Percent          = & $limit ($processorTime / $logicalCount)
+                        MemoryBytes      = [double]($_.Group | Measure-Object -Property WorkingSetPrivate -Sum).Sum
+                        # Data read and written per second: files, network and devices together
+                        IoBytesPerSecond = [double]($_.Group | Measure-Object -Property IOReadBytesPersec -Sum).Sum +
+                            [double]($_.Group | Measure-Object -Property IOWriteBytesPersec -Sum).Sum
                     }
-                } |
-                Sort-Object -Property Percent, MemoryBytes -Descending |
-                Select-Object -First $TopProcessCount
+                }
         )
+        $processes = @($programs | Sort-Object -Property Percent, MemoryBytes -Descending | Select-Object -First $TopProcessCount)
+        $memoryProcesses = @($programs | Sort-Object -Property MemoryBytes -Descending | Select-Object -First $TopProcessCount)
+        $ioProcesses = @($programs | Where-Object { $_.IoBytesPerSecond -gt 0 } |
+                Sort-Object -Property IoBytesPerSecond -Descending | Select-Object -First $TopProcessCount)
     }
     catch {
         Write-Verbose "Process data is not available: $($_.Exception.Message)"
     }
 
+    # --- System ------------------------------------------------------------------
+    $system = $null
+    if ($os) {
+        $system = [PSCustomObject]@{
+            Processes     = [int]$os.NumberOfProcesses
+            Threads       = $threads
+            Handles       = $handles
+            UptimeSeconds = if ($os.LastBootUpTime) { [long]((Get-Date) - $os.LastBootUpTime).TotalSeconds } else { $null }
+        }
+    }
+
     [PSCustomObject]@{
-        PSTypeName = 'HelpdeskToolkit.PerformanceSnapshot'
-        TakenAt    = Get-Date
-        Cpu        = $cpu
-        Memory     = $memory
-        Disks      = $disks
-        Network    = $network
-        Gpu        = $gpu
-        Processes  = $processes
+        PSTypeName      = 'HelpdeskToolkit.PerformanceSnapshot'
+        TakenAt         = Get-Date
+        Cpu             = $cpu
+        System          = $system
+        Memory          = $memory
+        Gpu             = $gpu
+        GpuSensors      = $gpuSensors
+        Disks           = $disks
+        Volumes         = $volumes
+        DriveHealth     = $driveHealth
+        Network         = $network
+        Thermal         = $thermal
+        Battery         = $battery
+        Processes       = $processes
+        MemoryProcesses = $memoryProcesses
+        IoProcesses     = $ioProcesses
     }
 }

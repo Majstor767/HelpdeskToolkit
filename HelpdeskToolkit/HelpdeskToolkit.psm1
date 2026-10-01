@@ -5,6 +5,7 @@ $script:Thresholds = $null
 $script:Descriptions = $null
 $script:HealthCheckWindow = $null
 $script:VideoMemoryCache = $null
+$script:DriveHealthCache = $null
 
 # Name of the progress bar of a run. The window uses it to tell the progress of the
 # health check apart from progress written by Windows cmdlets.

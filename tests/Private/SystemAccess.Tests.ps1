@@ -448,3 +448,73 @@ Describe 'Get-VideoMemory' {
         @(InModuleScope HelpdeskToolkit { Get-VideoMemory }).Count | Should -Be 0
     }
 }
+
+Describe 'Get-NvidiaGpuStatus' {
+    It 'returns temperature, fan speed and power draw of every card' {
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi {
+            'Contoso GeForce 4070, 53, 30, 27.09, 200.00'
+            'Contoso GeForce 3060, 61, 45, 110.50, 170.00'
+        }
+        $cards = @(InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus })
+
+        $cards.Name | Should -Be @('Contoso GeForce 4070', 'Contoso GeForce 3060')
+        $cards.TemperatureC | Should -Be @(53, 61)
+        $cards.FanPercent | Should -Be @(30, 45)
+        $cards[0].PowerWatts | Should -Be 27
+        $cards[0].PowerLimitWatts | Should -Be 200
+    }
+
+    It 'asks for exactly the fields it reads' {
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi { }
+        InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus } | Out-Null
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-NvidiaSmi -Times 1 -Exactly -ParameterFilter {
+            $Query -eq 'name,temperature.gpu,fan.speed,power.draw,power.limit'
+        }
+    }
+
+    It 'returns nothing for a value the card does not report' {
+        # Laptop cards often have no fan sensor and no power reading of their own.
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi { 'Contoso Mobile GPU, 48, [N/A], [N/A], [N/A]' }
+        $card = InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus }
+
+        $card.TemperatureC | Should -Be 48
+        $card.FanPercent | Should -BeNullOrEmpty
+        $card.PowerWatts | Should -BeNullOrEmpty
+    }
+
+    It 'reads decimal numbers with a dot regardless of the regional settings' {
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi { 'Contoso GeForce 4070, 53, 30, 27.60, 200.00' }
+        $previous = [System.Threading.Thread]::CurrentThread.CurrentCulture
+        try {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture = [cultureinfo]'hr-HR'
+            (InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus }).PowerWatts | Should -Be 28
+        }
+        finally {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture = $previous
+        }
+    }
+
+    It 'returns nothing when the tool is not installed or prints something unexpected' {
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi { }
+        @(InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus }).Count | Should -Be 0
+
+        Mock -ModuleName HelpdeskToolkit Invoke-NvidiaSmi { 'NVIDIA-SMI has failed' }
+        @(InModuleScope HelpdeskToolkit { Get-NvidiaGpuStatus }).Count | Should -Be 0
+    }
+}
+
+Describe 'Invoke-NvidiaSmi' {
+    It 'returns nothing, without an error, on a computer without the NVIDIA tool' {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $false }
+        { $script:lines = @(InModuleScope HelpdeskToolkit { Invoke-NvidiaSmi -Query 'name' }) } | Should -Not -Throw
+        $lines.Count | Should -Be 0
+    }
+
+    It 'only looks for the tool in the System32 folder of Windows, never in the PATH' {
+        Mock -ModuleName HelpdeskToolkit Test-Path { $false }
+        InModuleScope HelpdeskToolkit { Invoke-NvidiaSmi -Query 'name' } | Out-Null
+        Should -Invoke -ModuleName HelpdeskToolkit Test-Path -Times 1 -Exactly -ParameterFilter {
+            $LiteralPath -eq (Join-Path -Path $env:SystemRoot -ChildPath 'System32\nvidia-smi.exe')
+        }
+    }
+}
