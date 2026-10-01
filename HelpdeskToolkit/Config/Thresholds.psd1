@@ -55,6 +55,17 @@
         # Unexpected shutdowns (power loss, crash, forced power-off).
         UnexpectedShutdownWarningAbove = 0
         TypicalUnexpectedShutdowns     = '0'
+        # Blue screens (Windows crashes).
+        BlueScreenWarningAbove         = 0
+        TypicalBlueScreens             = '0'
+    }
+
+    Software      = @{
+        # Programs installed within this many days are listed as "recently installed".
+        RecentDays        = 30
+        # More application crashes than this in the selected period (-Days) = Warning.
+        CrashWarningAbove = 5
+        TypicalCrashes    = '0 - 2 per week'
     }
 
     WindowsUpdate = @{
@@ -70,6 +81,15 @@
         SignatureCriticalDays = 7
         # Definitions are normally updated every day.
         Typical               = '0 - 1 days'
+        # More days than this since the last quick scan = Warning.
+        ScanWarningDays       = 14
+        # Defender runs a quick scan on its own about once a week.
+        TypicalScan           = '0 - 7 days'
+    }
+
+    Printers      = @{
+        # A document waiting in the print queue longer than this many minutes counts as stuck.
+        StuckJobMinutes = 10
     }
 
     Network       = @{

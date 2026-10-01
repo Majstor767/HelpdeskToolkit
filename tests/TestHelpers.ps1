@@ -38,9 +38,19 @@ function Set-TestThreshold {
                 TypicalErrorEvents             = 'typical errors'
                 UnexpectedShutdownWarningAbove = 0
                 TypicalUnexpectedShutdowns     = 'typical shutdowns'
+                BlueScreenWarningAbove         = 0
+                TypicalBlueScreens             = 'typical blue screens'
             }
+            Software      = @{ RecentDays = 30; CrashWarningAbove = 5; TypicalCrashes = 'typical crashes' }
             WindowsUpdate = @{ WarningDaysSinceLastUpdate = 45; Typical = 'typical update' }
-            Defender      = @{ SignatureWarningDays = 3; SignatureCriticalDays = 7; Typical = 'typical definitions' }
+            Defender      = @{
+                SignatureWarningDays  = 3
+                SignatureCriticalDays = 7
+                Typical               = 'typical definitions'
+                ScanWarningDays       = 14
+                TypicalScan           = 'typical scan'
+            }
+            Printers      = @{ StuckJobMinutes = 10 }
             Network       = @{
                 PingTarget          = '192.0.2.1'
                 DnsTestName         = 'test.example'
@@ -152,8 +162,17 @@ function New-TestEvent {
 
         [string]$Source = 'TestSource',
 
-        [int]$Count = 1
+        [int]$Count = 1,
+
+        # For crash events: the name of the program that crashed (first event property).
+        [string]$Program = ''
     )
 
-    1..$Count | ForEach-Object { [PSCustomObject]@{ Level = $Level; ProviderName = $Source } }
+    1..$Count | ForEach-Object {
+        [PSCustomObject]@{
+            Level        = $Level
+            ProviderName = $Source
+            Properties   = @([PSCustomObject]@{ Value = $Program })
+        }
+    }
 }
