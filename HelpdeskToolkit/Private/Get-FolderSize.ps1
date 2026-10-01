@@ -27,33 +27,30 @@ function Get-FolderSize {
 
     # Folders still to visit. A stack instead of recursion keeps the function simple
     # and lets it stop at any moment.
-    $pending = New-Object -TypeName 'System.Collections.Generic.Stack[string]'
+    $pending = New-Object -TypeName 'System.Collections.Generic.Stack[System.IO.DirectoryInfo]'
     if (Test-Path -LiteralPath $Path) {
-        $pending.Push($Path)
+        $pending.Push((New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $Path))
     }
 
     while ($pending.Count -gt 0 -and $stopwatch.ElapsedMilliseconds -lt $TimeoutMs) {
         $folder = $pending.Pop()
         try {
-            foreach ($file in [System.IO.Directory]::EnumerateFiles($folder)) {
-                try {
-                    $bytes += (New-Object -TypeName System.IO.FileInfo -ArgumentList $file).Length
+            # One listing returns the files with their sizes and the subfolders with
+            # their attributes, so no file has to be asked a second time.
+            foreach ($entry in $folder.EnumerateFileSystemInfos()) {
+                if ($entry.Attributes -band [System.IO.FileAttributes]::Directory) {
+                    if (-not ($entry.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+                        $pending.Push($entry)
+                    }
+                }
+                else {
+                    $bytes += $entry.Length
                     $fileCount++
-                }
-                catch {
-                    Write-Verbose "Skipped file ${file}: $($_.Exception.Message)"
-                }
-            }
-
-            foreach ($subfolder in [System.IO.Directory]::EnumerateDirectories($folder)) {
-                $attributes = [System.IO.File]::GetAttributes($subfolder)
-                if (-not ($attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-                    $pending.Push($subfolder)
                 }
             }
         }
         catch {
-            Write-Verbose "Skipped folder ${folder}: $($_.Exception.Message)"
+            Write-Verbose "Skipped folder $($folder.FullName): $($_.Exception.Message)"
         }
     }
 
