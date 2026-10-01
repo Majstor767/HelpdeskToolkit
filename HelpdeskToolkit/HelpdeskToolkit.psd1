@@ -22,6 +22,7 @@
         'Get-SystemHealth'
         'Get-WindowsUpdateHealth'
         'Invoke-PCHealthCheck'
+        'Show-PCHealthCheck'
     )
     CmdletsToExport      = @()
     VariablesToExport    = @()
