@@ -1,0 +1,162 @@
+BeforeAll {
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..\TestHelpers.ps1')
+    Import-TestModule
+    Set-TestThreshold
+}
+
+Describe 'Get-NetworkHealth' {
+    BeforeAll {
+        # No test in this file sends anything over the network: the adapter data,
+        # ping, DNS and HTTPS are all replaced with mocks.
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance {
+            [PSCustomObject]@{
+                Description          = 'Contoso Ethernet'
+                IPAddress            = @('10.20.30.57', 'fe80::1234')
+                DefaultIPGateway     = @('10.20.30.1')
+                DNSServerSearchOrder = @('10.20.30.10', '10.20.30.11')
+                DHCPEnabled          = $true
+                MACAddress           = '00:00:5E:00:53:2A'
+            }
+        }
+        Mock -ModuleName HelpdeskToolkit Get-ProxySetting { 'Not configured' }
+        Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $true; AverageMs = 12; Text = '12 ms' } }
+        Mock -ModuleName HelpdeskToolkit Resolve-HostAddress { '203.0.113.25' }
+        Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $true; Detail = 'HTTP 200' } }
+    }
+
+    Context 'with a working connection' {
+        BeforeAll {
+            $results = Get-NetworkHealth
+        }
+
+        It 'reports the adapter configuration with IPv4 addresses only' {
+            $adapter = $results | Where-Object Check -eq 'Adapter: Contoso Ethernet'
+            $adapter.Status | Should -Be 'Info'
+            $adapter.Value | Should -Be 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A'
+        }
+
+        It 'reports <Check> as OK with value "<Value>"' -ForEach @(
+            @{ Check = 'Ping default gateway'; Value = '10.20.30.1 replied in 12 ms' }
+            @{ Check = 'Ping internet'; Value = '192.0.2.1 replied in 12 ms' }
+            @{ Check = 'DNS resolution'; Value = 'test.example -> 203.0.113.25' }
+            @{ Check = 'HTTPS access'; Value = 'https://test.example reachable (HTTP 200)' }
+        ) {
+            $result = $results | Where-Object Check -eq $Check
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be $Value
+        }
+
+        It 'reports the proxy setting' {
+            ($results | Where-Object Check -eq 'Proxy').Value | Should -Be 'Not configured'
+        }
+
+        It 'pings the gateway of the adapter and the configured internet target' {
+            Should -Invoke -ModuleName HelpdeskToolkit Test-PingHost -Times 1 -Exactly -Scope Context -ParameterFilter { $Target -eq '10.20.30.1' }
+            Should -Invoke -ModuleName HelpdeskToolkit Test-PingHost -Times 1 -Exactly -Scope Context -ParameterFilter { $Target -eq '192.0.2.1' }
+        }
+
+        It 'adds the allowed range and typical value to the internet ping' {
+            $ping = $results | Where-Object Check -eq 'Ping internet'
+            $ping.Allowed | Should -Be '0 - 150 ms'
+            $ping.Typical | Should -Be 'typical internet'
+        }
+    }
+
+    Context 'with -SkipConnectivity' {
+        BeforeAll {
+            $results = Get-NetworkHealth -SkipConnectivity
+        }
+
+        It 'still reports the adapter and the proxy' {
+            $results | Where-Object Check -like 'Adapter:*' | Should -Not -BeNullOrEmpty
+            $results | Where-Object Check -eq 'Proxy' | Should -Not -BeNullOrEmpty
+        }
+
+        It 'reports the connectivity tests as skipped' {
+            ($results | Where-Object Check -eq 'Connectivity tests').Value | Should -Be 'Skipped'
+            $results | Where-Object Check -like 'Ping*' | Should -BeNullOrEmpty
+        }
+
+        It 'sends nothing over the network' {
+            Should -Invoke -ModuleName HelpdeskToolkit Test-PingHost -Times 0 -Exactly -Scope Context
+            Should -Invoke -ModuleName HelpdeskToolkit Resolve-HostAddress -Times 0 -Exactly -Scope Context
+            Should -Invoke -ModuleName HelpdeskToolkit Test-HttpsEndpoint -Times 0 -Exactly -Scope Context
+        }
+    }
+
+    Context 'when the adapter got no address from DHCP' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance {
+                [PSCustomObject]@{
+                    Description = 'Contoso Wi-Fi'; IPAddress = @('169.254.10.20'); DefaultIPGateway = $null
+                    DNSServerSearchOrder = $null; DHCPEnabled = $true; MACAddress = $null
+                }
+            }
+            $results = Get-NetworkHealth
+        }
+
+        It 'flags the automatic 169.254.x.x address as a Warning' {
+            $adapter = $results | Where-Object Check -eq 'Adapter: Contoso Wi-Fi'
+            $adapter.Status | Should -Be 'Warning'
+            $adapter.Value | Should -Be 'IPv4: 169.254.10.20 | Gateway: none | DNS: none | DHCP: Yes | MAC: none'
+            $adapter.Recommendation | Should -Match 'DHCP'
+        }
+
+        It 'warns that there is no default gateway instead of pinging one' {
+            $gateway = $results | Where-Object Check -eq 'Ping default gateway'
+            $gateway.Status | Should -Be 'Warning'
+            $gateway.Value | Should -Be 'No default gateway'
+        }
+    }
+
+    Context 'when there is no active adapter' {
+        It 'reports that as Critical' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance { }
+            $adapters = Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Network adapters'
+            $adapters.Status | Should -Be 'Critical'
+            $adapters.Value | Should -Be 'No active adapter'
+        }
+    }
+
+    Context 'when the connection is down' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $false; AverageMs = $null; Text = '' } }
+            Mock -ModuleName HelpdeskToolkit Resolve-HostAddress { }
+            Mock -ModuleName HelpdeskToolkit Test-HttpsEndpoint { [PSCustomObject]@{ Success = $false; Detail = 'Connection timed out' } }
+            $results = Get-NetworkHealth
+        }
+
+        It 'reports a missing ping reply only as a Warning, because ping is often blocked' {
+            ($results | Where-Object Check -eq 'Ping default gateway').Status | Should -Be 'Warning'
+            ($results | Where-Object Check -eq 'Ping internet').Status | Should -Be 'Warning'
+        }
+
+        It 'reports failed name resolution as Critical' {
+            $dns = $results | Where-Object Check -eq 'DNS resolution'
+            $dns.Status | Should -Be 'Critical'
+            $dns.Value | Should -Be 'test.example could not be resolved'
+        }
+
+        It 'reports failed HTTPS access as Critical and includes the error' {
+            $https = $results | Where-Object Check -eq 'HTTPS access'
+            $https.Status | Should -Be 'Critical'
+            $https.Recommendation | Should -Match 'Connection timed out'
+        }
+    }
+
+    Context 'when the connection is slow' {
+        It 'reports a high ping time to the internet as a Warning' {
+            Mock -ModuleName HelpdeskToolkit Test-PingHost { [PSCustomObject]@{ Success = $true; AverageMs = 400; Text = '400 ms' } }
+            $ping = Get-NetworkHealth | Where-Object Check -eq 'Ping internet'
+            $ping.Status | Should -Be 'Warning'
+            $ping.Recommendation | Should -Match 'slowly'
+        }
+    }
+
+    Context 'when the adapter configuration cannot be read' {
+        It 'reports it as unavailable' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance { throw 'Query failed' }
+            (Get-NetworkHealth -SkipConnectivity | Where-Object Check -eq 'Network adapters').Value | Should -Be 'Unavailable'
+        }
+    }
+}
