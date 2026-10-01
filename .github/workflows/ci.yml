@@ -1,0 +1,35 @@
+name: CI
+
+# Runs on every push and pull request.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # The module supports both PowerShell editions, so the checks run on both:
+    # "powershell" is Windows PowerShell 5.1, "pwsh" is PowerShell 7.
+    name: Test on ${{ matrix.shell }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Pester and PSScriptAnalyzer
+        shell: ${{ matrix.shell }}
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -MinimumVersion 5.5.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
+
+      - name: Run PSScriptAnalyzer and Pester
+        shell: ${{ matrix.shell }}
+        run: ./tools/Test-Project.ps1 -Coverage
