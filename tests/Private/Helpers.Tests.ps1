@@ -100,6 +100,41 @@ Describe 'Format-Gigabyte' {
     }
 }
 
+Describe 'Format-DataRate' {
+    It 'formats <Bytes> bytes per second as <Expected>' -ForEach @(
+        @{ Bytes = 0; Expected = '0 KB/s' }
+        @{ Bytes = 2048; Expected = '2 KB/s' }
+        @{ Bytes = 1.5MB; Expected = '1.5 MB/s' }
+        @{ Bytes = 2GB; Expected = '2 GB/s' }
+    ) {
+        InModuleScope HelpdeskToolkit -Parameters $_ {
+            Format-DataRate -BytesPerSecond $Bytes | Should -Be $Expected
+        }
+    }
+
+    It 'formats <Bytes> bytes per second as <Expected> when bits are asked for' -ForEach @(
+        @{ Bytes = 0; Expected = '0 Kbps' }
+        @{ Bytes = 1250; Expected = '10 Kbps' }
+        @{ Bytes = 1200000; Expected = '9.6 Mbps' }
+        @{ Bytes = 312500000; Expected = '2.5 Gbps' }
+    ) {
+        InModuleScope HelpdeskToolkit -Parameters $_ {
+            Format-DataRate -BytesPerSecond $Bytes -AsBits | Should -Be $Expected
+        }
+    }
+
+    It 'uses a dot as decimal separator regardless of the regional settings' {
+        $previous = [System.Threading.Thread]::CurrentThread.CurrentCulture
+        try {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture = [cultureinfo]'hr-HR'
+            InModuleScope HelpdeskToolkit { Format-DataRate -BytesPerSecond 1.5MB } | Should -Be '1.5 MB/s'
+        }
+        finally {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture = $previous
+        }
+    }
+}
+
 Describe 'ConvertTo-HtmlEncodedText' {
     It 'escapes characters that have a meaning in HTML' {
         InModuleScope HelpdeskToolkit {

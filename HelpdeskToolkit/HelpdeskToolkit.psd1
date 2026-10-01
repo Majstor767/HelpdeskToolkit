@@ -17,6 +17,7 @@
         'Get-HardwareHealth'
         'Get-NetworkHealth'
         'Get-PCHealthReport'
+        'Get-PerformanceSnapshot'
         'Get-PrinterHealth'
         'Get-SecurityHealth'
         'Get-ServiceHealth'

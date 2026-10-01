@@ -408,3 +408,43 @@ Describe 'Get-MappedDrive' {
         @(InModuleScope HelpdeskToolkit { Get-MappedDrive }).Count | Should -Be 0
     }
 }
+
+Describe 'Get-VideoMemory' {
+    BeforeAll {
+        # A registry key of a display adapter: GetValue returns the named value or nothing.
+        function New-TestAdapterKey {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+                Justification = 'Test helper that only builds objects in memory.')]
+            param([hashtable]$Values)
+
+            $key = [PSCustomObject]@{ Values = $Values }
+            $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param($Name) $this.Values[$Name] }
+            $key
+        }
+    }
+
+    It 'returns the name and the 64-bit memory size the driver stored' {
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem {
+            New-TestAdapterKey -Values @{ DriverDesc = 'Contoso Graphics 770'; 'HardwareInformation.qwMemorySize' = 12GB }
+        }
+        $adapter = InModuleScope HelpdeskToolkit { Get-VideoMemory }
+
+        $adapter.Name | Should -Be 'Contoso Graphics 770'
+        $adapter.Bytes | Should -Be 12GB
+        $adapter.Bytes | Should -BeOfType [long]
+    }
+
+    It 'leaves out adapters whose driver does not store the size, and subkeys that are not adapters' {
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem {
+            New-TestAdapterKey -Values @{ DriverDesc = 'Basic Display Adapter' }
+            New-TestAdapterKey -Values @{ }
+            New-TestAdapterKey -Values @{ DriverDesc = 'Contoso Graphics 770'; 'HardwareInformation.qwMemorySize' = 8GB }
+        }
+        @(InModuleScope HelpdeskToolkit { Get-VideoMemory }).Name | Should -Be 'Contoso Graphics 770'
+    }
+
+    It 'returns nothing when the registry key cannot be read' {
+        Mock -ModuleName HelpdeskToolkit Get-ChildItem { }
+        @(InModuleScope HelpdeskToolkit { Get-VideoMemory }).Count | Should -Be 0
+    }
+}
