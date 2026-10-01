@@ -80,6 +80,12 @@ Describe 'Installer script' {
         $iss | Should -Match 'PrivilegesRequired=lowest'
     }
 
+    # Regression: after an update, script files that the new version had removed were
+    # still in the installation folder and were loaded by the module.
+    It 'removes the module folder of the previous version before copying the new files' {
+        $iss | Should -Match '(?m)^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: "\{app\}\\HelpdeskToolkit"'
+    }
+
     It 'starts the application through the launcher script that is shipped' {
         $iss | Should -Match 'Start-HelpdeskToolkit\.ps1'
         Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.ps1' | Should -Exist

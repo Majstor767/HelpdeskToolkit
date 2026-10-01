@@ -59,6 +59,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+; An update only overwrites files; a file that the new version no longer has would stay
+; behind, and the module loads every script in its folders. The module folder of the
+; previous version is therefore removed before the new files are copied.
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\HelpdeskToolkit"
+
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
