@@ -1,0 +1,795 @@
+﻿@{
+    # Croatian translation of the application window.
+    #
+    # Text, Checks, Advice, Explain: English text = translation. A text with
+    #           placeholders ({0}, {1}) also translates texts in which the
+    #           placeholders were filled in already. The four tables are one list;
+    #           it is divided because PowerShell accepts at most 500 entries per
+    #           table in a data file.
+    # Patterns: regular expressions for pieces of a text, applied one after the other
+    #           to texts that have no entry in the tables (values with names and numbers).
+    #
+    # The file is saved as UTF-8 with a byte order mark. The reports themselves (HTML,
+    # JSON, CSV, PDF) are always written in English.
+
+    Text     = @{
+        # --- Window: header, side bar, pages --------------------------------------
+        'HelpdeskToolkit - PC Health Check'                    = 'HelpdeskToolkit - provjera računala'
+        'PC Health Check'                                      = 'Provjera računala'
+        'Skip network tests'                                   = 'Preskoči mrežne testove'
+        'History period'                                       = 'Razdoblje povijesti'
+        '7 days'                                               = '7 dana'
+        '14 days'                                              = '14 dana'
+        '30 days'                                              = '30 dana'
+        '90 days'                                              = '90 dana'
+        'Run check'                                            = 'Pokreni provjeru'
+        'Run all checks (F5)'                                  = 'Pokreni sve provjere (F5)'
+        'Checking ...'                                         = 'Provjeravam ...'
+        'Starting the check ...'                               = 'Pokrećem provjeru ...'
+        'The check is running ...'                             = 'Provjera je u tijeku ...'
+        'Checking: {0}'                                        = 'Provjeravam: {0}'
+        'The check failed: {0}'                                = 'Provjera nije uspjela: {0}'
+        'Ready. Click Run check to examine this computer.'     = 'Spremno. Klikni Pokreni provjeru da pregledaš ovo računalo.'
+        'Standard rights: some checks are skipped.'            = 'Standardna prava: neke provjere se preskaču.'
+        'Running as administrator: all checks are included.'   = 'Pokrenuto kao administrator: uključene su sve provjere.'
+        'Administrator rights were not granted; the window keeps running with standard rights.' = 'Administratorska prava nisu odobrena; prozor nastavlja raditi sa standardnim pravima.'
+        'Restart as administrator'                             = 'Pokreni kao administrator'
+        'Open HTML report'                                     = 'Otvori HTML izvještaj'
+        'Copy summary'                                         = 'Kopiraj sažetak'
+        'Copy the problems as text for a ticket or an e-mail (Ctrl+Shift+C)' = 'Kopiraj probleme kao tekst za ticket ili e-mail (Ctrl+Shift+C)'
+        'Save as...'                                           = 'Spremi kao...'
+        'Save the report as HTML, PDF, JSON or CSV (Ctrl+S)'   = 'Spremi izvještaj kao HTML, PDF, JSON ili CSV (Ctrl+S)'
+        'Pages'                                                = 'Stranice'
+        'Overview'                                             = 'Pregled'
+        'Live monitor'                                         = 'Praćenje uživo'
+        'Settings'                                             = 'Postavke'
+        'Computer: {0}'                                        = 'Računalo: {0}'
+        'Computer: {0}  |  checked {1}  |  {2} s'              = 'Računalo: {0}  |  provjereno {1}  |  {2} s'
+
+        # --- Categories -----------------------------------------------------------
+        'System'                                               = 'Sustav'
+        'Specifications'                                       = 'Specifikacije'
+        'Hardware'                                             = 'Hardver'
+        'Software'                                             = 'Softver'
+        'Event Log'                                            = 'Dnevnik događaja'
+        'Windows Update'                                       = 'Windows Update'
+        'Security'                                             = 'Sigurnost'
+        'Network'                                              = 'Mreža'
+        'Printers'                                             = 'Pisači'
+        'Services'                                             = 'Servisi'
+
+        # --- Statuses and changes -------------------------------------------------
+        'OK'                                                   = 'OK'
+        'Warning'                                              = 'Upozorenje'
+        'Critical'                                             = 'Kritično'
+        'Info'                                                 = 'Info'
+        'New problem'                                          = 'Novi problem'
+        'Worse'                                                = 'Gore'
+        'Better'                                               = 'Bolje'
+        'Resolved'                                             = 'Riješeno'
+        'Not checked'                                          = 'Nije provjereno'
+        'Recommended fix'                                      = 'Preporučeno rješenje'
+        'Advice'                                               = 'Savjet'
+        'Allowed: {0}'                                         = 'Dopušteno: {0}'
+        'Typical: {0}'                                         = 'Tipično: {0}'
+        'Show {0} more'                                        = 'Prikaži još {0}'
+
+        # --- Overview, search and filter ------------------------------------------
+        'Click Run check to examine this computer.'            = 'Klikni Pokreni provjeru da pregledaš ovo računalo.'
+        'No results yet. Click Run check.'                     = 'Još nema rezultata. Klikni Pokreni provjeru.'
+        'Health score'                                         = 'Ocjena zdravlja'
+        '100 minus 15 points for every critical result and 4 for every warning' = '100 minus 15 bodova za svaki kritičan rezultat i 4 za svako upozorenje'
+        'Action required. Critical problems: {0}, warnings: {1}.' = 'Potrebna je akcija. Kritičnih problema: {0}, upozorenja: {1}.'
+        'Attention recommended. Warnings: {0}, no critical problems.' = 'Preporučuje se pažnja. Upozorenja: {0}, nema kritičnih problema.'
+        'No problems found. All checks passed.'                = 'Nema problema. Sve su provjere prošle.'
+        'No problems found.'                                   = 'Nema problema.'
+        'Check finished: {0} results.'                         = 'Provjera je gotova: {0} rezultata.'
+        'Run without administrator rights: checks marked "Requires admin" were skipped.' = 'Pokrenuto bez administratorskih prava: provjere označene s "Traži administratora" su preskočene.'
+        'No change in the problems since the last check ({0}).' = 'Nema promjena u problemima od zadnje provjere ({0}).'
+        'Since the last check ({0}): {1} new or worse, {2} resolved or better' = 'Od zadnje provjere ({0}): novih ili gorih {1}, riješenih ili boljih {2}'
+        'Nothing needs attention. Choose a category on the left to see its details.' = 'Ništa ne traži pažnju. Odaberi kategoriju lijevo da vidiš detalje.'
+        'These {0} results need attention. Choose a category on the left to see everything it checked.' = 'Ovih {0} rezultata traži pažnju. Odaberi kategoriju lijevo da vidiš sve što je u njoj provjereno.'
+        'No results in this category.'                         = 'U ovoj kategoriji nema rezultata.'
+        'Search all results (Ctrl+F)'                          = 'Pretraži sve rezultate (Ctrl+F)'
+        'Search all results ...'                               = 'Pretraži sve rezultate ...'
+        'Search results'                                       = 'Rezultati pretrage'
+        '{0} of {1} results contain "{2}".'                    = '"{2}" sadrži {0} od {1} rezultata.'
+        'Nothing found.'                                       = 'Ništa nije pronađeno.'
+        'All statuses'                                         = 'Svi statusi'
+        'Problems only'                                        = 'Samo problemi'
+        '{0} of {1} results have the chosen status.'           = 'Odabrani status ima {0} od {1} rezultata.'
+        'No result has the chosen status.'                     = 'Nijedan rezultat nema odabrani status.'
+        'Windows could not open that place.'                   = 'Windows nije mogao otvoriti to mjesto.'
+
+        # --- Report: saving and copying -------------------------------------------
+        'Save report'                                          = 'Spremi izvještaj'
+        'Saving the report ...'                                = 'Spremam izvještaj ...'
+        'Report saved: {0}'                                    = 'Izvještaj je spremljen: {0}'
+        'The report could not be saved: {0}'                   = 'Izvještaj nije moguće spremiti: {0}'
+        'The summary was copied. Paste it into the ticket or the e-mail with Ctrl+V.' = 'Sažetak je kopiran. Zalijepi ga u ticket ili e-mail s Ctrl+V.'
+        'The summary could not be copied: {0}'                 = 'Sažetak nije moguće kopirati: {0}'
+        'Checked: {0}'                                         = 'Provjereno: {0}'
+        'Health score: {0} of 100'                             = 'Ocjena zdravlja: {0} od 100'
+        '{0} critical, {1} warning, {2} OK, {3} info'          = 'kritično: {0}, upozorenja: {1}, OK: {2}, info: {3}'
+        'Fix:'                                                 = 'Rješenje:'
+        'Created with HelpdeskToolkit {0}.'                    = 'Izrađeno alatom HelpdeskToolkit {0}.'
+
+        # --- Settings page --------------------------------------------------------
+        'How the application looks, and where it keeps its own files.' = 'Kako aplikacija izgleda i gdje drži svoje datoteke.'
+        'Appearance'                                           = 'Izgled'
+        'Language'                                             = 'Jezik'
+        'Theme'                                                = 'Tema'
+        'Same as Windows'                                      = 'Kao Windows'
+        'Light'                                                = 'Svijetla'
+        'Dark'                                                 = 'Tamna'
+        'The language and the theme are applied when the application starts the next time.' = 'Jezik i tema primjenjuju se pri sljedećem pokretanju aplikacije.'
+        'Restart now'                                          = 'Ponovno pokreni sada'
+        'The application could not be restarted: {0}'          = 'Aplikaciju nije moguće ponovno pokrenuti: {0}'
+        'Keyboard shortcuts'                                   = 'Tipkovni prečaci'
+        'Run the check'                                        = 'Pokreni provjeru'
+        'Search the results'                                   = 'Pretraži rezultate'
+        'Clear the search'                                     = 'Očisti pretragu'
+        'Save the report as HTML, PDF, JSON or CSV'            = 'Spremi izvještaj kao HTML, PDF, JSON ili CSV'
+        'Open the HTML report in the browser'                  = 'Otvori HTML izvještaj u pregledniku'
+        'Copy the summary for a ticket'                        = 'Kopiraj sažetak za ticket'
+        'Open the Live monitor'                                = 'Otvori praćenje uživo'
+        'About'                                                = 'O aplikaciji'
+        'HelpdeskToolkit {0}  |  PowerShell {1}'               = 'HelpdeskToolkit {0}  |  PowerShell {1}'
+        'The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks and recordings of the Live monitor are kept in the folder below.' = 'Aplikacija samo čita podatke i nikad ništa ne mijenja na računalu. Vlastite postavke, povijest ranijih provjera i snimke praćenja uživo drži u mapi ispod.'
+        'Open the folder'                                      = 'Otvori mapu'
+
+        # --- Live monitor ---------------------------------------------------------
+        'Measuring ...'                                        = 'Mjerim ...'
+        'What the computer is doing right now. Updated {0:HH:mm:ss}; refreshes about every {1} seconds.' = 'Što računalo radi u ovom trenutku. Ažurirano {0:HH:mm:ss}; osvježava se otprilike svakih {1} s.'
+        'The live data could not be read: {0}'                 = 'Podatke uživo nije moguće pročitati: {0}'
+        'Pause'                                                = 'Pauza'
+        'Resume'                                               = 'Nastavi'
+        'Paused. The values below are the last ones measured.' = 'Pauzirano. Vrijednosti ispod su zadnje izmjerene.'
+        'Refresh every'                                        = 'Osvježi svakih'
+        '2 seconds'                                            = '2 sekunde'
+        '5 seconds'                                            = '5 sekundi'
+        '10 seconds'                                           = '10 sekundi'
+        '30 seconds'                                           = '30 sekundi'
+        'Record for'                                           = 'Snimaj'
+        '1 minute'                                             = '1 minutu'
+        '5 minutes'                                            = '5 minuta'
+        '15 minutes'                                           = '15 minuta'
+        '60 minutes'                                           = '60 minuta'
+        'Record to file'                                       = 'Snimaj u datoteku'
+        'Stop recording'                                       = 'Zaustavi snimanje'
+        'Write every measurement to a CSV file, for example while the problem is reproduced' = 'Zapisuj svako mjerenje u CSV datoteku, npr. dok se problem ponavlja'
+        'Recording to {0}'                                     = 'Snimam u {0}'
+        'Recording to {0}  |  {1} measurements  |  {2} left'   = 'Snimam u {0}  |  mjerenja: {1}  |  preostalo {2}'
+        'Recording saved: {0} ({1} measurements)'              = 'Snimka je spremljena: {0} (mjerenja: {1})'
+        'The recording was stopped: {0}'                       = 'Snimanje je zaustavljeno: {0}'
+        'The recording could not be started: {0}'              = 'Snimanje nije moguće pokrenuti: {0}'
+        'Processor'                                            = 'Procesor'
+        'Memory'                                               = 'Memorija'
+        'Graphics'                                             = 'Grafika'
+        'Running for'                                          = 'Radi već'
+        'Disks'                                                = 'Diskovi'
+        'Sensors'                                              = 'Senzori'
+        'Space used'                                           = 'Zauzeti prostor'
+        'last 60 measurements, 0 - 100 %'                      = 'zadnjih 60 mjerenja, 0 - 100 %'
+        'busiest disk, last 60 measurements, 0 - 100 %'        = 'najzaposleniji disk, zadnjih 60 mjerenja, 0 - 100 %'
+        'download (blue) and upload (green), last 60 measurements, 0 - {0}' = 'preuzimanje (plavo) i slanje (zeleno), zadnjih 60 mjerenja, 0 - {0}'
+        'No graphics data available.'                          = 'Nema podataka o grafici.'
+        'Not available'                                        = 'Nije dostupno'
+        '{0} % at {1}'                                         = '{0} % pri {1}'
+        '{0}, parked by Windows to save power'                 = '{0}, Windows ga je parkirao radi štednje energije'
+        'Base speed {0}'                                       = 'Osnovni takt {0}'
+        '{0} logical processors'                               = 'logičkih procesora: {0}'
+        '{0} processes'                                        = 'procesa: {0}'
+        '{0} threads'                                          = 'niti: {0}'
+        '{0} handles'                                          = 'handleova: {0}'
+        '{0} % ({1} of {2} in use)'                            = '{0} % (zauzeto {1} od {2})'
+        '{0} of {1}'                                           = '{0} od {1}'
+        '{0} % used'                                           = '{0} % zauzeto'
+        'In use'                                               = 'Zauzeto'
+        'Available'                                            = 'Dostupno'
+        'Cached'                                               = 'Predmemorirano'
+        'Committed (RAM plus page file)'                       = 'Rezervirano (RAM i page file)'
+        'Paged pool'                                           = 'Paged pool'
+        'Non-paged pool'                                       = 'Non-paged pool'
+        'Page file'                                            = 'Page file'
+        '{0} of {1} memory'                                    = '{0} od {1} memorije'
+        '{0} memory in use'                                    = 'zauzeto {0} memorije'
+        'shared memory {0}'                                    = 'dijeljena memorija {0}'
+        '3D'                                                   = '3D'
+        'Copy'                                                 = 'Copy'
+        'Video decode'                                         = 'Video decode'
+        'Video encode'                                         = 'Video encode'
+        'active {0} %'                                         = 'aktivnost {0} %'
+        'read {0}'                                             = 'čitanje {0}'
+        'write {0}'                                            = 'pisanje {0}'
+        'queue {0}'                                            = 'red čekanja {0}'
+        '{0} free of {1}'                                      = 'slobodno {0} od {1}'
+        'down {0}'                                             = 'preuzimanje {0}'
+        'up {0}'                                               = 'slanje {0}'
+        'link {0}'                                             = 'veza {0}'
+        'fan {0} %'                                            = 'ventilator {0} %'
+        '{0} W of {1} W'                                       = '{0} W od {1} W'
+        'wear {0} %'                                           = 'istrošenost {0} %'
+        '{0} h powered on'                                     = '{0} h rada'
+        'reports no sensor values'                             = 'ne javlja vrijednosti senzora'
+        'Drives'                                               = 'Diskovi'
+        'temperature and wear need administrator rights'       = 'temperatura i istrošenost traže administratorska prava'
+        'could not be read: {0}'                               = 'nije moguće pročitati: {0}'
+        'Thermal zone {0}'                                     = 'Termalna zona {0}'
+        'plugged in'                                           = 'na punjaču'
+        'on battery'                                           = 'na bateriji'
+        'about {0} left'                                       = 'još oko {0}'
+        'The temperature of the processor, the fans of the motherboard and voltages are not shown: Windows does not expose them, and tools that show them install their own hardware driver.' = 'Temperatura procesora, ventilatori matične ploče i naponi se ne prikazuju: Windows ih ne daje programima, a alati koji ih prikazuju instaliraju vlastiti hardverski driver.'
+        'processor  |  memory'                                 = 'procesor  |  memorija'
+        'read + written'                                       = 'čitanje + pisanje'
+        'Busiest programs'                                     = 'Najzaposleniji programi'
+        'Most memory'                                          = 'Najviše memorije'
+        'Most data'                                            = 'Najviše podataka'
+        'No program is reading or writing.'                    = 'Nijedan program ne čita niti piše.'
+        'Click a program to see its details.'                  = 'Klikni program da vidiš detalje.'
+        'Processes'                                            = 'Procesi'
+        'Threads'                                              = 'Niti'
+        'Memory in use'                                        = 'Zauzeta memorija'
+        'Running since'                                        = 'Radi od'
+        'Program file'                                         = 'Datoteka programa'
+        'Product'                                              = 'Proizvod'
+        'Maker'                                                = 'Proizvođač'
+        'Version'                                              = 'Verzija'
+        'The program is no longer running.'                    = 'Program više ne radi.'
+        'not available without administrator rights'           = 'nije dostupno bez administratorskih prava'
+        'The processor has been above {0} % for the last {1} measurements.' = 'Procesor je iznad {0} % u zadnjih {1} mjerenja.'
+        'Busiest program: {0} ({1} %).'                        = 'Najzaposleniji program: {0} ({1} %).'
+        'The memory has been more than {0} % full for the last {1} measurements.' = 'Memorija je više od {0} % puna u zadnjih {1} mjerenja.'
+        'Program using the most memory: {0} ({1}).'            = 'Program koji troši najviše memorije: {0} ({1}).'
+        'A disk has been busy above {0} % for the last {1} measurements.' = 'Disk je zaposlen iznad {0} % u zadnjih {1} mjerenja.'
+        'Program reading and writing the most: {0} ({1}).'     = 'Program koji najviše čita i piše: {0} ({1}).'
+        'The graphics card {0} is at {1} {2}C. Check that its fans turn and that the air can flow through the case.' = 'Grafička kartica {0} je na {1} {2}C. Provjeri vrte li se ventilatori i može li zrak strujati kroz kućište.'
+
+        # --- Buttons that open a place in Windows -----------------------------------
+        'Open account settings'                                = 'Otvori postavke računa'
+        'Open Activation settings'                             = 'Otvori postavke aktivacije'
+        'Open BitLocker'                                       = 'Otvori BitLocker'
+        'Open Date and time settings'                          = 'Otvori postavke datuma i vremena'
+        'Open Default apps'                                    = 'Otvori zadane aplikacije'
+        'Open Device Manager'                                  = 'Otvori Upravitelj uređaja'
+        'Open Disk Cleanup'                                    = 'Otvori Čišćenje diska'
+        'Open Disk Management'                                 = 'Otvori Upravljanje diskovima'
+        'Open Event Viewer'                                    = 'Otvori Preglednik događaja'
+        'Open File History'                                    = 'Otvori Povijest datoteka'
+        'Open Firewall settings'                               = 'Otvori postavke vatrozida'
+        'Open Installed apps'                                  = 'Otvori instalirane aplikacije'
+        'Open Network settings'                                = 'Otvori mrežne postavke'
+        'Open Power Options'                                   = 'Otvori Mogućnosti napajanja'
+        'Open Power settings'                                  = 'Otvori postavke napajanja'
+        'Open Printers and scanners'                           = 'Otvori Pisače i skenere'
+        'Open Proxy settings'                                  = 'Otvori postavke proxyja'
+        'Open Reliability Monitor'                             = 'Otvori Monitor pouzdanosti'
+        'Open Remote Desktop settings'                         = 'Otvori postavke udaljene radne površine'
+        'Open Services'                                        = 'Otvori Servise'
+        'Open Shared Folders'                                  = 'Otvori Dijeljene mape'
+        'Open Startup apps'                                    = 'Otvori aplikacije pri pokretanju'
+        'Open Storage settings'                                = 'Otvori postavke pohrane'
+        'Open System Information'                              = 'Otvori Informacije o sustavu'
+        'Open System Protection'                               = 'Otvori Zaštitu sustava'
+        'Open Task Manager'                                    = 'Otvori Upravitelj zadataka'
+        'Open Task Scheduler'                                  = 'Otvori Planer zadataka'
+        'Open the Downloads folder'                            = 'Otvori mapu Preuzimanja'
+        'Open the Recycle Bin'                                 = 'Otvori Koš za smeće'
+        'Open TPM management'                                  = 'Otvori upravljanje TPM-om'
+        'Open User Account Control settings'                   = 'Otvori postavke Kontrole korisničkog računa'
+        'Open User Accounts'                                   = 'Otvori Korisničke račune'
+        'Open Wi-Fi settings'                                  = 'Otvori Wi-Fi postavke'
+        'Open Windows Security'                                = 'Otvori Sigurnost u sustavu Windows'
+        'Open Windows Update'                                  = 'Otvori Windows Update'
+    }
+
+    Checks   = @{
+        # --- Names of the checks --------------------------------------------------
+        'System information'                                   = 'Podaci o sustavu'
+        'Computer name'                                        = 'Ime računala'
+        'Operating system'                                     = 'Operacijski sustav'
+        'Windows support'                                      = 'Podrška za Windows'
+        'Windows installed'                                    = 'Windows instaliran'
+        'Manufacturer and model'                               = 'Proizvođač i model'
+        'Domain or workgroup'                                  = 'Domena ili radna grupa'
+        'Signed-in user'                                       = 'Prijavljeni korisnik'
+        'Time zone'                                            = 'Vremenska zona'
+        'Uptime'                                               = 'Vrijeme rada'
+        'Stability index'                                      = 'Indeks stabilnosti'
+        'Windows activation'                                   = 'Aktivacija Windowsa'
+        'Startup programs'                                     = 'Programi pri pokretanju'
+        'Scheduled tasks'                                      = 'Zakazani zadaci'
+        'Power plan'                                           = 'Plan napajanja'
+        'Fast Startup'                                         = 'Brzo pokretanje'
+        'Last startup duration'                                = 'Trajanje zadnjeg pokretanja'
+        'User profiles'                                        = 'Korisnički profili'
+        'Processor details'                                    = 'Detalji procesora'
+        'Memory module'                                        = 'Memorijski modul'
+        'Display'                                              = 'Monitor'
+        'Storage'                                              = 'Pohrana'
+        'Optical drive'                                        = 'Optički pogon'
+        'Audio devices'                                        = 'Audio uređaji'
+        'Input devices'                                        = 'Ulazni uređaji'
+        'Motherboard'                                          = 'Matična ploča'
+        'BIOS'                                                 = 'BIOS'
+        'Serial number'                                        = 'Serijski broj'
+        'CPU load'                                             = 'Opterećenje procesora'
+        'Memory usage'                                         = 'Zauzeće memorije'
+        'Top memory consumers'                                 = 'Najveći potrošači memorije'
+        'Drive'                                                = 'Pogon'
+        'Drive health'                                         = 'Zdravlje pogona'
+        'Disk'                                                 = 'Disk'
+        'Disk space'                                           = 'Prostor na disku'
+        'Largest folders'                                      = 'Najveće mape'
+        'Temporary files'                                      = 'Privremene datoteke'
+        'Downloads folder'                                     = 'Mapa Preuzimanja'
+        'Recycle Bin'                                          = 'Koš za smeće'
+        'Hibernation file'                                     = 'Datoteka hibernacije'
+        'Space that can be freed'                              = 'Prostor koji se može osloboditi'
+        'Drive details'                                        = 'Detalji pogona'
+        'File system'                                          = 'Datotečni sustav'
+        'System temporary files'                               = 'Privremene datoteke sustava'
+        'Devices with problems'                                = 'Uređaji s problemima'
+        'Unsigned drivers'                                     = 'Nepotpisani driveri'
+        'Old drivers'                                          = 'Stari driveri'
+        'Drivers'                                              = 'Driveri'
+        'Battery'                                              = 'Baterija'
+        'Battery health'                                       = 'Zdravlje baterije'
+        'Installed programs'                                   = 'Instalirani programi'
+        'Recently installed'                                   = 'Nedavno instalirano'
+        'Application crashes'                                  = 'Rušenja aplikacija'
+        'Browser extensions'                                   = 'Proširenja preglednika'
+        'Default browser'                                      = 'Zadani preglednik'
+        'Unexpected shutdowns'                                 = 'Neočekivana gašenja'
+        'Blue screens'                                         = 'Plavi ekrani'
+        'Disk errors'                                          = 'Greške diska'
+        'Hardware errors'                                      = 'Greške hardvera'
+        'System log - critical events'                         = 'System log - kritični događaji'
+        'System log - errors'                                  = 'System log - greške'
+        'System log - top sources'                             = 'System log - najčešći izvori'
+        'Application log - critical events'                    = 'Application log - kritični događaji'
+        'Application log - errors'                             = 'Application log - greške'
+        'Application log - top sources'                        = 'Application log - najčešći izvori'
+        'System log'                                           = 'System log'
+        'Application log'                                      = 'Application log'
+        'Last installed update'                                = 'Zadnje instalirano ažuriranje'
+        'Pending restart'                                      = 'Čeka se restart'
+        'Updates paused'                                       = 'Ažuriranja pauzirana'
+        'Pending updates'                                      = 'Ažuriranja na čekanju'
+        'Failed updates'                                       = 'Neuspjela ažuriranja'
+        'Microsoft Defender'                                   = 'Microsoft Defender'
+        'Defender real-time protection'                        = 'Defender zaštita u stvarnom vremenu'
+        'Defender definitions'                                 = 'Defender definicije'
+        'Tamper protection'                                    = 'Zaštita od neovlaštenih izmjena'
+        'Defender last scan'                                   = 'Zadnje Defender skeniranje'
+        'Threat history'                                       = 'Povijest prijetnji'
+        'Firewall'                                             = 'Vatrozid'
+        'Firewall - Domain profile'                            = 'Vatrozid - domenski profil'
+        'Firewall - Private profile'                           = 'Vatrozid - privatni profil'
+        'Firewall - Public profile'                            = 'Vatrozid - javni profil'
+        'User Account Control'                                 = 'Kontrola korisničkog računa (UAC)'
+        'Remote Desktop'                                       = 'Udaljena radna površina'
+        'Account type'                                         = 'Vrsta računa'
+        'Administrators'                                       = 'Administratori'
+        'Automatic sign-in'                                    = 'Automatska prijava'
+        'Local accounts'                                       = 'Lokalni računi'
+        'Guest account'                                        = 'Račun Guest'
+        'Built-in Administrator account'                       = 'Ugrađeni račun Administrator'
+        'Shared folders'                                       = 'Dijeljene mape'
+        'Listening ports'                                      = 'Otvoreni portovi'
+        'File History'                                         = 'Povijest datoteka'
+        'OneDrive'                                             = 'OneDrive'
+        'System Restore'                                       = 'Vraćanje sustava'
+        'Secure Boot'                                          = 'Secure Boot'
+        'TPM'                                                  = 'TPM'
+        'BitLocker'                                            = 'BitLocker'
+        'Failed sign-ins'                                      = 'Neuspjele prijave'
+        'Account lockouts'                                     = 'Zaključavanja računa'
+        'Network adapters'                                     = 'Mrežni adapteri'
+        'Adapter'                                              = 'Adapter'
+        'Wi-Fi'                                                = 'Wi-Fi'
+        'Network profile'                                      = 'Mrežni profil'
+        'Proxy'                                                = 'Proxy'
+        'Hosts file'                                           = 'Datoteka hosts'
+        'Mapped network drives'                                = 'Mapirani mrežni diskovi'
+        'Connectivity tests'                                   = 'Testovi povezanosti'
+        'Ping default gateway'                                 = 'Ping gatewaya'
+        'Ping internet'                                        = 'Ping interneta'
+        'DNS resolution'                                       = 'DNS razlučivanje'
+        'HTTPS access'                                         = 'HTTPS pristup'
+        'Clock accuracy'                                       = 'Točnost sata'
+        'Default printer'                                      = 'Zadani pisač'
+        'Installed printers'                                   = 'Instalirani pisači'
+        'Print queue'                                          = 'Red za ispis'
+        'Third-party services'                                 = 'Servisi drugih programa'
+        'Check execution'                                      = 'Izvršavanje provjere'
+
+        # --- Values ---------------------------------------------------------------
+        'Enabled'                                              = 'Uključeno'
+        'Disabled'                                             = 'Isključeno'
+        'None'                                                 = 'Nema'
+        'Unknown'                                              = 'Nepoznato'
+        'Unavailable'                                          = 'Nedostupno'
+        'Requires admin'                                       = 'Traži administratora'
+        'Activated'                                            = 'Aktivirano'
+        'Not activated'                                        = 'Nije aktivirano'
+        'No'                                                   = 'Ne'
+        'Never'                                                = 'Nikad'
+        'Off'                                                  = 'Isključeno'
+        'Skipped'                                              = 'Preskočeno'
+        'Not configured'                                       = 'Nije podešeno'
+        'No custom entries'                                    = 'Nema vlastitih unosa'
+        'Not installed'                                        = 'Nije instalirano'
+        'None found'                                           = 'Nije pronađeno'
+        'Not set'                                              = 'Nije postavljeno'
+        'None set'                                             = 'Nije postavljen'
+        'No printers installed'                                = 'Nema instaliranih pisača'
+        'No threats found'                                     = 'Nema pronađenih prijetnji'
+        'Standard user'                                        = 'Standardni korisnik'
+        'Administrator'                                        = 'Administrator'
+        'Not set up'                                           = 'Nije postavljeno'
+        'Not signed in'                                        = 'Nije prijavljen'
+        'Signed in and running'                                = 'Prijavljen i radi'
+        'Signed in, but not running'                           = 'Prijavljen, ali ne radi'
+        'On (the restore points are only shown to administrators)' = 'Uključeno (točke vraćanja vide samo administratori)'
+        'On, no restore point yet'                             = 'Uključeno, još nema točke vraćanja'
+        'Not supported (legacy BIOS mode)'                     = 'Nije podržano (stari BIOS način)'
+        'Not present'                                          = 'Ne postoji'
+        'Not available on this system'                         = 'Nije dostupno na ovom sustavu'
+        'Protection on'                                        = 'Zaštita uključena'
+        'Protection off'                                       = 'Zaštita isključena'
+        'No battery (desktop computer)'                        = 'Nema baterije (stolno računalo)'
+        'No page file'                                         = 'Nema page filea'
+        'Not present (hibernation is off)'                     = 'Ne postoji (hibernacija je isključena)'
+        'Nothing could be measured'                            = 'Ništa nije bilo moguće izmjeriti'
+        'Size unknown'                                         = 'Nepoznata veličina'
+        'The drive reports no details'                         = 'Pogon ne javlja detalje'
+        'No measurement recorded'                              = 'Nema zabilježenog mjerenja'
+        'No user profiles found'                               = 'Nema pronađenih korisničkih profila'
+        'No update history found'                              = 'Nema povijesti ažuriranja'
+        'No module information available'                      = 'Nema podataka o modulima'
+        'Built-in or generic display'                          = 'Ugrađeni ili generički monitor'
+        'Not set by the manufacturer'                          = 'Proizvođač ga nije upisao'
+        'Standard keyboard and mouse'                          = 'Standardna tipkovnica i miš'
+        'No hardware device'                                   = 'Nema hardverskog uređaja'
+        'None open to the network'                             = 'Nijedan nije otvoren prema mreži'
+        'No active adapter'                                    = 'Nema aktivnog adaptera'
+        'Not connected'                                        = 'Nije spojeno'
+        'No default gateway'                                   = 'Nema zadanog gatewaya'
+        'Version unknown'                                      = 'Nepoznata verzija'
+        'Server edition: not checked'                          = 'Poslužiteljsko izdanje: nije provjereno'
+        'Long-term servicing edition: has its own support dates' = 'Izdanje s dugoročnom podrškom: ima vlastite datume podrške'
+    }
+
+    Advice   = @{
+        # --- Recommendations ------------------------------------------------------
+        'Windows only shows this to administrators. Start the tool as administrator to include it: in the window use "Restart as administrator", in a console open PowerShell with "Run as administrator".' = 'Windows ovo prikazuje samo administratorima. Pokreni alat kao administrator da se uključi: u prozoru klikni "Pokreni kao administrator", a u konzoli otvori PowerShell s "Pokreni kao administrator".'
+        'The information could not be read: {0}'               = 'Podatak nije moguće pročitati: {0}'
+        'Restart the computer; it has been running for more than {0} days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.' = 'Ponovno pokreni računalo; radi dulje od {0} dana. Koristi Ponovno pokreni, a ne Isključi: uz uključeno Brzo pokretanje isključivanje ne poništava vrijeme rada.'
+        'Windows has recorded many crashes or failures lately. Open Reliability Monitor (run "perfmon /rel") to see which program or device caused them and on which days.' = 'Windows je u zadnje vrijeme zabilježio mnogo rušenja ili kvarova. Otvori Monitor pouzdanosti (pokreni "perfmon /rel") da vidiš koji ih je program ili uređaj izazvao i kojih dana.'
+        'Windows is not activated. Open Settings > System > Activation to see the reason and activate it.' = 'Windows nije aktiviran. Otvori Postavke > Sustav > Aktivacija da vidiš razlog i aktiviraš ga.'
+        'Many programs start together with Windows, which slows down sign-in. Turn off the ones that are not needed in Task Manager > Startup apps.' = 'Mnogo programa pokreće se zajedno s Windowsom, što usporava prijavu. Isključi one koji nisu potrebni u Upravitelju zadataka > Aplikacije pri pokretanju.'
+        'Windows starts slowly. Turn off startup programs that are not needed (Task Manager > Startup apps); if the system drive is a hard disk, replacing it with an SSD helps the most.' = 'Windows se sporo pokreće. Isključi programe pri pokretanju koji nisu potrebni (Upravitelj zadataka > Aplikacije pri pokretanju); ako je sistemski disk klasični tvrdi disk, najviše pomaže zamjena SSD-om.'
+        'Upgrade to Windows 11 if the hardware allows it; otherwise enroll the computer in Extended Security Updates or replace it.' = 'Nadogradi na Windows 11 ako hardver to dopušta; inače uključi računalo u Extended Security Updates ili ga zamijeni.'
+        'Install the newest feature update: Settings > Windows Update.' = 'Instaliraj najnoviju nadogradnju značajki: Postavke > Windows Update.'
+        'This Windows version no longer receives security updates. {0}' = 'Ova verzija Windowsa više ne dobiva sigurnosna ažuriranja. {0}'
+        'Support for this Windows version ends soon. {0}'      = 'Podrška za ovu verziju Windowsa uskoro završava. {0}'
+        'CPU load was high at the time of the check. Open Task Manager (Ctrl+Shift+Esc) and look for the process using the most CPU.' = 'Opterećenje procesora bilo je visoko u trenutku provjere. Otvori Upravitelj zadataka (Ctrl+Shift+Esc) i pronađi proces koji troši najviše procesora.'
+        'Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.' = 'Memorija je skoro puna. Zatvori aplikacije i kartice preglednika koje ne koristiš; ako se to događa redovito, računalu treba više RAM-a.'
+        'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.' = 'Pogon javlja problem i može otkazati. Odmah napravi sigurnosnu kopiju podataka i planiraj zamjenu pogona.'
+        'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.' = 'Disk je skoro pun. Odmah oslobodi prostor: ažuriranja Windowsa i aplikacije mogu zakazati bez slobodnog prostora.'
+        'Free space is low. Run Disk Cleanup, empty the Recycle Bin and remove programs and files that are no longer needed.' = 'Slobodnog prostora je malo. Pokreni Čišćenje diska, isprazni Koš za smeće i ukloni programe i datoteke koji više nisu potrebni.'
+        'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama (Preuzimanja, Videozapisi, Radna površina); ništa unutar mapa Windows, Program Files i ProgramData ne briši ručno. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
+        'Temporary files take up a lot of space. Remove them in Settings > System > Storage > Temporary files.' = 'Privremene datoteke zauzimaju mnogo prostora. Ukloni ih u Postavke > Sustav > Pohrana > Privremene datoteke.'
+        'Deleted files still take up a lot of space. Right-click the Recycle Bin on the desktop and choose "Empty Recycle Bin".' = 'Obrisane datoteke i dalje zauzimaju mnogo prostora. Desnim klikom na Koš za smeće na radnoj površini odaberi "Isprazni koš za smeće".'
+        'The system disk is short of space and this file takes up a good part of it. On a computer that is never put into hibernation, an administrator can remove the file with "powercfg /hibernate off"; this also turns off Fast Startup, so starting Windows takes a little longer.' = 'Na sistemskom disku nedostaje prostora, a ova datoteka zauzima njegov dobar dio. Na računalu koje se nikad ne stavlja u hibernaciju administrator može ukloniti datoteku naredbom "powercfg /hibernate off"; time se isključuje i Brzo pokretanje, pa se Windows pokreće nešto dulje.'
+        'The page file is almost full, which means the computer regularly runs out of memory. Close programs that are not needed; if it keeps happening, the computer needs more RAM.' = 'Page file je skoro pun, što znači da računalu redovito ponestaje memorije. Zatvori programe koji nisu potrebni; ako se nastavi događati, računalu treba više RAM-a.'
+        'The drive is too hot. Clean the dust out of the computer and make sure the air can flow; heat shortens the life of a drive.' = 'Pogon je prevruć. Očisti prašinu iz računala i provjeri može li zrak strujati; toplina skraćuje vijek pogona.'
+        'The drive is close to the end of its rated lifetime. Back up the data and plan to replace it.' = 'Pogon je blizu kraja predviđenog životnog vijeka. Napravi sigurnosnu kopiju podataka i planiraj zamjenu.'
+        'The drive could not read or write some data. Back up the data now; a drive with uncorrected errors is likely to fail.' = 'Pogon nije uspio pročitati ili zapisati dio podataka. Odmah napravi sigurnosnu kopiju; pogon s neispravljenim greškama vjerojatno će otkazati.'
+        'Windows has flagged the drive for a disk check. Restart the computer and let the check run, or run "chkdsk /scan" for that drive as administrator.' = 'Windows je označio disk za provjeru. Ponovno pokreni računalo i pusti da se provjera izvrši, ili kao administrator pokreni "chkdsk /scan" za taj disk.'
+        'Windows has collected a lot of temporary files. Run Disk Cleanup (cleanmgr) and choose "Clean up system files".' = 'Windows je nakupio mnogo privremenih datoteka. Pokreni Čišćenje diska (cleanmgr) i odaberi "Očisti sistemske datoteke".'
+        'These devices have no working driver. Open Device Manager (devmgmt.msc), find the devices with a yellow mark and install the driver from Windows Update or from the web site of the manufacturer.' = 'Ovi uređaji nemaju ispravan driver. Otvori Upravitelj uređaja (devmgmt.msc), pronađi uređaje sa žutom oznakom i instaliraj driver preko Windows Updatea ili s web stranice proizvođača.'
+        'These drivers carry no valid digital signature, so nobody vouches that they are unchanged. Replace them with the current driver from Windows Update or from the web site of the device maker.' = 'Ovi driveri nemaju valjan digitalni potpis, pa nitko ne jamči da nisu izmijenjeni. Zamijeni ih aktualnim driverom s Windows Updatea ili s web stranice proizvođača uređaja.'
+        'These drivers are older than {0} years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try.' = 'Ovi driveri stariji su od {0} godina. Stari driver koji radi ne treba dirati; kad uređaj radi neispravno, prvo treba pokušati instalirati aktualni driver proizvođača.'
+        'Battery charge is low. Connect the charger.'          = 'Baterija je slaba. Priključi punjač.'
+        'The battery has lost much of its capacity, so the computer runs for a much shorter time than when it was new. Plan to replace the battery.' = 'Baterija je izgubila velik dio kapaciteta, pa računalo radi puno kraće nego kad je bilo novo. Planiraj zamjenu baterije.'
+        'Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) > Windows Logs > Application, source "Application Error".' = 'Programi se ruše češće nego inače. Ažuriraj ili ponovno instaliraj program na vrhu popisa; detalji svakog rušenja su u Pregledniku događaja (eventvwr.msc) > Windows Logs > Application, izvor "Application Error".'
+        'The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.' = 'Računalo je ostalo bez napajanja ili se srušilo bez pravilnog gašenja. Provjeri kabel za napajanje ili bateriju, pregrijavanje i nedavno instalirane drivere.'
+        'Windows crashed with a blue screen. The usual causes are a faulty driver, bad memory or overheating: install pending driver and Windows updates, test the memory with Windows Memory Diagnostic (mdsched.exe) and look up the stop code in Event Viewer > Windows Logs > System (source BugCheck).' = 'Windows se srušio s plavim ekranom. Uobičajeni uzroci su neispravan driver, loša memorija ili pregrijavanje: instaliraj ažuriranja drivera i Windowsa koja čekaju, testiraj memoriju alatom Windows Memory Diagnostic (mdsched.exe) i potraži stop kod u Pregledniku događaja > Windows Logs > System (izvor BugCheck).'
+        'The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run "chkdsk /scan" as administrator. Repeated errors usually mean the drive or its cable is failing.' = 'Disk ili datotečni sustav javili su probleme. Napravi sigurnosnu kopiju važnih podataka, provjeri zdravlje pogona u kategoriji Hardver i kao administrator pokreni "chkdsk /scan". Ponovljene greške obično znače da pogon ili njegov kabel otkazuju.'
+        'The hardware reported errors to Windows. Typical causes are faulty memory, overheating or an unstable power supply: clean the cooling, test the memory with Windows Memory Diagnostic (mdsched.exe) and update the BIOS and chipset drivers.' = 'Hardver je Windowsu prijavio greške. Tipični uzroci su neispravna memorija, pregrijavanje ili nestabilno napajanje: očisti hlađenje, testiraj memoriju alatom Windows Memory Diagnostic (mdsched.exe) te ažuriraj BIOS i drivere čipseta.'
+        'Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) > Windows Logs > {0} and filter by level Critical.' = 'Kritični događaji obično znače rušenja ili neočekivana gašenja. Otvori Preglednik događaja (eventvwr.msc) > Windows Logs > {0} i filtriraj po razini Critical.'
+        'Unusually many errors. Start with the top sources listed below and look them up in Event Viewer (eventvwr.msc) > Windows Logs > {0}.' = 'Neobično mnogo grešaka. Kreni od najčešćih izvora navedenih ispod i potraži ih u Pregledniku događaja (eventvwr.msc) > Windows Logs > {0}.'
+        'No update was installed for more than {0} days. Open Settings > Windows Update and check for updates.' = 'Nijedno ažuriranje nije instalirano više od {0} dana. Otvori Postavke > Windows Update i provjeri ima li ažuriranja.'
+        'Restart the computer to finish installing updates.'   = 'Ponovno pokreni računalo da se dovrši instalacija ažuriranja.'
+        'Windows Update is paused, so security updates are not installed. Open Settings > Windows Update and choose "Resume updates".' = 'Windows Update je pauziran, pa se sigurnosna ažuriranja ne instaliraju. Otvori Postavke > Windows Update i odaberi "Nastavi s ažuriranjima".'
+        'Windows has found updates that are not installed yet. Install them in Settings > Windows Update.' = 'Windows je pronašao ažuriranja koja još nisu instalirana. Instaliraj ih u Postavke > Windows Update.'
+        'These updates could not be installed. Restart the computer and check for updates again in Settings > Windows Update; make sure the system disk has free space. If an update keeps failing, search for its error code together with its KB number.' = 'Ova ažuriranja nije bilo moguće instalirati. Ponovno pokreni računalo i opet provjeri ažuriranja u Postavke > Windows Update; provjeri ima li sistemski disk slobodnog prostora. Ako ažuriranje i dalje ne uspijeva, potraži njegov kod greške zajedno s KB brojem.'
+        'No active antivirus was found. Turn on real-time protection in Windows Security > Virus & threat protection.' = 'Nije pronađen aktivan antivirus. Uključi zaštitu u stvarnom vremenu u Sigurnost u sustavu Windows > Zaštita od virusa i prijetnji.'
+        'Antivirus definitions are out of date. Open Windows Security > Virus & threat protection > Protection updates and check for updates.' = 'Antivirusne definicije su zastarjele. Otvori Sigurnost u sustavu Windows > Zaštita od virusa i prijetnji > Ažuriranja zaštite i provjeri ima li ažuriranja.'
+        'Without tamper protection a program can switch off the antivirus. Turn it on in Windows Security > Virus & threat protection > Manage settings > Tamper Protection.' = 'Bez zaštite od neovlaštenih izmjena program može isključiti antivirus. Uključi je u Sigurnost u sustavu Windows > Zaštita od virusa i prijetnji > Upravljanje postavkama > Zaštita od neovlaštenih izmjena.'
+        'Run a scan: open Windows Security > Virus & threat protection and choose "Quick scan".' = 'Pokreni skeniranje: otvori Sigurnost u sustavu Windows > Zaštita od virusa i prijetnji i odaberi "Brzo skeniranje".'
+        'The computer has never been scanned. {0}'             = 'Računalo nikad nije skenirano. {0}'
+        'The last scan was a long time ago. {0}'               = 'Zadnje skeniranje bilo je davno. {0}'
+        'Malware is active on this computer. Open Windows Security > Virus & threat protection > Protection history, apply the recommended action and run a full scan. Disconnect the computer from the network if it holds sensitive data.' = 'Na ovom računalu je aktivan zlonamjerni softver. Otvori Sigurnost u sustavu Windows > Zaštita od virusa i prijetnji > Povijest zaštite, primijeni preporučenu akciju i pokreni potpuno skeniranje. Odspoji računalo s mreže ako sadrži osjetljive podatke.'
+        'Turn on Windows Defender Firewall for this profile (Windows Security > Firewall & network protection), unless a third-party firewall is installed.' = 'Uključi Windows Defender vatrozid za ovaj profil (Sigurnost u sustavu Windows > Vatrozid i zaštita mreže), osim ako je instaliran vatrozid drugog proizvođača.'
+        'With UAC off every program runs with full rights without asking. Turn it on: Control Panel > User Accounts > Change User Account Control settings, move the slider up and restart the computer.' = 'Uz isključen UAC svaki program radi s punim pravima bez pitanja. Uključi ga: Upravljačka ploča > Korisnički računi > Promjena postavki Kontrole korisničkog računa, pomakni klizač prema gore i ponovno pokreni računalo.'
+        'The computer accepts Remote Desktop connections. If nobody needs to connect to it remotely, turn it off in Settings > System > Remote Desktop.' = 'Računalo prihvaća veze udaljene radne površine. Ako se nitko ne treba spajati na njega na daljinu, isključi to u Postavke > Sustav > Udaljena radna površina.'
+        'The signed-in user is a local administrator, so malware started by this user can take over the whole computer. For daily work a standard account is safer.' = 'Prijavljeni korisnik je lokalni administrator, pa zlonamjerni softver koji taj korisnik pokrene može preuzeti cijelo računalo. Za svakodnevni rad sigurniji je standardni račun.'
+        'Windows signs in without asking for a password, so anyone who switches the computer on can use that account. Turn it off: run "netplwiz" and tick "Users must enter a user name and password to use this computer".' = 'Windows se prijavljuje bez traženja lozinke, pa taj račun može koristiti svatko tko uključi računalo. Isključi to: pokreni "netplwiz" i označi "Korisnici moraju unijeti korisničko ime i lozinku za korištenje ovog računala".'
+        'Anyone can sign in with the Guest account without a password. An administrator should disable it: Computer Management > Local Users and Groups > Users > Guest > "Account is disabled".' = 'Računom Guest može se prijaviti bilo tko bez lozinke. Administrator bi ga trebao onemogućiti: Upravljanje računalom > Lokalni korisnici i grupe > Korisnici > Guest > "Račun je onemogućen".'
+        'The built-in Administrator account is a well-known target and is not protected by UAC prompts. Use a separate administrator account and keep this one disabled.' = 'Ugrađeni račun Administrator poznata je meta napada i ne štite ga UAC upiti. Koristi zaseban administratorski račun, a ovaj drži onemogućenim.'
+        'These folders can be reached from other computers on the network. Stop sharing the ones that are no longer needed: right-click the folder > Properties > Sharing.' = 'Ove mape dostupne su s drugih računala na mreži. Prekini dijeljenje onih koje više nisu potrebne: desni klik na mapu > Svojstva > Dijeljenje.'
+        'A program accepts connections on a port that should not be open: {0}. These services send passwords unencrypted or are a common way into a computer. Stop or uninstall the program unless it is really needed, and make sure the firewall is on.' = 'Program prihvaća veze na portu koji ne bi trebao biti otvoren: {0}. Ti servisi šalju lozinke nešifrirano ili su čest put ulaska u računalo. Zaustavi ili deinstaliraj program ako nije stvarno potreban i provjeri je li vatrozid uključen.'
+        'No backup of the personal files was found (neither File History nor OneDrive). If no other backup program is used, set one up: a disk can fail without warning. File History is in Control Panel > File History.' = 'Nije pronađena sigurnosna kopija osobnih datoteka (ni Povijest datoteka ni OneDrive). Ako se ne koristi neki drugi program za sigurnosne kopije, postavi ga: disk može otkazati bez upozorenja. Povijest datoteka je u Upravljačka ploča > Povijest datoteka.'
+        'System Restore is off, so Windows cannot be taken back to an earlier state after a bad driver or update. It can be turned on in System Properties > System Protection.' = 'Vraćanje sustava je isključeno, pa se Windows ne može vratiti na ranije stanje nakon lošeg drivera ili ažuriranja. Može se uključiti u Svojstva sustava > Zaštita sustava.'
+        'Secure Boot protects the startup process from tampering and is required by Windows 11. It can be turned on in the UEFI firmware settings.' = 'Secure Boot štiti postupak pokretanja od neovlaštenih izmjena i Windows 11 ga zahtijeva. Može se uključiti u UEFI postavkama firmwarea.'
+        'No TPM was found. Windows 11 and BitLocker need TPM 2.0; it can often be enabled in the UEFI firmware settings.' = 'TPM nije pronađen. Windows 11 i BitLocker trebaju TPM 2.0; često se može uključiti u UEFI postavkama firmwarea.'
+        'Enable the TPM in the UEFI firmware settings.'        = 'Uključi TPM u UEFI postavkama firmwarea.'
+        'The drive is not encrypted, so its data can be read by anyone who removes it from the computer. Consider turning on BitLocker, especially on laptops.' = 'Disk nije šifriran, pa njegove podatke može pročitati svatko tko ga izvadi iz računala. Razmisli o uključivanju BitLockera, osobito na prijenosnim računalima.'
+        'There were unusually many sign-ins with a wrong password. If the user did not cause them, someone may be guessing the password: change it and check which device keeps trying (Event Viewer > Windows Logs > Security, event 4625).' = 'Bilo je neobično mnogo prijava s pogrešnom lozinkom. Ako ih nije izazvao korisnik, netko možda pogađa lozinku: promijeni je i provjeri koji uređaj stalno pokušava (Preglednik događaja > Windows Logs > Security, događaj 4625).'
+        'An account was locked after too many wrong passwords. A common cause is an old password saved on a phone, in a mapped drive or in a scheduled task; update or remove it there.' = 'Račun je zaključan nakon previše pogrešnih lozinki. Čest uzrok je stara lozinka spremljena na mobitelu, u mapiranom disku ili u zakazanom zadatku; tamo je ažuriraj ili ukloni.'
+        'Check the network cable or Wi-Fi connection and make sure the adapter is enabled in Settings > Network & internet.' = 'Provjeri mrežni kabel ili Wi-Fi vezu i je li adapter uključen u Postavke > Mreža i internet.'
+        'The adapter has an automatic 169.254.x.x address, so no DHCP server answered. Check the cable or Wi-Fi connection and the router.' = 'Adapter ima automatsku adresu 169.254.x.x, što znači da se nijedan DHCP poslužitelj nije javio. Provjeri kabel ili Wi-Fi vezu i usmjernik.'
+        'This Wi-Fi network is not protected well: everybody nearby can read along or join it. Set the router to WPA2 or WPA3; on a public network, do not enter passwords on pages without https.' = 'Ova Wi-Fi mreža nije dobro zaštićena: svatko u blizini može čitati promet ili se spojiti. Postavi usmjernik na WPA2 ili WPA3; na javnoj mreži ne unosi lozinke na stranicama bez https-a.'
+        'The Wi-Fi signal is weak, which makes the connection slow and unstable. Move closer to the router, remove obstacles between them, or use a cable.' = 'Wi-Fi signal je slab, pa je veza spora i nestabilna. Približi se usmjerniku, ukloni prepreke između njih ili koristi kabel.'
+        'These names are not looked up in DNS but sent to the address written in the hosts file. If one of these sites does not open or shows the wrong content, remove its line from C:\Windows\System32\drivers\etc\hosts (needs administrator rights).' = 'Ova se imena ne traže u DNS-u, nego se šalju na adresu upisanu u datoteci hosts. Ako se neka od tih stranica ne otvara ili prikazuje pogrešan sadržaj, ukloni njezin redak iz C:\Windows\System32\drivers\etc\hosts (trebaju administratorska prava).'
+        'The router did not answer. Check the cable or Wi-Fi connection. If the tests below succeed, the router simply ignores ping.' = 'Usmjernik nije odgovorio. Provjeri kabel ili Wi-Fi vezu. Ako testovi ispod uspiju, usmjernik jednostavno ignorira ping.'
+        'No adapter has a default gateway, so the computer cannot reach other networks. Check the IP settings or DHCP.' = 'Nijedan adapter nema zadani gateway, pa računalo ne može do drugih mreža. Provjeri IP postavke ili DHCP.'
+        'The connection responds slowly. Check the Wi-Fi signal and whether something on the network is using all the bandwidth.' = 'Veza sporo odgovara. Provjeri Wi-Fi signal i troši li nešto na mreži svu propusnost.'
+        'No ping reply from the internet. Some networks block ping; the HTTPS test below shows whether the internet is really unreachable.' = 'Nema odgovora na ping s interneta. Neke mreže blokiraju ping; HTTPS test ispod pokazuje je li internet stvarno nedostupan.'
+        'Names cannot be resolved, so web sites will not open even if the connection works. Check the DNS servers of the adapter and try "ipconfig /flushdns".' = 'Imena se ne mogu razlučiti, pa se web stranice neće otvarati iako veza radi. Provjeri DNS poslužitelje adaptera i pokušaj "ipconfig /flushdns".'
+        'The clock of the computer is wrong, which breaks sign-in to company services and causes certificate errors in the browser. Open Settings > Time & language > Date & time and choose "Sync now".' = 'Sat računala je pogrešan, što onemogućuje prijavu na servise tvrtke i izaziva greške certifikata u pregledniku. Otvori Postavke > Vrijeme i jezik > Datum i vrijeme i odaberi "Sinkroniziraj sada".'
+        'No web access. Check the proxy settings, the firewall and whether the network needs a sign-in page. Error: {0}' = 'Nema pristupa webu. Provjeri postavke proxyja, vatrozid i traži li mreža stranicu za prijavu. Greška: {0}'
+        'A printer is set to work offline, so documents stay in the queue. Check that it is switched on and connected, then open Settings > Bluetooth & devices > Printers & scanners, open its print queue and turn off "Use Printer Offline".' = 'Pisač je postavljen na rad izvan mreže, pa dokumenti ostaju u redu. Provjeri je li uključen i spojen, zatim otvori Postavke > Bluetooth i uređaji > Pisači i skeneri, otvori njegov red za ispis i isključi "Koristi pisač izvan mreže".'
+        'Documents are stuck in the print queue and block everything behind them. Open the print queue of the printer and cancel them; if they do not disappear, restart the Print Spooler service (services.msc).' = 'Dokumenti su zaglavljeni u redu za ispis i blokiraju sve iza sebe. Otvori red za ispis pisača i otkaži ih; ako ne nestanu, ponovno pokreni servis Print Spooler (services.msc).'
+        'The service is disabled. Unless that was done on purpose, set its startup type back to the default in services.msc.' = 'Servis je onemogućen. Ako to nije napravljeno namjerno, vrati mu vrstu pokretanja na zadanu u services.msc.'
+        'The service should start automatically but is not running. Start it in services.msc and check the System event log for the reason it stopped.' = 'Servis bi se trebao pokretati automatski, ali ne radi. Pokreni ga u services.msc i u System logu provjeri zašto se zaustavio.'
+    }
+
+    Explain  = @{
+        # --- Explanations of the checks -------------------------------------------
+        'How often an account was locked because of too many wrong passwords.' = 'Koliko je puta račun zaključan zbog previše pogrešnih lozinki.'
+        'Whether the signed-in user is a standard user or a local administrator. An administrator account can change anything on the computer.' = 'Je li prijavljeni korisnik standardni korisnik ili lokalni administrator. Administratorski račun može promijeniti bilo što na računalu.'
+        'A network card (cable or Wi-Fi) and its settings: the IP address identifies the computer, the gateway is the router, DNS servers translate names and DHCP hands all of this out automatically. Speed is the link speed the card negotiated.' = 'Mrežna kartica (kabel ili Wi-Fi) i njezine postavke: IP adresa identificira računalo, gateway je usmjernik, DNS poslužitelji prevode imena, a DHCP sve to dodjeljuje automatski. Brzina je brzina veze koju je kartica dogovorila.'
+        'The accounts in the local Administrators group. Each of them has full control over the computer, so the list should be short.' = 'Računi u lokalnoj grupi Administrators. Svaki od njih ima potpunu kontrolu nad računalom, pa bi popis trebao biti kratak.'
+        'How often programs stopped working unexpectedly, and which ones. A program that crashes again and again needs an update or a reinstall.' = 'Koliko su često programi neočekivano prestali raditi i koji. Program koji se stalno ruši treba ažurirati ili ponovno instalirati.'
+        'The most severe events recorded by installed programs.' = 'Najteži događaji koje su zabilježili instalirani programi.'
+        'Errors recorded by installed programs, for example crashes and hangs.' = 'Greške koje su zabilježili instalirani programi, npr. rušenja i zamrzavanja.'
+        'The programs that logged the most errors. They show which application is causing trouble.' = 'Programi koji su zabilježili najviše grešaka. Pokazuju koja aplikacija stvara probleme.'
+        'Sound cards and other devices that play or record sound. Virtual devices are created by programs (voice changers, streaming tools) and are a common reason why sound comes out of the wrong device.' = 'Zvučne kartice i drugi uređaji koji reproduciraju ili snimaju zvuk. Virtualne uređaje stvaraju programi (mjenjači glasa, alati za streaming) i čest su razlog zašto zvuk izlazi na pogrešnom uređaju.'
+        'A Windows setting that signs a user in at startup without asking for a password. Anyone who switches the computer on gets into that account.' = 'Postavka Windowsa koja pri pokretanju prijavljuje korisnika bez traženja lozinke. Tko god uključi računalo, ulazi u taj račun.'
+        'The charge of the laptop battery and whether the charger is connected.' = 'Napunjenost baterije prijenosnog računala i je li punjač priključen.'
+        'How much charge the battery can still hold compared with when it was new. Every battery wears out with use; below about 60 % the running time is noticeably shorter.' = 'Koliko naboja baterija još može primiti u odnosu na vrijeme kad je bila nova. Svaka se baterija troši korištenjem; ispod otprilike 60 % vrijeme rada osjetno je kraće.'
+        'The firmware that starts the hardware before Windows loads. An outdated version can cause compatibility and stability problems.' = 'Firmware koji pokreće hardver prije učitavanja Windowsa. Zastarjela verzija može izazvati probleme s kompatibilnošću i stabilnošću.'
+        'Full-disk encryption built into Windows. If the computer is lost or stolen, the data on the drive cannot be read without the key.' = 'Šifriranje cijelog diska ugrađeno u Windows. Ako se računalo izgubi ili ukrade, podaci na disku ne mogu se pročitati bez ključa.'
+        'How often Windows itself crashed and showed the blue stop screen. It points to a faulty driver or failing hardware.' = 'Koliko se puta srušio sam Windows i prikazao plavi ekran. Upućuje na neispravan driver ili hardver koji otkazuje.'
+        'Add-ons installed in the browsers of the current user. An extension can read and change the pages that are opened, so unknown ones are a common cause of advertising, redirects and slow browsing.' = 'Dodaci instalirani u preglednicima trenutnog korisnika. Proširenje može čitati i mijenjati stranice koje se otvaraju, pa su nepoznata proširenja čest uzrok reklama, preusmjeravanja i sporog pregledavanja.'
+        'The administrator account every Windows installation has. It is disabled by default because it is a well-known target for attacks.' = 'Administratorski račun koji ima svaka instalacija Windowsa. Zadano je onemogućen jer je poznata meta napada.'
+        'How far the clock of the computer is from internet time. A wrong clock causes certificate errors in the browser and failed sign-ins.' = 'Koliko sat računala odstupa od internetskog vremena. Pogrešan sat izaziva greške certifikata u pregledniku i neuspjele prijave.'
+        'The name that identifies this computer on the network. Helpdesk uses it to find the right machine in the inventory and in remote support tools.' = 'Ime koje identificira ovo računalo na mreži. Helpdesk ga koristi da pronađe pravo računalo u inventaru i u alatima za udaljenu podršku.'
+        'Ping, DNS and HTTPS tests that show how far the network connection reaches.' = 'Ping, DNS i HTTPS testovi koji pokazuju dokle mrežna veza seže.'
+        'How busy the processor was while the check ran. Constantly high load makes the whole computer slow and the fans loud.' = 'Koliko je procesor bio zaposlen tijekom provjere. Stalno visoko opterećenje usporava cijelo računalo i čini ventilatore glasnima.'
+        'The browser that opens when a link is clicked in e-mail or another program.' = 'Preglednik koji se otvara kad se klikne poveznica u e-mailu ili drugom programu.'
+        'The printer that programs use when no other one is chosen. Printing to the wrong printer is often just a wrong default.' = 'Pisač koji programi koriste kad nije odabran neki drugi. Ispis na pogrešan pisač često je samo pogrešno postavljen zadani pisač.'
+        'The list of known threats the antivirus uses to recognize malware. It has to be updated often to catch new threats.' = 'Popis poznatih prijetnji po kojem antivirus prepoznaje zlonamjerni softver. Mora se često ažurirati da bi hvatao nove prijetnje.'
+        'When Microsoft Defender last scanned the computer for malware that is already on it. Real-time protection only checks files as they are opened.' = 'Kad je Microsoft Defender zadnji put skenirao računalo u potrazi za zlonamjernim softverom koji je već na njemu. Zaštita u stvarnom vremenu provjerava datoteke samo kad se otvaraju.'
+        'The part of Microsoft Defender Antivirus that scans files and programs the moment they are opened. Without it malware is not stopped in time.' = 'Dio Microsoft Defender antivirusa koji skenira datoteke i programe u trenutku otvaranja. Bez njega se zlonamjerni softver ne zaustavlja na vrijeme.'
+        'Hardware that Windows found but cannot use, shown with a yellow mark in Device Manager. Usually the driver is missing or failed to start.' = 'Hardver koji je Windows pronašao, ali ga ne može koristiti; u Upravitelju uređaja prikazan je žutom oznakom. Obično driver nedostaje ili se nije uspio pokrenuti.'
+        'A drive letter (partition) and its free space. Windows needs free space for updates, temporary files and virtual memory.' = 'Slovo diska (particija) i slobodan prostor na njemu. Windowsu treba slobodan prostor za ažuriranja, privremene datoteke i virtualnu memoriju.'
+        'Errors and warnings logged by the disk drivers and the file system, such as bad blocks and failed writes. They are an early sign of a failing drive or cable.' = 'Greške i upozorenja koja su zabilježili driveri diska i datotečni sustav, npr. loši blokovi i neuspjeli zapisi. Rani su znak diska ili kabela koji otkazuje.'
+        'A monitor connected to the computer: its model, manufacturer code and year of manufacture.' = 'Monitor spojen na računalo: model, oznaka proizvođača i godina proizvodnje.'
+        'DNS translates names such as microsoft.com into IP addresses. If it fails, web sites do not open even though the connection itself works.' = 'DNS prevodi imena poput microsoft.com u IP adrese. Ako ne radi, web stranice se ne otvaraju iako sama veza radi.'
+        'Whether the computer is managed centrally in a company domain or stands alone in a workgroup. It decides where user accounts and policies come from.' = 'Upravlja li se računalom centralno u domeni tvrtke ili stoji samostalno u radnoj grupi. O tome ovisi odakle dolaze korisnički računi i pravila.'
+        'Everything the user has downloaded and never moved or deleted. Old installers and duplicates here are a common reason for a full disk.' = 'Sve što je korisnik preuzeo i nikad nije premjestio ni obrisao. Stari instalacijski programi i duplikati ovdje su čest razlog punog diska.'
+        'A physical SSD or hard disk and the health state it reports about itself. A drive that reports problems can fail and take the data with it.' = 'Fizički SSD ili tvrdi disk i stanje zdravlja koje sam o sebi javlja. Pogon koji javlja probleme može otkazati i odnijeti podatke sa sobom.'
+        'What a drive measures about itself (SMART): its temperature, how much of its rated lifetime is used up, how long it has been powered on and how many read or write errors it could not correct.' = 'Što pogon mjeri o sebi (SMART): temperaturu, koliko je predviđenog životnog vijeka potrošeno, koliko je dugo bio uključen i koliko grešaka čitanja ili pisanja nije uspio ispraviti.'
+        'The programs that let Windows use the hardware.'      = 'Programi koji Windowsu omogućuju korištenje hardvera.'
+        'How often somebody tried to sign in with a wrong password. A few are mistyped passwords; many can mean someone is guessing passwords.' = 'Koliko se puta netko pokušao prijaviti pogrešnom lozinkom. Nekoliko su pogrešno utipkane lozinke; mnogo njih može značiti da netko pogađa lozinke.'
+        'Updates whose last installation attempt failed, with the error code Windows recorded. Windows tries again automatically; an update that keeps failing leaves the computer without that fix.' = 'Ažuriranja čiji zadnji pokušaj instalacije nije uspio, s kodom greške koji je Windows zabilježio. Windows automatski pokušava ponovno; ažuriranje koje stalno ne uspijeva ostavlja računalo bez tog popravka.'
+        'With Fast Startup, "Shut down" saves the core of Windows to disk so the next start is quicker. Windows is then not really restarted, which is why "Restart" is the cure for many problems and "Shut down" is not.' = 'Uz Brzo pokretanje "Isključi" sprema jezgru Windowsa na disk da sljedeće pokretanje bude brže. Windows se tada zapravo ne pokreće iznova, pa je "Ponovno pokreni" lijek za mnoge probleme, a "Isključi" nije.'
+        'The backup of personal files that is built into Windows. It copies documents, pictures and the desktop to another drive at regular intervals.' = 'Sigurnosno kopiranje osobnih datoteka ugrađeno u Windows. U redovitim razmacima kopira dokumente, slike i radnu površinu na drugi disk.'
+        'Whether Windows has flagged a drive as possibly damaged and in need of a disk check. A drive is flagged after a crash or power loss while data was being written.' = 'Je li Windows označio disk kao moguće oštećen i kojem treba provjera. Disk se označava nakon rušenja ili nestanka struje dok su se podaci zapisivali.'
+        'Windows Defender Firewall blocks unwanted incoming network connections.' = 'Windows Defender vatrozid blokira neželjene dolazne mrežne veze.'
+        'The firewall rules used while the computer is connected to the company domain network. The firewall blocks unwanted incoming connections.' = 'Pravila vatrozida koja vrijede dok je računalo spojeno na domensku mrežu tvrtke. Vatrozid blokira neželjene dolazne veze.'
+        'The firewall rules used on networks marked as private, such as a home or small office network.' = 'Pravila vatrozida koja vrijede na mrežama označenim kao privatne, npr. kućna mreža ili mreža manjeg ureda.'
+        'The firewall rules used on public networks such as cafes and airports, where the protection matters most.' = 'Pravila vatrozida koja vrijede na javnim mrežama, npr. u kafićima i zračnim lukama, gdje je zaštita najvažnija.'
+        'The graphics adapter draws everything shown on the screen. Its own memory holds the picture data of games and video; the driver version and date matter when the picture flickers or video and games misbehave.' = 'Grafička kartica crta sve što se prikazuje na ekranu. Njezina vlastita memorija drži slikovne podatke igara i videa; verzija i datum drivera važni su kad slika treperi ili video i igre rade neispravno.'
+        'A built-in account without a password, meant for visitors. Left enabled, it lets anyone use the computer.' = 'Ugrađeni račun bez lozinke, namijenjen gostima. Ako ostane uključen, bilo tko može koristiti računalo.'
+        'Errors that the hardware itself reported to Windows (WHEA), for example a faulty memory module or an overheating processor.' = 'Greške koje je sam hardver prijavio Windowsu (WHEA), npr. neispravan memorijski modul ili procesor koji se pregrijava.'
+        'The file hiberfil.sys on the system disk, into which Windows saves the memory for hibernation and for Fast Startup. It is several gigabytes large and cannot be deleted like a normal file.' = 'Datoteka hiberfil.sys na sistemskom disku, u koju Windows sprema memoriju za hibernaciju i za Brzo pokretanje. Velika je nekoliko gigabajta i ne može se obrisati kao obična datoteka.'
+        'A local list that maps names to IP addresses and is consulted before DNS. An entry there can redirect or block a web site on this computer only.' = 'Lokalni popis koji imena povezuje s IP adresama i gleda se prije DNS-a. Unos u njemu može preusmjeriti ili blokirati web stranicu samo na ovom računalu.'
+        'A real web request over an encrypted connection. It confirms that the computer can actually reach web sites.' = 'Stvarni web zahtjev preko šifrirane veze. Potvrđuje da računalo zaista može doći do web stranica.'
+        'The keyboards and pointing devices (mouse, touchpad) that Windows recognizes.' = 'Tipkovnice i pokazivački uređaji (miš, touchpad) koje Windows prepoznaje.'
+        'The printers set up on this computer, including virtual ones such as "Microsoft Print to PDF".' = 'Pisači postavljeni na ovom računalu, uključujući virtualne poput "Microsoft Print to PDF".'
+        'The programs listed under Installed apps in Settings. Useful to see what is on the computer and which versions.' = 'Programi navedeni pod Instalirane aplikacije u Postavkama. Korisno da se vidi što je na računalu i u kojim verzijama.'
+        'The folders and files that take up the most space on a disk that is running full. Folders inside the profile of the current user are listed one by one.' = 'Mape i datoteke koje zauzimaju najviše prostora na disku koji se puni. Mape unutar profila trenutnog korisnika navedene su pojedinačno.'
+        'The most recent Windows update on this computer. Updates close security holes, so a long gap leaves the computer exposed.' = 'Najnovije ažuriranje Windowsa na ovom računalu. Ažuriranja zatvaraju sigurnosne rupe, pa dug razmak ostavlja računalo izloženim.'
+        'How long Windows needed to start the last time it measured it, from power-on until the desktop was usable. A slow startup is usually caused by too many startup programs or a slow disk.' = 'Koliko je Windowsu trebalo da se pokrene zadnji put kad je to izmjerio, od uključivanja do upotrebljive radne površine. Sporo pokretanje obično izaziva previše programa pri pokretanju ili spor disk.'
+        'Network ports on which a program of this computer waits for connections from other computers. Ports that only accept connections from this computer itself are not counted.' = 'Mrežni portovi na kojima program na ovom računalu čeka veze s drugih računala. Portovi koji prihvaćaju veze samo s ovog računala ne broje se.'
+        'The user accounts that exist on this computer itself (not in a company domain) and can sign in.' = 'Korisnički računi koji postoje na samom računalu (ne u domeni tvrtke) i mogu se prijaviti.'
+        'Who made the computer and which model it is. Needed to find drivers, spare parts and warranty information.' = 'Tko je proizveo računalo i koji je model. Potrebno za pronalaženje drivera, rezervnih dijelova i podataka o jamstvu.'
+        'Shared folders on a server that appear as a drive letter. They are reconnected at every sign-in.' = 'Dijeljene mape na poslužitelju koje se pojavljuju kao slovo diska. Ponovno se spajaju pri svakoj prijavi.'
+        'RAM is the short-term working memory of running programs. The module layout and the free slots show whether more memory can be added.' = 'RAM je kratkoročna radna memorija pokrenutih programa. Raspored modula i slobodni utori pokazuju može li se dodati još memorije.'
+        'One installed RAM module: the slot it sits in, its size, type and speed, the manufacturer and the part number. A module that is added later should match the existing ones.' = 'Jedan ugrađeni RAM modul: utor u kojem se nalazi, veličina, vrsta i brzina, proizvođač i kataloški broj. Modul koji se naknadno dodaje trebao bi odgovarati postojećima.'
+        'How much of the installed RAM is in use. When it is nearly full, Windows moves data to the much slower disk and everything starts to lag.' = 'Koliko je ugrađenog RAM-a zauzeto. Kad je skoro pun, Windows seli podatke na puno sporiji disk i sve počinje zastajkivati.'
+        'The antivirus built into Windows.'                    = 'Antivirus ugrađen u Windows.'
+        'The main board that all other components plug into. Its model decides which processors, memory and expansion cards are supported.' = 'Glavna ploča na koju se spajaju sve ostale komponente. O modelu ovisi koji su procesori, memorija i kartice za proširenje podržani.'
+        'The network cards of the computer. Without an active adapter there is no network connection.' = 'Mrežne kartice računala. Bez aktivnog adaptera nema mrežne veze.'
+        'How Windows classifies each connected network. Public hides the computer and uses the strictest firewall rules; Private is for a trusted home or office network; Domain is a company network.' = 'Kako Windows razvrstava svaku spojenu mrežu. Javna skriva računalo i koristi najstroža pravila vatrozida; Privatna je za pouzdanu kućnu ili uredsku mrežu; Domenska je mreža tvrtke.'
+        'Drivers of graphics cards, network adapters, sound cards, printers and similar devices that have not been updated for years. Drivers that come with Windows are not listed.' = 'Driveri grafičkih kartica, mrežnih adaptera, zvučnih kartica, pisača i sličnih uređaja koji godinama nisu ažurirani. Driveri koji dolaze s Windowsom nisu navedeni.'
+        'The cloud storage of Microsoft. Files in the OneDrive folder are also stored online, so they survive a broken disk.' = 'Microsoftova pohrana u oblaku. Datoteke u mapi OneDrive spremljene su i na internetu, pa preživljavaju kvar diska.'
+        'The Windows edition, feature release and build. It decides which features and security updates the computer can receive.' = 'Izdanje Windowsa, verzija i build. O tome ovisi koje značajke i sigurnosna ažuriranja računalo može dobiti.'
+        'A CD, DVD or Blu-ray drive, and the drive letter Windows gave it.' = 'CD, DVD ili Blu-ray pogon i slovo diska koje mu je Windows dodijelio.'
+        'A file on the disk that Windows uses as extra memory when the RAM is full. Heavy use means the computer is short of memory and slow.' = 'Datoteka na disku koju Windows koristi kao dodatnu memoriju kad je RAM pun. Veliko zauzeće znači da računalu nedostaje memorije i da je sporo.'
+        'Whether Windows is waiting for a restart to finish installing updates. Until then the updates are not fully applied.' = 'Čeka li Windows restart da dovrši instalaciju ažuriranja. Do tada ažuriranja nisu u potpunosti primijenjena.'
+        'Updates that Windows Update has already found but not installed yet, according to the last search Windows made by itself.' = 'Ažuriranja koja je Windows Update već pronašao, ali ih još nije instalirao, prema zadnjoj pretrazi koju je Windows sam napravio.'
+        'A test message sent to the router. A reply means the connection between the computer and the local network works.' = 'Probna poruka poslana usmjerniku. Odgovor znači da veza između računala i lokalne mreže radi.'
+        'A test message sent to a public server. A reply means traffic gets past the router and out to the internet.' = 'Probna poruka poslana javnom poslužitelju. Odgovor znači da promet prolazi kroz usmjernik i izlazi na internet.'
+        'The set of power settings in use. "Power saver" slows the processor down to save energy; "High performance" keeps it fast and uses more power.' = 'Skup postavki napajanja koji se koristi. "Power saver" usporava procesor radi štednje energije; "High performance" ga drži brzim i troši više energije.'
+        'The documents waiting to be printed. One stuck document blocks every document behind it.' = 'Dokumenti koji čekaju ispis. Jedan zaglavljeni dokument blokira sve dokumente iza sebe.'
+        'The processor (CPU) executes every program. More cores and a higher clock speed let the computer do more work at the same time.' = 'Procesor (CPU) izvršava svaki program. Više jezgri i viši takt omogućuju računalu da istodobno obavi više posla.'
+        'The cache is very fast memory inside the processor; a larger cache helps demanding programs. Hardware virtualization is needed by virtual machines, WSL 2, Windows Sandbox and Android emulators, and is switched on in the BIOS/UEFI setup.' = 'Predmemorija (cache) je vrlo brza memorija unutar procesora; veća predmemorija pomaže zahtjevnim programima. Hardverska virtualizacija potrebna je virtualnim strojevima, WSL-u 2, Windows Sandboxu i Android emulatorima, a uključuje se u BIOS/UEFI postavkama.'
+        'A server that web traffic can be routed through. A wrong or leftover proxy setting stops browsers from reaching the internet.' = 'Poslužitelj kroz koji se može usmjeravati web promet. Pogrešna ili zaostala postavka proxyja sprječava preglednike da dođu do interneta.'
+        'Programs installed in the last weeks. When a problem is new, something installed recently is a likely cause.' = 'Programi instalirani u zadnjih nekoliko tjedana. Kad je problem nov, vjerojatan uzrok je nešto nedavno instalirano.'
+        'Deleted files still take up disk space until the Recycle Bin is emptied.' = 'Obrisane datoteke i dalje zauzimaju prostor na disku dok se Koš za smeće ne isprazni.'
+        'A Windows feature that lets someone sign in to this computer from another one. Handy for support, but an open door if it is not needed.' = 'Značajka Windowsa koja nekome omogućuje prijavu na ovo računalo s drugog računala. Zgodno za podršku, ali otvorena vrata ako nije potrebno.'
+        'Tasks that Windows starts by itself at a set time or event and that were not created by Windows: updaters and helpers of installed programs, and sometimes unwanted software that wants to come back after every restart.' = 'Zadaci koje Windows sam pokreće u zadano vrijeme ili na neki događaj, a koje nije stvorio Windows: programi za ažuriranje i pomoćni programi instaliranog softvera, a ponekad i neželjeni softver koji se želi vratiti nakon svakog restarta.'
+        'A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.' = 'UEFI značajka koja dopušta da računalo pokrene samo pouzdan, potpisan softver. Štiti od zlonamjernog softvera koji se učitava prije Windowsa.'
+        'The unique number the manufacturer gave this computer. It is used for warranty claims and asset tracking.' = 'Jedinstveni broj koji je proizvođač dodijelio ovom računalu. Koristi se za reklamacije u jamstvu i evidenciju opreme.'
+        'Background Intelligent Transfer Service downloads updates in the background using idle bandwidth. It only runs when needed.' = 'Background Intelligent Transfer Service preuzima ažuriranja u pozadini koristeći neiskorištenu propusnost. Radi samo kad je potreban.'
+        'DHCP Client asks the router for an IP address and network settings. If it is stopped, the computer cannot join a network automatically.' = 'DHCP Client traži od usmjernika IP adresu i mrežne postavke. Ako je zaustavljen, računalo se ne može automatski spojiti na mrežu.'
+        'DNS Client translates names into IP addresses and remembers the answers. Without it web sites and network shares cannot be found by name.' = 'DNS Client prevodi imena u IP adrese i pamti odgovore. Bez njega se web stranice i mrežne mape ne mogu pronaći po imenu.'
+        'Windows Event Log records what happens on the system. Many other services and all troubleshooting tools depend on it.' = 'Windows Event Log bilježi što se događa na sustavu. O njemu ovise mnogi drugi servisi i svi alati za otklanjanje problema.'
+        'Workstation lets the computer connect to shared folders and printers on other computers.' = 'Workstation omogućuje računalu spajanje na dijeljene mape i pisače na drugim računalima.'
+        'Windows Defender Firewall filters network traffic and blocks unwanted incoming connections.' = 'Windows Defender Firewall filtrira mrežni promet i blokira neželjene dolazne veze.'
+        'Print Spooler manages print jobs and sends them to the printers. If it is stopped, nothing can be printed.' = 'Print Spooler upravlja zadacima ispisa i šalje ih pisačima. Ako je zaustavljen, ništa se ne može ispisati.'
+        'Microsoft Defender Antivirus Service protects the computer from malware. It is stopped when another antivirus is installed.' = 'Microsoft Defender Antivirus Service štiti računalo od zlonamjernog softvera. Zaustavljen je kad je instaliran drugi antivirus.'
+        'Windows Update finds, downloads and installs updates. It only runs when needed, so finding it stopped is normal.' = 'Windows Update pronalazi, preuzima i instalira ažuriranja. Radi samo kad je potreban, pa je normalno da je zaustavljen.'
+        'Folders on this computer that other computers on the network can open.' = 'Mape na ovom računalu koje mogu otvoriti druga računala na mreži.'
+        'The account that is using the computer right now. Problems are often tied to one user profile rather than to the whole machine.' = 'Račun koji trenutno koristi računalo. Problemi su često vezani uz jedan korisnički profil, a ne uz cijelo računalo.'
+        'The size of the places where disk space is usually recovered first.' = 'Veličina mjesta na kojima se prostor na disku obično prvo oslobađa.'
+        'The score Windows itself keeps in Reliability Monitor, from 1 (unstable) to 10 (stable). It drops after crashes, hangs and failed installations and recovers while the computer runs without problems.' = 'Ocjena koju sam Windows vodi u Monitoru pouzdanosti, od 1 (nestabilno) do 10 (stabilno). Pada nakon rušenja, zamrzavanja i neuspjelih instalacija, a oporavlja se dok računalo radi bez problema.'
+        'Programs that start automatically when the user signs in. Each one makes sign-in slower and keeps using memory in the background.' = 'Programi koji se automatski pokreću kad se korisnik prijavi. Svaki usporava prijavu i nastavlja trošiti memoriju u pozadini.'
+        'A physical drive built into or connected to the computer: its model, size, type (SSD or HDD), connection and firmware version. The health of the drives is reported under Hardware.' = 'Fizički pogon ugrađen u računalo ili spojen na njega: model, veličina, vrsta (SSD ili HDD), priključak i verzija firmwarea. Zdravlje pogona prikazano je pod Hardver.'
+        'The most severe events recorded by Windows itself and its drivers, such as crashes and sudden power loss.' = 'Najteži događaji koje su zabilježili sam Windows i njegovi driveri, npr. rušenja i nagli nestanak napajanja.'
+        'Errors recorded by Windows components, drivers and services. A few are normal; many from one source point to a recurring problem.' = 'Greške koje su zabilježile komponente Windowsa, driveri i servisi. Nekoliko ih je normalno; mnogo njih iz jednog izvora upućuje na problem koji se ponavlja.'
+        'The components that logged the most errors. They show where to start looking in Event Viewer.' = 'Komponente koje su zabilježile najviše grešaka. Pokazuju odakle krenuti u Pregledniku događaja.'
+        'Lets Windows return to an earlier state of its system files, drivers and settings. Personal files are not touched, so it is no replacement for a backup.' = 'Omogućuje da se Windows vrati na ranije stanje sistemskih datoteka, drivera i postavki. Osobne datoteke se ne diraju, pa nije zamjena za sigurnosnu kopiju.'
+        'Temporary files that Windows and installers leave in C:\Windows\Temp. They are safe to remove with Disk Cleanup.' = 'Privremene datoteke koje Windows i instalacijski programi ostavljaju u C:\Windows\Temp. Sigurno ih je ukloniti alatom Čišćenje diska.'
+        'A Defender setting that stops programs, including malware, from switching the antivirus off or changing its settings.' = 'Postavka Defendera koja sprječava programe, uključujući zlonamjerni softver, da isključe antivirus ili mu promijene postavke.'
+        'Files that programs left in the temporary folder of the user. They are safe to remove and often the quickest way to free space on a full disk.' = 'Datoteke koje su programi ostavili u privremenoj mapi korisnika. Sigurno ih je ukloniti i često su najbrži način da se oslobodi prostor na punom disku.'
+        'Services that start together with Windows and were installed by other programs. Each one runs in the background all the time and uses some memory.' = 'Servisi koji se pokreću zajedno s Windowsom, a instalirali su ih drugi programi. Svaki stalno radi u pozadini i troši nešto memorije.'
+        'Malware and unwanted programs that Microsoft Defender has found on this computer, and whether any of them is still active.' = 'Zlonamjerni i neželjeni programi koje je Microsoft Defender pronašao na ovom računalu i je li neki od njih još aktivan.'
+        'The time zone the clock is set to. A wrong time zone shifts meeting times and can make sign-in to online services fail.' = 'Vremenska zona na koju je sat postavljen. Pogrešna zona pomiče vrijeme sastanaka i može onemogućiti prijavu na internetske servise.'
+        'The programs that hold the most RAM right now. This is the first place to look when memory usage is high.' = 'Programi koji trenutno drže najviše RAM-a. Ovo je prvo mjesto koje treba pogledati kad je zauzeće memorije visoko.'
+        'A security chip that stores encryption keys safely. BitLocker and Windows Hello rely on it, and Windows 11 requires version 2.0.' = 'Sigurnosni čip koji sigurno čuva ključeve šifriranja. Na njega se oslanjaju BitLocker i Windows Hello, a Windows 11 zahtijeva verziju 2.0.'
+        'How often the computer went off without a proper shutdown (power loss, crash, forced power-off). It risks data loss and points to power or stability problems.' = 'Koliko se puta računalo ugasilo bez pravilnog gašenja (nestanak struje, rušenje, prisilno gašenje). To nosi rizik gubitka podataka i upućuje na probleme s napajanjem ili stabilnošću.'
+        'A driver is the program that lets Windows use a device. Its digital signature proves who made it and that it was not changed afterwards.' = 'Driver je program koji Windowsu omogućuje korištenje uređaja. Njegov digitalni potpis dokazuje tko ga je napravio i da nakon toga nije mijenjan.'
+        'Whether Windows Update was paused in Settings. While it is paused no security updates are installed.' = 'Je li Windows Update pauziran u Postavkama. Dok je pauziran, sigurnosna ažuriranja se ne instaliraju.'
+        'The time since Windows was last started. A restart clears the memory, finishes updates and resets drivers, so a long uptime is a common cause of slowness.' = 'Vrijeme od zadnjeg pokretanja Windowsa. Restart čisti memoriju, dovršava ažuriranja i resetira drivere, pa je dugo vrijeme rada čest uzrok sporosti.'
+        'UAC asks for confirmation before a program can make changes to Windows. It stops programs from silently taking administrator rights.' = 'UAC traži potvrdu prije nego što program smije raditi promjene u Windowsu. Sprječava programe da potiho uzmu administratorska prava.'
+        'The folders under C:\Users where each user keeps documents, downloads and program settings, and how much space each one takes.' = 'Mape pod C:\Users u kojima svaki korisnik drži dokumente, preuzimanja i postavke programa, te koliko prostora svaka zauzima.'
+        'The wireless network the computer is connected to: signal strength, frequency band, Wi-Fi standard and how the connection is encrypted.' = 'Bežična mreža na koju je računalo spojeno: jačina signala, frekvencijski pojas, Wi-Fi standard i način šifriranja veze.'
+        'Activation confirms that this copy of Windows has a valid license. Without it Windows shows reminders and locks the personalization settings.' = 'Aktivacija potvrđuje da ova kopija Windowsa ima valjanu licencu. Bez nje Windows prikazuje podsjetnike i zaključava postavke personalizacije.'
+        'The date this Windows installation was set up. An old installation tends to collect leftover software and settings.' = 'Datum kad je ova instalacija Windowsa postavljena. Stara instalacija sklona je nakupljanju zaostalog softvera i postavki.'
+        'Whether Microsoft still releases security updates for this Windows version. A version that is out of support stays vulnerable to every newly found security hole.' = 'Izdaje li Microsoft još sigurnosna ažuriranja za ovu verziju Windowsa. Verzija bez podrške ostaje ranjiva na svaku novootkrivenu sigurnosnu rupu.'
+    }
+
+    Patterns = @(
+        # Whole values that consist of a fixed text and numbers or names
+        @{ Match = '^None in the last (\d+) days$'; Text = 'Nema u zadnjih $1 dana' },
+        @{ Match = '^None older than (\d+) years$'; Text = 'Nema starijih od $1 godina' },
+        @{ Match = '^Supported until (\S+) \((\d+) days left\)$'; Text = 'Podržano do $1 (još $2 dana)' },
+        @{ Match = '^Supported until (\S+)$'; Text = 'Podržano do $1' },
+        @{ Match = '^Out of support since (\S+)$'; Text = 'Bez podrške od $1' },
+        @{ Match = '^No end date known for version (.+)$'; Text = 'Nije poznat datum kraja podrške za verziju $1' },
+        @{ Match = '^(\S+) on (\d{4}-\d{2}-\d{2}) \((\d+) days ago\)$'; Text = '$1, $2 (prije $3 dana)' },
+        @{ Match = '^(\d+) days? ago$'; Text = 'prije $1 dana' },
+        @{ Match = '^(\d+) days? old \(updated (.+)\)$'; Text = 'stare $1 dana (ažurirano $2)' },
+        @{ Match = '^(\d+) seconds \(measured (\S+)\)$'; Text = '$1 sekundi (izmjereno $2)' },
+        @{ Match = '^Yes \((.+)\)$'; Text = 'Da ($1)' },
+        @{ Match = '^Yes, until (\S+)$'; Text = 'Da, do $1' },
+        @{ Match = '^Disabled \(third-party antivirus: (.+)\)$'; Text = 'Isključeno (drugi antivirus: $1)' },
+        @{ Match = '^Enabled, version (.+)$'; Text = 'Uključen, verzija $1' },
+        @{ Match = '^Present but disabled, version (.+)$'; Text = 'Postoji, ali je isključen, verzija $1' },
+        @{ Match = '^Set up, saves to (.+)$'; Text = 'Postavljeno, sprema na $1' },
+        @{ Match = '^On, (\d+) restore points, newest from (\S+)$'; Text = 'Uključeno, točaka vraćanja: $1, najnovija od $2' },
+        @{ Match = '^Possible errors on (.+)$'; Text = 'Moguće greške na $1' },
+        @{ Match = '^No errors flagged \((.+)\)$'; Text = 'Nema označenih grešaka ($1)' },
+        @{ Match = '^(.+) replied in (.+)$'; Text = '$1 odgovara za $2' },
+        @{ Match = '^(.+) did not reply$'; Text = '$1 ne odgovara' },
+        @{ Match = '^(.+) could not be resolved$'; Text = '$1 nije moguće razlučiti' },
+        @{ Match = '^(.+) not reachable$'; Text = '$1 nije dostupan' },
+        @{ Match = '^(.+) reachable \((.+)\)$'; Text = '$1 dostupan ($2)' },
+        @{ Match = '^Differs from internet time by (\d+) seconds?$'; Text = 'Odstupa od internetskog vremena $1 s' },
+        @{ Match = '^Differs from internet time by (.+) minutes$'; Text = 'Odstupa od internetskog vremena $1 min' },
+        @{ Match = '^(\d+) documents? waiting'; Text = 'Dokumenata na čekanju: $1' },
+        @{ Match = '^(\d+) printers, (\d+) offline: '; Text = 'Pisači ($1), izvan mreže $2: ' },
+        @{ Match = '^Running \(start mode: (\w+)\)$'; Text = 'Radi (pokretanje: $1)' },
+        @{ Match = '^Stopped \(start mode: (\w+)\)$'; Text = 'Zaustavljen (pokretanje: $1)' },
+        @{ Match = '^(\d+) ports open to the network: '; Text = 'Portovi otvoreni prema mreži ($1): ' },
+        @{ Match = '^(\d+) found earlier and handled: '; Text = 'Ranije pronađeno i riješeno ($1): ' },
+        @{ Match = '^(\d+) active: '; Text = 'Aktivne prijetnje ($1): ' },
+        @{ Match = '^(\d+) enabled: '; Text = 'Uključeni računi ($1): ' },
+        @{ Match = '^(\d+) members: '; Text = 'Članovi ($1): ' },
+        @{ Match = '^(\d+) profiles: '; Text = 'Profili ($1): ' },
+        @{ Match = '^(\d+) custom entries: '; Text = 'Vlastiti unosi ($1): ' },
+        @{ Match = '^(\d+) programs\b'; Text = 'Programi ($1)' },
+        @{ Match = '^(\d+) tasks?\b'; Text = 'Zadaci ($1)' },
+        @{ Match = '^(\d+) drivers?\b'; Text = 'Driveri ($1)' },
+        @{ Match = '^(\d+) updates?\b'; Text = 'Ažuriranja ($1)' },
+        @{ Match = '^(\d+) services?\b'; Text = 'Servisi ($1)' },
+        @{ Match = '^(\d+) extensions\b'; Text = 'Proširenja ($1)' },
+        @{ Match = '^(\d+) devices\b'; Text = 'Uređaji ($1)' },
+        @{ Match = '^(\d+) printers\b'; Text = 'Pisači ($1)' },
+        @{ Match = '^Domain: '; Text = 'Domena: ' },
+        @{ Match = '^Workgroup: '; Text = 'Radna grupa: ' },
+        @{ Match = '^Manual proxy: '; Text = 'Ručni proxy: ' },
+        @{ Match = '^Automatic configuration script: '; Text = 'Skripta za automatsko podešavanje: ' },
+        @{ Match = '^temperature up to (.+), lifetime used up to (\d+) %, 0 uncorrected errors$'; Text = 'temperatura do $1, potrošeni vijek do $2 %, 0 neispravljenih grešaka' },
+        @{ Match = '^step (\d+) of (\d+)$'; Text = 'korak $1 od $2' },
+        @{ Match = '^(\d+) % \((.+) of (.+) used\)$'; Text = '$1 % (zauzeto $2 od $3)' },
+        @{ Match = '^([\d.]+) % free \((.+) of (.+)\)$'; Text = '$1 % slobodno ($2 od $3)' },
+        @{ Match = '^(.+) of 10$'; Text = '$1 od 10' },
+
+        # Pieces that can stand anywhere in a value
+        @{ Match = ' and (\d+) more$'; Text = ' i još $1' },
+        @{ Match = ' and (\d+) virtual$'; Text = ' i virtualnih: $1' },
+        @{ Match = ' in the last (\d+) days'; Text = ' u zadnjih $1 dana' },
+        @{ Match = ' in the last day'; Text = ' u zadnjem danu' },
+        @{ Match = ' or more\b'; Text = ' ili više' },
+        @{ Match = ' in (\d+) files$'; Text = ' u $1 datoteka' },
+        @{ Match = 'health: Healthy'; Text = 'stanje: ispravno' },
+        @{ Match = 'health: Warning'; Text = 'stanje: upozorenje' },
+        @{ Match = 'health: Unhealthy'; Text = 'stanje: neispravno' },
+        @{ Match = 'health: Unknown'; Text = 'stanje: nepoznato' },
+        @{ Match = 'Unknown type'; Text = 'nepoznata vrsta' },
+        @{ Match = '\(disabled\)'; Text = '(onemogućeno)' },
+        @{ Match = '\(not running\)'; Text = '(ne radi)' },
+        @{ Match = '\(virtual\)'; Text = '(virtualni)' },
+        @{ Match = '\(offline\)'; Text = '(izvan mreže)' },
+        @{ Match = ' \(error (0x[0-9A-Fa-f]+)\)'; Text = ' (greška $1)' },
+        @{ Match = '(\d+) cores / (\d+) threads'; Text = '$1 jezgri / $2 niti' },
+        @{ Match = 'L(\d) cache '; Text = 'L$1 predmemorija ' },
+        @{ Match = 'virtualization enabled in firmware'; Text = 'virtualizacija uključena u firmwareu' },
+        @{ Match = 'virtualization in use by a hypervisor'; Text = 'virtualizaciju koristi hipervizor' },
+        @{ Match = 'virtualization disabled in firmware'; Text = 'virtualizacija isključena u firmwareu' },
+        @{ Match = '(\d+) of (\d+) slots used'; Text = 'zauzeto $1 od $2 utora' },
+        @{ Match = ' memory \(driver '; Text = ' memorije (driver ' },
+        @{ Match = '\(driver (\S+) from (\S+)\)'; Text = '(driver $1 od $2)' },
+        @{ Match = ', (\w+) mode$'; Text = ', način rada $1' },
+        @{ Match = ' % of its lifetime used'; Text = ' % životnog vijeka potrošeno' },
+        @{ Match = ' hours powered on'; Text = ' sati rada' },
+        @{ Match = ' uncorrected errors'; Text = ' neispravljenih grešaka' },
+        @{ Match = ' % \(plugged in\)'; Text = ' % (na punjaču)' },
+        @{ Match = ' % \(on battery\)'; Text = ' % (na bateriji)' },
+        @{ Match = ' % of the original capacity \((\d+) of (\d+) mWh\)'; Text = ' % izvornog kapaciteta ($1 od $2 mWh)' },
+        @{ Match = ', (\d+) charge cycles'; Text = ', ciklusa punjenja: $1' },
+        @{ Match = ', most for: '; Text = ', najviše za: ' },
+        @{ Match = ', (\d+) stuck: '; Text = ', zaglavljenih $1: ' },
+        @{ Match = 'DHCP: Yes'; Text = 'DHCP: Da' },
+        @{ Match = 'DHCP: No'; Text = 'DHCP: Ne' },
+        @{ Match = 'Speed: '; Text = 'Brzina: ' },
+        @{ Match = ': none\b'; Text = ': nema' },
+        @{ Match = ': Public \('; Text = ': Javna (' },
+        @{ Match = ': Private \('; Text = ': Privatna (' },
+        @{ Match = ': Domain \('; Text = ': Domenska (' },
+        @{ Match = ' % signal'; Text = ' % signala' },
+        @{ Match = 'security: Open'; Text = 'zaštita: nema (otvorena mreža)' },
+        @{ Match = 'security: '; Text = 'zaštita: ' },
+        @{ Match = '^signal (\d+) - 100 %$'; Text = 'signal $1 - 100 %' },
+        @{ Match = 'Component servicing'; Text = 'servisiranje komponenti' },
+
+        # Allowed ranges and typical values
+        @{ Match = '\(critical above (.+)\)'; Text = '(kritično iznad $1)' },
+        @{ Match = '\(critical below (.+)\)'; Text = '(kritično ispod $1)' },
+        @{ Match = '% free\b'; Text = '% slobodno' },
+        @{ Match = '(\d) days\b'; Text = '$1 dana' },
+        @{ Match = '(\d) seconds\b'; Text = '$1 sekundi' },
+        @{ Match = ' per week\b'; Text = ' tjedno' },
+        @{ Match = ' when idle\b'; Text = ' u mirovanju' },
+        @{ Match = '^under '; Text = 'ispod ' }
+    )
+}
