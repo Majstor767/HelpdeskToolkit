@@ -36,6 +36,24 @@ function ConvertTo-HealthReportHtml {
         if ($ShowCategory) {
             $check = '{0} <span class="category-label">({1})</span>' -f $check, (ConvertTo-HtmlEncodedText -Text $Result.Category)
         }
+
+        # What the checked thing is. Left out of the problem list to keep it short;
+        # the same row with its explanation appears in the category card below.
+        $description = if ($Result.Description -and -not $ShowCategory) {
+            '<div class="description">{0}</div>' -f (ConvertTo-HtmlEncodedText -Text $Result.Description)
+        }
+        else {
+            ''
+        }
+
+        # Items that did not fit into the value. <details> is plain HTML that opens
+        # and closes on click, so no script is needed.
+        $details = ''
+        $items = @($Result.Details)
+        if ($items.Count -gt 0) {
+            $listItems = ($items | ForEach-Object { '<li>{0}</li>' -f (ConvertTo-HtmlEncodedText -Text $_) }) -join ''
+            $details = '<details><summary>Show {0} more</summary><ul>{1}</ul></details>' -f $items.Count, $listItems
+        }
         $recommendation = if ($Result.Recommendation) {
             '<div class="recommendation">{0}</div>' -f (ConvertTo-HtmlEncodedText -Text $Result.Recommendation)
         }
@@ -58,8 +76,8 @@ function ConvertTo-HealthReportHtml {
             ''
         }
 
-        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check check">{2}</td><td><div class="value">{3}</div>{4}{5}</td></tr>' -f `
-            $statusClass, $Result.Status, $check, (ConvertTo-HtmlEncodedText -Text $Result.Value), $reference, $recommendation
+        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check"><div class="check">{2}</div>{3}</td><td><div class="value">{4}</div>{5}{6}{7}</td></tr>' -f `
+            $statusClass, $Result.Status, $check, $description, (ConvertTo-HtmlEncodedText -Text $Result.Value), $details, $reference, $recommendation
     }
 
     $tableHead = '<thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>'

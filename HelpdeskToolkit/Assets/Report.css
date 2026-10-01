@@ -283,10 +283,61 @@ tbody tr:nth-child(even) {
 }
 
 .col-status { width: 120px; }
-.col-check { width: 32%; }
+.col-check { width: 36%; }
 
 .check {
     font-weight: 600;
+}
+
+.description {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+details {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+summary {
+    display: inline-block;
+    padding: 1px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--info);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::after {
+    content: " +";
+}
+
+details[open] summary::after {
+    content: " -";
+}
+
+summary:hover {
+    border-color: var(--info);
+}
+
+details ul {
+    margin: 8px 0 4px;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+}
+
+details li {
+    break-inside: avoid;
 }
 
 .value {
