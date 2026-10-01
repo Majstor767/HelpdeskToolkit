@@ -30,7 +30,9 @@
 
     PrivateData          = @{
         PSData = @{
-            Tags = @('Helpdesk', 'Diagnostics', 'HealthCheck', 'Windows', 'ITSupport')
+            Tags       = @('Helpdesk', 'Diagnostics', 'HealthCheck', 'Windows', 'ITSupport')
+            ProjectUri = 'https://github.com/Majstor767/HelpdeskToolkit'
+            LicenseUri = 'https://github.com/Majstor767/HelpdeskToolkit/blob/main/LICENSE'
         }
     }
 }
