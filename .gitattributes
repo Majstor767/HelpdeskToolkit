@@ -1,2 +1,5 @@
 # Let git normalize line endings so the repo is identical on every machine.
 * text=auto
+
+# Batch files only work reliably with Windows line endings, also in a downloaded ZIP.
+*.cmd text eol=crlf
