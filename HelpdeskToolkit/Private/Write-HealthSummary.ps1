@@ -53,6 +53,10 @@ function Write-HealthSummary {
     }
     Write-Host ''
 
+    if (-not $Report.IsElevated) {
+        Write-Host 'Run without administrator rights: checks marked "Requires admin" were skipped.' -ForegroundColor DarkGray
+    }
+
     foreach ($path in $ReportPath) {
         Write-Host ('Report saved: {0}' -f $path) -ForegroundColor DarkGray
     }

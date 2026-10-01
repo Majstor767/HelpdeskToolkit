@@ -12,7 +12,13 @@
     # Listed explicitly (no wildcards) so the module auto-loads quickly and
     # nothing internal is exported by accident.
     FunctionsToExport    = @(
+        'Get-EventLogHealth'
+        'Get-HardwareHealth'
+        'Get-NetworkHealth'
+        'Get-SecurityHealth'
+        'Get-ServiceHealth'
         'Get-SystemHealth'
+        'Get-WindowsUpdateHealth'
         'Invoke-PCHealthCheck'
     )
     CmdletsToExport      = @()
