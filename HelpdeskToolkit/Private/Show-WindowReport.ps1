@@ -98,7 +98,7 @@ function Show-WindowReport {
                     Change     = Get-LocalizedText $_.Change
                     # Decides the color of the badge: red for what got worse, green otherwise
                     Level      = if ($_.Change -in 'New problem', 'Worse') { 'Worse' } else { 'Better' }
-                    Text       = '{0} / {1}' -f (Get-LocalizedText $_.Category), $_.Check
+                    Text       = '{0} / {1}' -f (Get-LocalizedText $_.Category), (Get-LocalizedCheckName $_.Check)
                     Transition = '{0} -> {1}' -f (Get-LocalizedText $_.Before), (Get-LocalizedText $_.After)
                 }
             }

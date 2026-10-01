@@ -31,14 +31,7 @@ function ConvertTo-WindowItem {
     )
 
     process {
-        # A name like "Disk (C:)" or "Adapter: Contoso Ethernet" is translated by its
-        # first part; the rest is a name that stays as it is.
-        $check = Get-LocalizedText $Result.Check
-        if ($check -eq $Result.Check -and $Result.Check -match '^(.*?)(\s*[:(].*)$') {
-            $prefix = $Matches[1]
-            $suffix = $Matches[2]
-            $check = '{0}{1}' -f (Get-LocalizedText $prefix), $suffix
-        }
+        $check = Get-LocalizedCheckName $Result.Check
 
         $reference = @()
         if ($Result.Allowed) {

@@ -132,6 +132,35 @@ Describe 'Get-LocalizedText' {
     }
 }
 
+Describe 'Get-LocalizedCheckName' {
+    It 'translates the name of a check' {
+        InModuleScope HelpdeskToolkit { Get-LocalizedCheckName 'Memory usage' } | Should -Be 'Zauzeće memorije'
+    }
+
+    It 'translates only the first part of a name that ends with the name of a thing' {
+        InModuleScope HelpdeskToolkit { Get-LocalizedCheckName 'Drive: Contoso NVMe 256GB' } | Should -Be 'Pogon: Contoso NVMe 256GB'
+        InModuleScope HelpdeskToolkit { Get-LocalizedCheckName 'Largest folders (C:)' } | Should -Match '^\S.* \(C:\)$'
+        InModuleScope HelpdeskToolkit { Get-LocalizedCheckName 'Largest folders (C:)' } | Should -Not -Match 'Largest'
+    }
+
+    It 'returns an unknown name unchanged' {
+        InModuleScope HelpdeskToolkit { Get-LocalizedCheckName 'Contoso Agent (ContosoSvc)' } | Should -Be 'Contoso Agent (ContosoSvc)'
+    }
+
+    It 'names the checks in the list of changes in the language of the window' -Skip:([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
+        $before = New-TestReport -Result @(New-TestResult -Category 'Hardware' -Check 'Memory usage' -Status 'OK')
+        $after = New-TestReport -Result @(New-TestResult -Category 'Hardware' -Check 'Memory usage' -Status 'Warning')
+
+        $text = InModuleScope HelpdeskToolkit -Parameters @{ Before = $before; After = $after } {
+            $gui = New-HealthCheckWindow
+            Show-WindowReport -Gui $gui -Report $After -Previous $Before
+            @($gui.Controls.ChangesItems.ItemsSource).Text
+        }
+
+        $text | Should -Be 'Hardver / Zauzeće memorije'
+    }
+}
+
 Describe 'Import-TranslationTable' {
     It 'returns empty tables for a language without a file, so the window falls back to English' {
         $table = InModuleScope HelpdeskToolkit { Import-TranslationTable -Language 'xx' }
