@@ -6,10 +6,10 @@
     "IsElevated":  false,
     "EventLogDays":  7,
     "Summary":  {
-                    "OK":  42,
-                    "Warning":  11,
+                    "OK":  45,
+                    "Warning":  12,
                     "Critical":  1,
-                    "Info":  31
+                    "Info":  40
                 },
     "Results":  [
                     {
@@ -172,6 +172,32 @@
                         "Recommendation":  ""
                     },
                     {
+                        "Category":  "System",
+                        "Check":  "Last startup duration",
+                        "Description":  "How long Windows needed to start the last time it measured it, from power-on until the desktop was usable. A slow startup is usually caused by too many startup programs or a slow disk.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "User profiles",
+                        "Description":  "The folders under C:\\Users where each user keeps documents, downloads and program settings, and how much space each one takes.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
                         "Category":  "Specifications",
                         "Check":  "Processor",
                         "Description":  "The processor (CPU) executes every program. More cores and a higher clock speed let the computer do more work at the same time.",
@@ -203,6 +229,19 @@
                         "Description":  "The graphics adapter draws everything shown on the screen. The driver version matters when the picture flickers or video and games misbehave.",
                         "Status":  "Info",
                         "Value":  "Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Display",
+                        "Description":  "A monitor connected to the computer: its model, manufacturer code and year of manufacture.",
+                        "Status":  "Info",
+                        "Value":  "Contoso 24W (CTS, 2023)",
                         "Details":  [
 
                                     ],
@@ -394,6 +433,45 @@
                     },
                     {
                         "Category":  "Hardware",
+                        "Check":  "Drive details",
+                        "Description":  "What a drive measures about itself (SMART): its temperature, how much of its rated lifetime is used up, how long it has been powered on and how many read or write errors it could not correct.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "File system",
+                        "Description":  "Whether Windows has flagged a drive as possibly damaged and in need of a disk check. A drive is flagged after a crash or power loss while data was being written.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "Hardware",
+                        "Check":  "System temporary files",
+                        "Description":  "Temporary files that Windows and installers leave in C:\\Windows\\Temp. They are safe to remove with Disk Cleanup.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "Hardware",
                         "Check":  "Devices with problems",
                         "Description":  "Hardware that Windows found but cannot use, shown with a yellow mark in Device Manager. Usually the driver is missing or failed to start.",
                         "Status":  "OK",
@@ -490,6 +568,32 @@
                         "Category":  "Event Log",
                         "Check":  "Blue screens",
                         "Description":  "How often Windows itself crashed and showed the blue stop screen. It points to a faulty driver or failing hardware.",
+                        "Status":  "OK",
+                        "Value":  "0 in the last 7 days",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0",
+                        "Typical":  "0",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Event Log",
+                        "Check":  "Disk errors",
+                        "Description":  "Errors and warnings logged by the disk drivers and the file system, such as bad blocks and failed writes. They are an early sign of a failing drive or cable.",
+                        "Status":  "Warning",
+                        "Value":  "3 in the last 7 days",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0",
+                        "Typical":  "0",
+                        "Recommendation":  "The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run \"chkdsk /scan\" as administrator. Repeated errors usually mean the drive or its cable is failing."
+                    },
+                    {
+                        "Category":  "Event Log",
+                        "Check":  "Hardware errors",
+                        "Description":  "Errors that the hardware itself reported to Windows (WHEA), for example a faulty memory module or an overheating processor.",
                         "Status":  "OK",
                         "Value":  "0 in the last 7 days",
                         "Details":  [
@@ -670,6 +774,19 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "Threat history",
+                        "Description":  "Malware and unwanted programs that Microsoft Defender has found on this computer, and whether any of them is still active.",
+                        "Status":  "OK",
+                        "Value":  "No threats found",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Firewall - Domain profile",
                         "Description":  "The firewall rules used while the computer is connected to the company domain network. The firewall blocks unwanted incoming connections.",
                         "Status":  "OK",
@@ -739,6 +856,32 @@
                         "Description":  "Whether the signed-in user is a standard user or a local administrator. An administrator account can change anything on the computer.",
                         "Status":  "OK",
                         "Value":  "Standard user",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Administrators",
+                        "Description":  "The accounts in the local Administrators group. Each of them has full control over the computer, so the list should be short.",
+                        "Status":  "Info",
+                        "Value":  "2 members: Domain Admins, support",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Automatic sign-in",
+                        "Description":  "A Windows setting that signs a user in at startup without asking for a password. Anyone who switches the computer on gets into that account.",
+                        "Status":  "OK",
+                        "Value":  "Disabled",
                         "Details":  [
 
                                     ],
@@ -822,7 +965,7 @@
                                     ],
                         "Allowed":  "",
                         "Typical":  "",
-                        "Recommendation":  "Run PowerShell as administrator to include this check."
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
                     },
                     {
                         "Category":  "Security",
@@ -835,7 +978,33 @@
                                     ],
                         "Allowed":  "",
                         "Typical":  "",
-                        "Recommendation":  "Run PowerShell as administrator to include this check."
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Failed sign-ins",
+                        "Description":  "How often somebody tried to sign in with a wrong password. A few are mistyped passwords; many can mean someone is guessing passwords.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Account lockouts",
+                        "Description":  "How often an account was locked because of too many wrong passwords.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
                     },
                     {
                         "Category":  "Network",

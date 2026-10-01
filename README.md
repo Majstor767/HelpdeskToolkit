@@ -20,23 +20,37 @@ problems it found and what to do about them.
 
 | Category | Checks |
 |---|---|
-| System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs |
-| Specifications | Processor, memory modules and free slots, graphics adapters, motherboard, BIOS/UEFI, serial number |
-| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, space that can be freed (temporary files, Downloads, Recycle Bin), page file, devices without a working driver, battery |
+| System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs, last startup duration\*, size of the user profiles\* |
+| Specifications | Processor, memory modules and free slots, graphics adapters, displays, motherboard, BIOS/UEFI, serial number |
+| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, space that can be freed (temporary files, Downloads, Recycle Bin), page file, devices without a working driver, battery, drive details (temperature, wear, power-on hours, uncorrected errors)\*, drives flagged for a disk check\*, temporary files of Windows\* |
 | Software | Installed programs with versions, recently installed programs, application crashes per program, default browser |
-| Event Log | Unexpected shutdowns, blue screens, critical events and errors in the System and Application logs for the last N days, top sources |
+| Event Log | Unexpected shutdowns, blue screens, disk errors, hardware errors (WHEA), critical events and errors in the System and Application logs for the last N days, top sources |
 | Windows Update | Last installed update, pending restart, paused updates |
-| Security | Microsoft Defender real-time protection, definition age, tamper protection and last scan, firewall profiles, User Account Control, Remote Desktop, account type, local accounts and the Guest account, shared folders, Secure Boot, TPM\*, BitLocker\* |
+| Security | Microsoft Defender real-time protection, definition age, tamper protection, last scan and threat history, firewall profiles, User Account Control, Remote Desktop, account type, members of the Administrators group, automatic sign-in, local accounts and the Guest account, shared folders, Secure Boot, TPM\*, BitLocker on every drive\*, failed sign-ins\*, account lockouts\* |
 | Network | Adapters (IPv4, gateway, DNS, DHCP, MAC, link speed), network profile, proxy, hosts file, mapped network drives, ping to the gateway and to the internet, DNS resolution, HTTPS access, clock accuracy |
 | Printers | Default printer, installed printers and offline ones, documents stuck in the print queue |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
-\* needs administrator rights; otherwise marked "Requires admin".
+\* needs administrator rights; otherwise marked "Requires admin". See [Administrator rights](#administrator-rights).
 
 Every result has a status (**OK**, **Warning**, **Critical** or **Info**), a short
 explanation of what the checked thing is, and a recommended fix whenever the status is
 Warning or Critical. Measurements also show the allowed range and a typical value for
 comparison.
+
+## Administrator rights
+
+The tool works without administrator rights. Windows only shows some information to
+administrators; those checks are then skipped and marked "Requires admin".
+
+To include them, click **Restart as administrator** in the window, or start PowerShell
+with "Run as administrator" before using the commands. Windows asks for confirmation
+(User Account Control); the tool cannot elevate itself. With administrator rights it is
+still read-only.
+
+If the confirmation is given with the account of another person (for example an IT
+administrator on the computer of a standard user), the checks that describe a user
+(startup programs, proxy, mapped drives, temporary files) describe that account.
 
 ## The report
 

@@ -36,6 +36,10 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
 & $module {
     param($Folder)
 
+    # The sample shows a run without administrator rights. The text of a skipped check
+    # is taken from the module, so the sample always shows the current wording.
+    $adminOnly = (New-AdminRequiredResult -Category 'Sample' -Check 'Sample').Recommendation
+
     # Category, Check, Status, Value, Recommendation
     $rows = @(
         , @('System', 'Computer name', 'Info', 'FIN-LT-014', '')
@@ -50,10 +54,13 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'Stability index', 'OK', '7.4 of 10', '')
         , @('System', 'Windows activation', 'OK', 'Activated', '')
         , @('System', 'Startup programs', 'OK', '12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more', '')
+        , @('System', 'Last startup duration', 'Info', 'Requires admin', $adminOnly)
+        , @('System', 'User profiles', 'Info', 'Requires admin', $adminOnly)
 
         , @('Specifications', 'Processor', 'Info', 'Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz', '')
         , @('Specifications', 'Memory', 'Info', '16 GB (2 x 8 GB DDR4, 3200 MHz), 2 of 2 slots used', '')
         , @('Specifications', 'Graphics', 'Info', 'Contoso Graphics 770 (driver 31.0.101.5186), 1920 x 1080 @ 60 Hz', '')
+        , @('Specifications', 'Display', 'Info', 'Contoso 24W (CTS, 2023)', '')
         , @('Specifications', 'Motherboard', 'Info', 'Contoso Ltd. 0A1B2C', '')
         , @('Specifications', 'BIOS', 'Info', 'Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode', '')
         , @('Specifications', 'Serial number', 'Info', 'CNT4012XYZ', '')
@@ -69,6 +76,9 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Downloads folder', 'Info', '11.2 GB in 348 files', '')
         , @('Hardware', 'Recycle Bin', 'OK', '1.3 GB', '')
         , @('Hardware', 'Page file', 'OK', '34 % (1632 MB of 4800 MB used)', '')
+        , @('Hardware', 'Drive details', 'Info', 'Requires admin', $adminOnly)
+        , @('Hardware', 'File system', 'Info', 'Requires admin', $adminOnly)
+        , @('Hardware', 'System temporary files', 'Info', 'Requires admin', $adminOnly)
         , @('Hardware', 'Devices with problems', 'OK', 'None', '')
         , @('Hardware', 'Battery', 'OK', '64 % (plugged in)', '')
 
@@ -79,6 +89,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
 
         , @('Event Log', 'Unexpected shutdowns', 'Warning', '2 in the last 7 days', 'The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.')
         , @('Event Log', 'Blue screens', 'OK', '0 in the last 7 days', '')
+        , @('Event Log', 'Disk errors', 'Warning', '3 in the last 7 days', 'The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run "chkdsk /scan" as administrator. Repeated errors usually mean the drive or its cable is failing.')
+        , @('Event Log', 'Hardware errors', 'OK', '0 in the last 7 days', '')
         , @('Event Log', 'System log - critical events', 'Warning', '2 in the last 7 days', 'Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) > Windows Logs > System and filter by level Critical.')
         , @('Event Log', 'System log - errors', 'OK', '31 in the last 7 days', '')
         , @('Event Log', 'System log - top sources', 'Info', 'Service Control Manager (14), Microsoft-Windows-DistributedCOM (11), disk (4), Microsoft-Windows-Kernel-Power (2), Netwtw14 (2)', '')
@@ -94,19 +106,24 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Security', 'Defender definitions', 'OK', '1 day old (updated 2026-09-29 06:12)', '')
         , @('Security', 'Tamper protection', 'OK', 'Enabled', '')
         , @('Security', 'Defender last scan', 'OK', '3 days ago', '')
+        , @('Security', 'Threat history', 'OK', 'No threats found', '')
         , @('Security', 'Firewall - Domain profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Private profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Public profile', 'Warning', 'Disabled', 'Turn on Windows Defender Firewall for this profile (Windows Security > Firewall & network protection), unless a third-party firewall is installed.')
         , @('Security', 'User Account Control', 'OK', 'Enabled', '')
         , @('Security', 'Remote Desktop', 'OK', 'Disabled', '')
         , @('Security', 'Account type', 'OK', 'Standard user', '')
+        , @('Security', 'Administrators', 'Info', '2 members: Domain Admins, support', '')
+        , @('Security', 'Automatic sign-in', 'OK', 'Disabled', '')
         , @('Security', 'Local accounts', 'Info', '1 enabled: support', '')
         , @('Security', 'Guest account', 'OK', 'Disabled', '')
         , @('Security', 'Built-in Administrator account', 'OK', 'Disabled', '')
         , @('Security', 'Shared folders', 'OK', 'None', '')
         , @('Security', 'Secure Boot', 'OK', 'Enabled', '')
-        , @('Security', 'TPM', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
-        , @('Security', 'BitLocker (C:)', 'Info', 'Requires admin', 'Run PowerShell as administrator to include this check.')
+        , @('Security', 'TPM', 'Info', 'Requires admin', $adminOnly)
+        , @('Security', 'BitLocker (C:)', 'Info', 'Requires admin', $adminOnly)
+        , @('Security', 'Failed sign-ins', 'Info', 'Requires admin', $adminOnly)
+        , @('Security', 'Account lockouts', 'Info', 'Requires admin', $adminOnly)
 
         , @('Network', 'Adapter: Contoso Wi-Fi 6 AX200 160MHz', 'Info', 'IPv4: 10.20.30.57 | Gateway: 10.20.30.1 | DNS: 10.20.30.10, 10.20.30.11 | DHCP: Yes | MAC: 00:00:5E:00:53:2A | Speed: 867 Mbps', '')
         , @('Network', 'Network profile', 'Info', 'Wi-Fi: Domain (corp.contoso.example)', '')
@@ -162,6 +179,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Recycle Bin'                       = @((Format-AllowedRange -Warning $limits.Cleanup.RecycleBinWarningGb -Unit 'GB'), '')
         'Page file'                         = @((Format-AllowedRange -Warning $limits.PageFile.WarningPercent -Unit '%'), $limits.PageFile.Typical)
         'Clock accuracy'                    = @((Format-AllowedRange -Warning $limits.Network.ClockWarningSeconds -Unit 'seconds'), $limits.Network.TypicalClock)
+        'Disk errors'                       = @((Format-AllowedRange -Warning $limits.EventLog.DiskErrorWarningAbove), '0')
+        'Hardware errors'                   = @((Format-AllowedRange -Warning $limits.EventLog.HardwareErrorWarningAbove), '0')
     }
 
     # Items behind the "Show N more" section, by check name.

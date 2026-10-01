@@ -22,23 +22,37 @@ Sučelje i izvještaj su na engleskom jeziku.
 
 | Kategorija | Provjere |
 |---|---|
-| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom |
-| Specifications | Procesor, memorijski moduli i slobodni utori, grafičke kartice, matična ploča, BIOS/UEFI, serijski broj |
-| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), page file, uređaji bez ispravnog drivera, baterija |
+| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\* |
+| Specifications | Procesor, memorijski moduli i slobodni utori, grafičke kartice, monitori, matična ploča, BIOS/UEFI, serijski broj |
+| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), page file, uređaji bez ispravnog drivera, baterija, detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\* |
 | Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, zadani preglednik |
-| Event Log | Neočekivana gašenja, plavi ekrani, kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
+| Event Log | Neočekivana gašenja, plavi ekrani, greške diska, greške hardvera (WHEA), kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
 | Windows Update | Zadnje instalirano ažuriranje, čeka li se restart, jesu li ažuriranja pauzirana |
-| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena i zadnje skeniranje Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, lokalni računi i račun Guest, dijeljene mape, Secure Boot, TPM\*, BitLocker\* |
+| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\* |
 | Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), mrežni profil, proxy, hosts datoteka, mapirani mrežni diskovi, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup, točnost sata |
 | Printers | Zadani pisač, instalirani pisači i oni koji su offline, dokumenti zaglavljeni u redu za ispis |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler |
 
-\* traži administratorska prava; inače je označeno s "Requires admin".
+\* traži administratorska prava; inače je označeno s "Requires admin". Vidi [Administratorska prava](#administratorska-prava).
 
 Svaki rezultat ima status (**OK**, **Warning**, **Critical** ili **Info**), kratko
 objašnjenje što je to što se provjerava i preporučeno rješenje kad god je status Warning
 ili Critical. Uz mjerenja se prikazuju i dopušteni raspon te tipična vrijednost za
 usporedbu.
+
+## Administratorska prava
+
+Alat radi bez administratorskih prava. Dio podataka Windows prikazuje samo
+administratorima; te se provjere tada preskaču i označavaju s "Requires admin".
+
+Da ih uključiš, u prozoru klikni **Restart as administrator** ili pokreni PowerShell s
+"Pokreni kao administrator" prije korištenja naredbi. Windows traži potvrdu (User
+Account Control); alat sam sebi ne može dati ta prava. I s administratorskim pravima
+alat samo čita.
+
+Ako se potvrda da računom druge osobe (npr. IT administrator na računalu običnog
+korisnika), provjere koje opisuju korisnika (programi pri pokretanju, proxy, mapirani
+diskovi, privremene datoteke) opisuju taj račun.
 
 ## Izvještaj
 
