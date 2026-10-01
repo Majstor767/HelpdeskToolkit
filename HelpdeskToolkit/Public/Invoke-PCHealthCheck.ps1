@@ -66,59 +66,15 @@ function Invoke-PCHealthCheck {
         [switch]$PassThru
     )
 
-    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    $startedAt = Get-Date
-
-    # Category name -> function that produces its results, with its parameters.
-    $checks = [ordered]@{
-        'System'         = @{ Command = 'Get-SystemHealth'; Parameters = @{} }
-        'Specifications' = @{ Command = 'Get-ComputerSpecification'; Parameters = @{} }
-        'Hardware'       = @{ Command = 'Get-HardwareHealth'; Parameters = @{} }
-        'Event Log'      = @{ Command = 'Get-EventLogHealth'; Parameters = @{ Days = $Days } }
-        'Windows Update' = @{ Command = 'Get-WindowsUpdateHealth'; Parameters = @{} }
-        'Security'       = @{ Command = 'Get-SecurityHealth'; Parameters = @{} }
-        'Network'        = @{ Command = 'Get-NetworkHealth'; Parameters = @{ SkipConnectivity = $SkipNetwork.IsPresent } }
-        'Services'       = @{ Command = 'Get-ServiceHealth'; Parameters = @{} }
-    }
-
-    $activity = 'PC Health Check'
-    $completed = 0
-    $results = foreach ($category in $checks.Keys) {
-        Write-Progress -Activity $activity -Status $category -PercentComplete ($completed / $checks.Count * 100)
-        $completed++
-
-        $command = $checks[$category].Command
-        $parameters = $checks[$category].Parameters
-        try {
-            & $command @parameters -ErrorAction Stop
-        }
-        catch {
-            # One broken category must not take the whole report down with it.
-            New-FailureResult -Category $category -Check 'Check execution' -ErrorRecord $_
-        }
-    }
-    Write-Progress -Activity $activity -Completed
-    $results = @($results)
-
-    $stopwatch.Stop()
-
-    $report = [PSCustomObject]@{
-        ToolVersion     = $ExecutionContext.SessionState.Module.Version.ToString()
-        ComputerName    = $env:COMPUTERNAME
-        GeneratedAt     = $startedAt.ToString('yyyy-MM-dd HH:mm:ss')
-        DurationSeconds = [math]::Round($stopwatch.Elapsed.TotalSeconds, 1)
-        IsElevated      = Test-IsAdministrator
-        EventLogDays    = $Days
-        Summary         = Get-HealthSummary -Result $results
-        Results         = $results
-    }
+    $report = Get-PCHealthReport -Days $Days -SkipNetwork:$SkipNetwork
+    $results = @($report.Results)
 
     $outputFolder = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputPath)
+    $basePath = Join-Path -Path $outputFolder -ChildPath (Get-ReportFileName -Report $report)
     if (-not (Test-Path -LiteralPath $outputFolder)) {
         New-Item -Path $outputFolder -ItemType Directory -Force | Out-Null
     }
 
-    $basePath = Join-Path -Path $outputFolder -ChildPath ('PCHealth_{0}_{1:yyyyMMdd-HHmmss}' -f $env:COMPUTERNAME, $startedAt)
     $reportPaths = @()
     $htmlPath = $null
 

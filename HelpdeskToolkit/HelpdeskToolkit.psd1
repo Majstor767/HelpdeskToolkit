@@ -16,6 +16,7 @@
         'Get-EventLogHealth'
         'Get-HardwareHealth'
         'Get-NetworkHealth'
+        'Get-PCHealthReport'
         'Get-SecurityHealth'
         'Get-ServiceHealth'
         'Get-SystemHealth'
