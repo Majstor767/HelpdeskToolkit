@@ -25,7 +25,7 @@ function Get-EventLogHealth {
         Summarizes the last 30 days.
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
+        Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -112,14 +112,18 @@ function Get-EventLogHealth {
             -Value ('{0} {1}' -f $errorCount, $period) -Recommendation $recommendation `
             -Allowed (Format-AllowedRange -Warning $thresholds.ErrorEventWarningAbove) -Typical $thresholds.TypicalErrorEvents
 
-        $topSources = @(
+        # The five busiest sources go into the value; any others are kept as details.
+        $sources = @(
             $entries |
                 Group-Object -Property ProviderName |
                 Sort-Object -Property Count -Descending |
-                Select-Object -First 5 |
                 ForEach-Object { '{0} ({1})' -f $_.Name, $_.Count }
         )
-        $topValue = if ($topSources.Count -gt 0) { $topSources -join ', ' } else { 'None' }
-        New-CheckResult -Category $category -Check "$logName log - top sources" -Status Info -Value $topValue
+        $otherSources = @($sources | Select-Object -Skip 5)
+        $topValue = if ($sources.Count -gt 0) { ($sources | Select-Object -First 5) -join ', ' } else { 'None' }
+        if ($otherSources.Count -gt 0) {
+            $topValue = '{0} and {1} more' -f $topValue, $otherSources.Count
+        }
+        New-CheckResult -Category $category -Check "$logName log - top sources" -Status Info -Value $topValue -Details $otherSources
     }
 }

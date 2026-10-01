@@ -26,7 +26,7 @@ function Get-SystemHealth {
         Shows only the checks that have an actual verdict (OK, Warning or Critical).
     .OUTPUTS
         HelpdeskToolkit.CheckResult
-        Objects with the properties Category, Check, Status, Value, Allowed, Typical and Recommendation.
+        Objects with the properties Category, Check, Description, Status, Value, Details, Allowed, Typical and Recommendation.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
@@ -105,13 +105,16 @@ function Get-SystemHealth {
         $programs = @(Get-CimInstance -ClassName Win32_StartupCommand -ErrorAction Stop |
                 ForEach-Object { [string]$_.Name -replace '_[0-9A-Fa-f]{16,}$', '' } | Sort-Object -Unique)
 
+        # The first few names go into the value; the rest is kept as details, which
+        # the HTML report shows in an expandable list.
         $shown = 8
+        $remaining = @($programs | Select-Object -Skip $shown)
         $value = '{0} programs' -f $programs.Count
         if ($programs.Count -gt 0) {
             $value = '{0}: {1}' -f $value, (($programs | Select-Object -First $shown) -join ', ')
         }
-        if ($programs.Count -gt $shown) {
-            $value = '{0} and {1} more' -f $value, ($programs.Count - $shown)
+        if ($remaining.Count -gt 0) {
+            $value = '{0} and {1} more' -f $value, $remaining.Count
         }
 
         $status = Get-ThresholdStatus -Value $programs.Count -Warning $thresholds.Startup.WarningProgramCount
@@ -122,7 +125,7 @@ function Get-SystemHealth {
             ''
         }
         New-CheckResult -Category $category -Check 'Startup programs' -Status $status -Value $value -Recommendation $recommendation `
-            -Allowed (Format-AllowedRange -Warning $thresholds.Startup.WarningProgramCount) -Typical $thresholds.Startup.Typical
+            -Details $remaining -Allowed (Format-AllowedRange -Warning $thresholds.Startup.WarningProgramCount) -Typical $thresholds.Startup.Typical
     }
     catch {
         New-FailureResult -Category $category -Check 'Startup programs' -ErrorRecord $_
