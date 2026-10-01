@@ -4,9 +4,10 @@ function Get-NetworkHealth {
         Reports the network configuration and tests connectivity step by step.
     .DESCRIPTION
         Configuration (read from WMI, nothing is sent over the network):
-        every active adapter with its IPv4 address, default gateway, DNS servers and
-        whether the address comes from DHCP. An automatic 169.254.x.x address (APIPA)
-        is reported as a Warning because it means no DHCP server answered.
+        every active adapter with its IPv4 address, default gateway, DNS servers, MAC
+        address and whether the address comes from DHCP, plus the proxy setting of
+        the current user. An automatic 169.254.x.x address (APIPA) is reported as a
+        Warning because it means no DHCP server answered.
 
         Connectivity tests, in the order a technician would troubleshoot:
         1. ping the default gateway  - is the local network working?
@@ -64,6 +65,7 @@ function Get-NetworkHealth {
                 'Gateway: {0}' -f $(if ($gateways.Count -gt 0) { $gateways -join ', ' } else { 'none' })
                 'DNS: {0}' -f $(if ($dnsServers.Count -gt 0) { $dnsServers -join ', ' } else { 'none' })
                 'DHCP: {0}' -f $(if ($adapter.DHCPEnabled) { 'Yes' } else { 'No' })
+                'MAC: {0}' -f $(if ($adapter.MACAddress) { $adapter.MACAddress } else { 'none' })
             )
 
             $isApipa = @($ipv4 | Where-Object { $_ -like '169.254.*' }).Count -gt 0
@@ -83,6 +85,8 @@ function Get-NetworkHealth {
     catch {
         New-FailureResult -Category $category -Check 'Network adapters' -ErrorRecord $_
     }
+
+    New-CheckResult -Category $category -Check 'Proxy' -Status Info -Value (Get-ProxySetting)
 
     if ($SkipConnectivity) {
         New-CheckResult -Category $category -Check 'Connectivity tests' -Status Info -Value 'Skipped'
