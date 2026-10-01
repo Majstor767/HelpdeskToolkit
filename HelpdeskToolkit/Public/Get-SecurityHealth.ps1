@@ -35,7 +35,7 @@ function Get-SecurityHealth {
 
     # Microsoft Defender
     try {
-        $defender = Get-MpComputerStatus -ErrorAction Stop
+        $defender = Get-DefenderStatus
 
         if ($defender.RealTimeProtectionEnabled) {
             New-CheckResult -Category $category -Check 'Defender real-time protection' -Status OK -Value 'Enabled'
@@ -75,11 +75,10 @@ function Get-SecurityHealth {
 
     # Firewall profiles
     try {
-        $firewallProfiles = @(Get-NetFirewallProfile -ErrorAction Stop)
+        $firewallProfiles = @(Get-FirewallProfileState)
         foreach ($firewallProfile in $firewallProfiles) {
             $check = 'Firewall - {0} profile' -f $firewallProfile.Name
-            # Enabled is an enum on Windows PowerShell 5.1; comparing as text works everywhere.
-            if ([string]$firewallProfile.Enabled -eq 'True') {
+            if ($firewallProfile.Enabled) {
                 New-CheckResult -Category $category -Check $check -Status OK -Value 'Enabled'
             }
             else {
