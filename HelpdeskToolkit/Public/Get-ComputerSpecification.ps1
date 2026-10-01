@@ -6,10 +6,14 @@ function Get-ComputerSpecification {
         Collects what a technician usually has to look up before answering "can this
         computer run it?" or "what do we need to order?":
 
-        - processor model, cores, threads and clock speed
-        - installed memory, module layout, type, speed and free slots
-        - graphics adapters with driver version and current resolution
+        - processor model, cores, threads and clock speed, cache sizes and whether
+          hardware virtualization is switched on
+        - installed memory, module layout, type, speed and free slots, and every
+          module with its slot, manufacturer and part number
+        - graphics adapters with their memory, driver version and date, and resolution
         - connected displays with manufacturer code and year of manufacture
+        - physical drives with size, type and firmware version; optical drives
+        - audio devices, keyboards and pointing devices
         - motherboard, BIOS/UEFI version and date
         - serial number, for warranty and inventory lookups
 
@@ -45,6 +49,46 @@ function Get-ComputerSpecification {
     }
     catch {
         New-FailureResult -Category $category -Check 'Processor' -ErrorRecord $_
+        $processors = @()
+    }
+
+    # Processor details: cache sizes and hardware virtualization
+    if ($processors.Count -gt 0) {
+        try {
+            # Cache sizes are reported in kilobytes.
+            $toCacheSize = {
+                param($Kilobytes)
+                if ($Kilobytes -ge 1024) { '{0} MB' -f [string][math]::Round([double]$Kilobytes / 1024, 1) } else { '{0} KB' -f $Kilobytes }
+            }
+            $parts = @()
+            if ($processors[0].L2CacheSize) {
+                $parts += 'L2 cache {0}' -f (& $toCacheSize $processors[0].L2CacheSize)
+            }
+            if ($processors[0].L3CacheSize) {
+                $parts += 'L3 cache {0}' -f (& $toCacheSize $processors[0].L3CacheSize)
+            }
+            if ($processors[0].AddressWidth) {
+                $parts += '{0}-bit' -f $processors[0].AddressWidth
+            }
+
+            # While a hypervisor (Hyper-V, WSL 2, Windows Sandbox) is running, Windows
+            # itself runs on top of it and the firmware setting reads as "off".
+            $system = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+            $parts += if ($processors[0].VirtualizationFirmwareEnabled) {
+                'virtualization enabled in firmware'
+            }
+            elseif ($system.HypervisorPresent) {
+                'virtualization in use by a hypervisor'
+            }
+            else {
+                'virtualization disabled in firmware'
+            }
+
+            New-CheckResult -Category $category -Check 'Processor details' -Status Info -Value ($parts -join ', ')
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'Processor details' -ErrorRecord $_
+        }
     }
 
     # Memory modules
@@ -87,6 +131,22 @@ function Get-ComputerSpecification {
             }
 
             New-CheckResult -Category $category -Check 'Memory' -Status Info -Value $value
+
+            # One row per module: the slot it sits in, its size, speed, maker and part
+            # number. The part number is what is needed to order a matching module.
+            foreach ($module in $modules) {
+                $moduleType = $typeNames[[int]$module.SMBIOSMemoryType]
+                $moduleSpeed = if ($module.ConfiguredClockSpeed) { $module.ConfiguredClockSpeed } else { $module.Speed }
+                $parts = @(
+                    (@((Format-Gigabyte -Bytes $module.Capacity), $moduleType) | Where-Object { $_ }) -join ' '
+                    if ($moduleSpeed) { '{0} MHz' -f $moduleSpeed }
+                    (@($module.Manufacturer, $module.PartNumber) | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ }) -join ' '
+                ) | Where-Object { $_ }
+
+                $slot = ([string]$module.DeviceLocator).Trim()
+                $value = if ($slot) { '{0}: {1}' -f $slot, ($parts -join ', ') } else { $parts -join ', ' }
+                New-CheckResult -Category $category -Check 'Memory module' -Status Info -Value $value
+            }
         }
     }
     catch {
@@ -96,8 +156,20 @@ function Get-ComputerSpecification {
     # Graphics adapters
     try {
         $adapters = @(Get-CimInstance -ClassName Win32_VideoController -ErrorAction Stop)
+        $videoMemory = @(Get-VideoMemory)
         foreach ($adapter in $adapters) {
-            $value = '{0} (driver {1})' -f $adapter.Name, $adapter.DriverVersion
+            $driver = 'driver {0}' -f $adapter.DriverVersion
+            if ($adapter.DriverDate) {
+                $driver = '{0} from {1:yyyy-MM-dd}' -f $driver, $adapter.DriverDate
+            }
+            $value = '{0} ({1})' -f $adapter.Name, $driver
+
+            # WMI cannot report more than 4 GB of graphics memory; the driver can.
+            $known = $videoMemory | Where-Object { $_.Name -eq $adapter.Name } | Select-Object -First 1
+            if ($known) {
+                $value = '{0}, {1} memory ({2})' -f $adapter.Name, (Format-Gigabyte -Bytes $known.Bytes), $driver
+            }
+
             # An adapter without a connected display reports no resolution.
             if ($adapter.CurrentHorizontalResolution) {
                 $value = '{0}, {1} x {2} @ {3} Hz' -f $value, $adapter.CurrentHorizontalResolution,
@@ -128,6 +200,94 @@ function Get-ComputerSpecification {
     catch {
         # Virtual machines and remote sessions have no monitor information; that is not a fault.
         Write-Verbose "No monitor information available: $($_.Exception.Message)"
+    }
+
+    # Storage: one row per physical drive
+    try {
+        $mediaTypes = @{ 3 = 'HDD'; 4 = 'SSD' }
+        $busTypes = @{ 7 = 'USB'; 11 = 'SATA'; 17 = 'NVMe' }
+        $drives = @(Get-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ErrorAction Stop |
+                Sort-Object -Property DeviceId)
+
+        foreach ($drive in $drives) {
+            $value = '{0}, {1}' -f ([string]$drive.FriendlyName).Trim(), (Format-Gigabyte -Bytes $drive.Size)
+            $media = $mediaTypes[[int]$drive.MediaType]
+            if ($media) {
+                $value = '{0} {1}' -f $value, $media
+            }
+            $bus = $busTypes[[int]$drive.BusType]
+            if ($bus) {
+                $value = '{0} ({1})' -f $value, $bus
+            }
+            $firmware = ([string]$drive.FirmwareVersion).Trim()
+            if ($firmware) {
+                $value = '{0}, firmware {1}' -f $value, $firmware
+            }
+            New-CheckResult -Category $category -Check 'Storage' -Status Info -Value $value
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Storage' -ErrorRecord $_
+    }
+
+    # Optical drives; most current computers have none, and then no row is shown.
+    try {
+        foreach ($optical in @(Get-CimInstance -ClassName Win32_CDROMDrive -ErrorAction Stop)) {
+            $value = if ($optical.Drive) { '{0} ({1})' -f $optical.Name, $optical.Drive } else { [string]$optical.Name }
+            New-CheckResult -Category $category -Check 'Optical drive' -Status Info -Value $value
+        }
+    }
+    catch {
+        Write-Verbose "No optical drive information available: $($_.Exception.Message)"
+    }
+
+    # Audio devices. Devices created by software (virtual microphones and speakers of
+    # streaming or voice programs) are listed separately, after the real hardware.
+    try {
+        $sound = @(Get-CimInstance -ClassName Win32_SoundDevice -ErrorAction Stop)
+        if ($sound.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Audio devices' -Status Info -Value 'None found'
+        }
+        else {
+            $hardware = @($sound | Where-Object { $_.PNPDeviceID -notlike 'ROOT\*' } | ForEach-Object { [string]$_.Name } | Sort-Object -Unique)
+            $virtual = @($sound | Where-Object { $_.PNPDeviceID -like 'ROOT\*' } | ForEach-Object { '{0} (virtual)' -f $_.Name } | Sort-Object -Unique)
+
+            $value = if ($hardware.Count -gt 0) { $hardware -join ', ' } else { 'No hardware device' }
+            if ($virtual.Count -gt 0) {
+                $value = '{0} and {1} virtual' -f $value, $virtual.Count
+            }
+            New-CheckResult -Category $category -Check 'Audio devices' -Status Info -Value $value -Details $virtual
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Audio devices' -ErrorRecord $_
+    }
+
+    # Keyboards and pointing devices. One device often registers several times, partly
+    # under a generic name; generic names are dropped when a real name is known.
+    try {
+        $names = @(
+            @(
+                Get-CimInstance -ClassName Win32_Keyboard -ErrorAction Stop | ForEach-Object { [string]$_.Description }
+                Get-CimInstance -ClassName Win32_PointingDevice -ErrorAction Stop | ForEach-Object { [string]$_.Name }
+            ) | Where-Object { $_ } | Sort-Object -Unique
+        )
+
+        $generic = 'USB Input Device', 'HID Keyboard Device', 'HID-compliant mouse'
+        $named = @($names | Where-Object { $_ -and $generic -notcontains $_ })
+        $value = if ($named.Count -gt 0) {
+            $named -join ', '
+        }
+        elseif ($names.Count -gt 0) {
+            'Standard keyboard and mouse'
+        }
+        else {
+            'None found'
+        }
+        New-CheckResult -Category $category -Check 'Input devices' -Status Info -Value $value
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Input devices' -ErrorRecord $_
     }
 
     # Motherboard

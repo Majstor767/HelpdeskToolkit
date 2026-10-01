@@ -24,9 +24,15 @@
 
     # Specifications
     'Processor'                         = 'The processor (CPU) executes every program. More cores and a higher clock speed let the computer do more work at the same time.'
+    'Processor details'                 = 'The cache is very fast memory inside the processor; a larger cache helps demanding programs. Hardware virtualization is needed by virtual machines, WSL 2, Windows Sandbox and Android emulators, and is switched on in the BIOS/UEFI setup.'
     'Memory'                            = 'RAM is the short-term working memory of running programs. The module layout and the free slots show whether more memory can be added.'
-    'Graphics'                          = 'The graphics adapter draws everything shown on the screen. The driver version matters when the picture flickers or video and games misbehave.'
+    'Memory module'                     = 'One installed RAM module: the slot it sits in, its size, type and speed, the manufacturer and the part number. A module that is added later should match the existing ones.'
+    'Graphics'                          = 'The graphics adapter draws everything shown on the screen. Its own memory holds the picture data of games and video; the driver version and date matter when the picture flickers or video and games misbehave.'
     'Display'                           = 'A monitor connected to the computer: its model, manufacturer code and year of manufacture.'
+    'Storage'                           = 'A physical drive built into or connected to the computer: its model, size, type (SSD or HDD), connection and firmware version. The health of the drives is reported under Hardware.'
+    'Optical drive'                     = 'A CD, DVD or Blu-ray drive, and the drive letter Windows gave it.'
+    'Audio devices'                     = 'Sound cards and other devices that play or record sound. Virtual devices are created by programs (voice changers, streaming tools) and are a common reason why sound comes out of the wrong device.'
+    'Input devices'                     = 'The keyboards and pointing devices (mouse, touchpad) that Windows recognizes.'
     'Motherboard'                       = 'The main board that all other components plug into. Its model decides which processors, memory and expansion cards are supported.'
     'BIOS'                              = 'The firmware that starts the hardware before Windows loads. An outdated version can cause compatibility and stability problems.'
     'Serial number'                     = 'The unique number the manufacturer gave this computer. It is used for warranty claims and asset tracking.'
