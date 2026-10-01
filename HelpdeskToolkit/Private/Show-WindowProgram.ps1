@@ -21,13 +21,12 @@ function Show-WindowProgram {
     $controls = $Gui.Controls
     $details = @(Get-ProgramDetail -Name $Name)
 
+    if ($details.Count -eq 0) {
+        $details = @([PSCustomObject]@{ Name = Get-LocalizedText 'Processes'; Text = Get-LocalizedText 'The program is no longer running.' })
+    }
+
     $controls.MonitorProgramTitle.Text = $Name
-    $controls.MonitorProgramDetails.ItemsSource = if ($details.Count -gt 0) {
-        $details
-    }
-    else {
-        @([PSCustomObject]@{ Name = Get-LocalizedText 'Processes'; Text = Get-LocalizedText 'The program is no longer running.' })
-    }
+    $controls.MonitorProgramDetails.ItemsSource = $details
 
     $controls.MonitorProgramCard.Visibility = [System.Windows.Visibility]::Visible
     $controls.MonitorProgramHint.Visibility = [System.Windows.Visibility]::Collapsed
