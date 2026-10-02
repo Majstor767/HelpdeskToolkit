@@ -219,7 +219,8 @@ Describe 'Show-WindowPage' -Skip:(-not $isSta) {
 
         $gui.Controls.PageTitle.Text | Should -Be 'System'
         $gui.Controls.PageSubtitle.Text | Should -Be '1 Warning, 1 OK'
-        @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Uptime', 'Startup programs')
+        # The warning comes before the result that is fine.
+        @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Startup programs', 'Uptime')
     }
 
     It 'hides the verdict and the status counts on a category page' {

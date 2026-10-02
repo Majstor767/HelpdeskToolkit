@@ -237,7 +237,7 @@ Describe 'Show-WindowVolume and Switch-WindowVolume' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowVolume -Gui $Gui }
 
         $note = @($gui.Controls.MonitorVolumes.ItemsSource)[0].Note
-        $note | Should -Match 'open Installed apps, choose it there and click Uninstall'
+        $note | Should -Match 'click it: Installed apps of Windows opens, where you choose it and click Uninstall'
         $note | Should -Match 'This application itself removes nothing'
         $note | Should -Not -Match 'administrator'
         $note | Should -Not -Match 'do not say how large'

@@ -109,6 +109,7 @@ function Set-TestThreshold {
                 TrendSamples        = 6
                 TrendAheadSamples   = 6
                 TrendMinimumPercent = 50
+                DetailRefreshSeconds = 10
             }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }
