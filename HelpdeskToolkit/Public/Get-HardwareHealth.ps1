@@ -149,20 +149,22 @@ function Get-HardwareHealth {
     }
 
     # Physical drives and the health state they report themselves (based on SMART).
+    # The numbers are read with Get-CimPropertyValue: once the Storage module of
+    # Windows is loaded in the process, $drive.HealthStatus is the text "Healthy".
     try {
         $mediaTypes = @{ 3 = 'HDD'; 4 = 'SSD' }
         $busTypes = @{ 7 = 'USB'; 11 = 'SATA'; 17 = 'NVMe' }
         $drives = @(Get-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ErrorAction Stop)
 
         foreach ($drive in $drives) {
-            $media = $mediaTypes[[int]$drive.MediaType]
-            $bus = $busTypes[[int]$drive.BusType]
+            $media = $mediaTypes[[int](Get-CimPropertyValue -InputObject $drive -Name MediaType)]
+            $bus = $busTypes[[int](Get-CimPropertyValue -InputObject $drive -Name BusType)]
             $kind = (@($media, $bus) | Where-Object { $_ }) -join ', '
             if (-not $kind) {
                 $kind = 'Unknown type'
             }
 
-            switch ([int]$drive.HealthStatus) {
+            switch ([int](Get-CimPropertyValue -InputObject $drive -Name HealthStatus)) {
                 0 { $status = 'OK'; $health = 'Healthy' }
                 1 { $status = 'Warning'; $health = 'Warning' }
                 2 { $status = 'Critical'; $health = 'Unhealthy' }

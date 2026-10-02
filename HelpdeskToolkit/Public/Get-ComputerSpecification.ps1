@@ -204,7 +204,9 @@ function Get-ComputerSpecification {
         Write-Verbose "No monitor information available: $($_.Exception.Message)"
     }
 
-    # Storage: one row per physical drive
+    # Storage: one row per physical drive. The type and the connection are read with
+    # Get-CimPropertyValue: once the Storage module of Windows is loaded in the
+    # process, $drive.MediaType is the text "SSD" and no longer the number 4.
     try {
         $mediaTypes = @{ 3 = 'HDD'; 4 = 'SSD' }
         $busTypes = @{ 7 = 'USB'; 11 = 'SATA'; 17 = 'NVMe' }
@@ -213,11 +215,11 @@ function Get-ComputerSpecification {
 
         foreach ($drive in $drives) {
             $value = '{0}, {1}' -f ([string]$drive.FriendlyName).Trim(), (Format-Gigabyte -Bytes $drive.Size)
-            $media = $mediaTypes[[int]$drive.MediaType]
+            $media = $mediaTypes[[int](Get-CimPropertyValue -InputObject $drive -Name MediaType)]
             if ($media) {
                 $value = '{0} {1}' -f $value, $media
             }
-            $bus = $busTypes[[int]$drive.BusType]
+            $bus = $busTypes[[int](Get-CimPropertyValue -InputObject $drive -Name BusType)]
             if ($bus) {
                 $value = '{0} ({1})' -f $value, $bus
             }

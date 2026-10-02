@@ -247,6 +247,25 @@ Describe 'Get-HardwareHealth' {
             $drive.Status | Should -Be 'Info'
             $drive.Value | Should -Be 'USB, 16 GB, health: Unknown'
         }
+
+        It 'still reads the drive when the Storage module of Windows shows its numbers as texts' {
+            # Once that module is loaded in the process, the health of a drive is the text
+            # "Healthy" instead of the number 0, and its type "SSD" instead of 4.
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_PhysicalDisk' } {
+                $drive = New-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ClientOnly -Property @{
+                    FriendlyName = 'Contoso SSD 512'; MediaType = [uint16]4; BusType = [uint16]17; Size = [uint64]512GB; HealthStatus = [uint16]1
+                }
+                $drive | Add-Member -NotePropertyName MediaType -NotePropertyValue 'SSD' -Force
+                $drive | Add-Member -NotePropertyName BusType -NotePropertyValue 'NVMe' -Force
+                $drive | Add-Member -NotePropertyName HealthStatus -NotePropertyValue 'Warning' -Force
+                $drive
+            }
+
+            $drive = Get-HardwareHealth | Where-Object Check -eq 'Drive: Contoso SSD 512'
+            $drive.Status | Should -Be 'Warning'
+            $drive.Value | Should -Be 'SSD, NVMe, 512 GB, health: Warning'
+            Get-HardwareHealth | Where-Object Check -eq 'Drive health' | Should -BeNullOrEmpty
+        }
     }
 
     Context 'space that can be freed' {

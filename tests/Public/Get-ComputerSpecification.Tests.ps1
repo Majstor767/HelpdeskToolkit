@@ -315,6 +315,27 @@ Describe 'Get-ComputerSpecification' {
         }
     }
 
+    Context 'when the Storage module of Windows is loaded in the process' {
+        It 'still reads the type and the connection of a drive' {
+            # The module shows the type of a drive as the text "SSD" instead of the number
+            # 4; converting that text to a number made the check fail.
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'MSFT_PhysicalDisk' } {
+                $drive = New-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ClientOnly -Property @{
+                    DeviceId = '0'; FriendlyName = 'Contoso SSD 512'; MediaType = [uint16]4; BusType = [uint16]17
+                    Size = [uint64]512GB; FirmwareVersion = 'FW2.1'
+                }
+                $drive | Add-Member -NotePropertyName MediaType -NotePropertyValue 'SSD' -Force
+                $drive | Add-Member -NotePropertyName BusType -NotePropertyValue 'NVMe' -Force
+                $drive
+            }
+
+            $storage = @(Get-ComputerSpecification | Where-Object Check -eq 'Storage')
+            $storage.Count | Should -Be 1
+            $storage[0].Status | Should -Be 'Info'
+            $storage[0].Value | Should -Be 'Contoso SSD 512, 512 GB SSD (NVMe), firmware FW2.1'
+        }
+    }
+
     Context 'age of the BIOS, warranty and support' {
         It 'gives no advice about a BIOS of the last years' {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BIOS' } {
