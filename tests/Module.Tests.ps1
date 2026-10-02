@@ -158,3 +158,59 @@ Describe 'Configuration files' {
         }
     }
 }
+
+# Regression: started by a program that was itself started from PowerShell 7 (the
+# installer, a .cmd file), Windows PowerShell inherited the module search path of
+# PowerShell 7, loaded built-in modules that were not its own, and the application
+# stopped with "Import-PowerShellDataFile is not recognized".
+Describe 'The module search path of Windows PowerShell' {
+    BeforeAll {
+        $manifestPath = (Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..\HelpdeskToolkit\HelpdeskToolkit.psd1')).Path
+        $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
+
+        # Runs in a Windows PowerShell of its own: puts folders of PowerShell 7 and one
+        # folder of the user in front of the search path, imports the module and prints
+        # what is left of the path, then whether a data file can be read.
+        $script = Join-Path -Path $TestDrive -ChildPath 'search-path.ps1'
+        Set-Content -LiteralPath $script -Value @"
+`$documents = [Environment]::GetFolderPath('MyDocuments')
+`$env:PSModulePath = (
+    (Join-Path `$env:ProgramFiles 'PowerShell\7\Modules'),
+    (Join-Path `$env:ProgramFiles 'PowerShell\Modules'),
+    (Join-Path `$documents 'PowerShell\Modules'),
+    'C:\Program Files\WindowsApps\Microsoft.PowerShell_7.6.6.0_x64__8wekyb3d8bbwe\Modules',
+    'Q:\Tools\PowerShell\Modules',
+    `$env:PSModulePath
+) -join ';'
+Import-Module '$manifestPath'
+`$env:PSModulePath -split ';' | ForEach-Object { "PATH `$_" }
+"DATA `$((Import-PowerShellDataFile -Path '$manifestPath').ModuleVersion)"
+"@
+
+        $output = @(& $powershell -NoProfile -ExecutionPolicy Bypass -File $script)
+        $path = @($output | Where-Object { $_ -like 'PATH *' } | ForEach-Object { $_.Substring(5) })
+    }
+
+    It 'no longer lists the module folders of PowerShell 7 after the module was imported' {
+        $path | Should -Not -BeNullOrEmpty
+        $path | Where-Object { $_ -match '\\PowerShell\\7\\Modules$' } | Should -BeNullOrEmpty
+        $path | Where-Object { $_ -match 'Program Files\\PowerShell\\Modules$' } | Should -BeNullOrEmpty
+        $path | Where-Object { $_ -match 'Documents\\PowerShell\\Modules$' } | Should -BeNullOrEmpty
+        $path | Where-Object { $_ -match 'Microsoft\.PowerShell_' } | Should -BeNullOrEmpty
+    }
+
+    It 'keeps the folders of Windows PowerShell and a folder the user added' {
+        $path | Where-Object { $_ -match 'WindowsPowerShell\\v1\.0\\Modules$' } | Should -Not -BeNullOrEmpty
+        $path | Should -Contain 'Q:\Tools\PowerShell\Modules'
+    }
+
+    It 'can read a data file, which needs the built-in module of Windows PowerShell itself' {
+        $output | Where-Object { $_ -like 'DATA *' } | Should -Match '^DATA \d+\.\d+\.\d+$'
+    }
+
+    It 'leaves the search path of PowerShell 7 alone' -Skip:($PSVersionTable.PSEdition -ne 'Core') {
+        $before = $env:PSModulePath
+        Import-Module -Name $manifestPath -Force
+        $env:PSModulePath | Should -Be $before
+    }
+}

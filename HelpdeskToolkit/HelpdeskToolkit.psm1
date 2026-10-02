@@ -1,5 +1,35 @@
 Set-StrictMode -Version Latest
 
+# Windows PowerShell inherits the module search path of the program that started it.
+# When that program is PowerShell 7, or was itself started from PowerShell 7 (an
+# installer, a .cmd file, a terminal), the path lists the modules of PowerShell 7
+# first. Windows PowerShell then loads built-in modules that are not its own, and
+# commands such as Import-PowerShellDataFile and Get-FileHash are missing.
+#
+# Those entries are of no use to Windows PowerShell, so they are taken off the search
+# path of this process (nothing outside the process changes), and a built-in module
+# that was loaded from the wrong place already is loaded again from the right one.
+if ($PSVersionTable.PSEdition -ne 'Core') {
+    $roots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}, [Environment]::GetFolderPath('MyDocuments')) |
+        Where-Object { $_ } | ForEach-Object { [regex]::Escape($_) }
+    # "<root>\PowerShell\Modules", "<root>\PowerShell\7\Modules" and the copy from the Microsoft Store
+    $foreign = '^({0})\\PowerShell\\(\d[^\\]*\\)?Modules\\?$|\\WindowsApps\\Microsoft\.PowerShell_[^\\]+\\Modules\\?$' -f ($roots -join '|')
+
+    $entries = @($env:PSModulePath -split ';' | Where-Object { $_ })
+    $own = @($entries | Where-Object { $_ -notmatch $foreign })
+    if ($own.Count -lt $entries.Count) {
+        $env:PSModulePath = $own -join ';'
+
+        foreach ($name in 'Microsoft.PowerShell.Utility', 'Microsoft.PowerShell.Management', 'CimCmdlets') {
+            $wrong = Get-Module -Name $name | Where-Object { $_.Version.Major -ge 6 }
+            $manifest = Join-Path -Path $PSHOME -ChildPath "Modules\$name\$name.psd1"
+            if ($wrong -and (Test-Path -LiteralPath $manifest)) {
+                Import-Module -Name $manifest -Force -Global
+            }
+        }
+    }
+}
+
 $script:ModuleRoot = $PSScriptRoot
 $script:Thresholds = $null
 $script:Descriptions = $null
