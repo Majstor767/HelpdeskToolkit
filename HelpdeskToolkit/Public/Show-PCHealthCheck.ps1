@@ -354,19 +354,27 @@ function Show-PCHealthCheck {
     # --- Settings ----------------------------------------------------------------
     $controls.SettingsButton.Add_Click({ Show-WindowPage -Gui $script:HealthCheckWindow -Name 'Settings' })
 
-    # Language and theme are stored at once and applied by the next start.
-    $changeSetting = {
-        $state = $script:HealthCheckWindow
-        if ($state.Loading) {
-            return
-        }
-        $state.Settings.Language = [string]$state.Controls.LanguageBox.SelectedItem.Tag
-        $state.Settings.Theme = [string]$state.Controls.ThemeBox.SelectedItem.Tag
-        [void](Save-AppSetting -Setting $state.Settings)
-        $state.Controls.RestartButton.Visibility = [System.Windows.Visibility]::Visible
-    }
-    $controls.LanguageBox.Add_SelectionChanged($changeSetting)
-    $controls.ThemeBox.Add_SelectionChanged($changeSetting)
+    # The language is stored at once and applied by the next start.
+    $controls.LanguageBox.Add_SelectionChanged({
+            $state = $script:HealthCheckWindow
+            if ($state.Loading -or -not $state.Controls.LanguageBox.SelectedItem) {
+                return
+            }
+            $state.Settings.Language = [string]$state.Controls.LanguageBox.SelectedItem.Tag
+            [void](Save-AppSetting -Setting $state.Settings)
+            $state.Controls.RestartButton.Visibility = [System.Windows.Visibility]::Visible
+        })
+
+    # The theme changes at once: with the switch in the header, which turns it over,
+    # and with the list of the Settings page, which also offers "Same as Windows".
+    $controls.ThemeToggle.Add_Click({ [void](Switch-WindowTheme -Gui $script:HealthCheckWindow) })
+    $controls.ThemeBox.Add_SelectionChanged({
+            $state = $script:HealthCheckWindow
+            if ($state.Loading -or -not $state.Controls.ThemeBox.SelectedItem) {
+                return
+            }
+            [void](Switch-WindowTheme -Gui $state -Setting ([string]$state.Controls.ThemeBox.SelectedItem.Tag))
+        })
     $controls.RestartButton.Add_Click({ [void](Invoke-AppRestart -Gui $script:HealthCheckWindow) })
 
     # What happens at the next start

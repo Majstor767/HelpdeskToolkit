@@ -14,6 +14,7 @@ function Invoke-WindowShortcut {
         Ctrl+Shift+C  copy the summary
         Ctrl+M        open the Live monitor
         Ctrl+,        open the settings
+        Ctrl+T        switch between the light and the dark theme
 
         A shortcut does what the button with the same purpose does, by "clicking" that
         button, and does nothing while the button is disabled.
@@ -117,6 +118,10 @@ function Invoke-WindowShortcut {
         }
         'OemComma' {
             & $click $controls.SettingsButton
+            return $true
+        }
+        'T' {
+            [void](Switch-WindowTheme -Gui $Gui)
             return $true
         }
         'C' {

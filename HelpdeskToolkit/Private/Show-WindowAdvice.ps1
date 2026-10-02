@@ -25,7 +25,6 @@ function Show-WindowAdvice {
     )
 
     $controls = $Gui.Controls
-    $window = $Gui.Window
     $visible = [System.Windows.Visibility]::Visible
     $collapsed = [System.Windows.Visibility]::Collapsed
 
@@ -40,7 +39,7 @@ function Show-WindowAdvice {
         $dot = $controls["Monitor$($entry.Name)Dot"]
         $button = $controls["Monitor$($entry.Name)AdviceButton"]
 
-        $dot.Fill = $window.FindResource($brushes[$entry.Level])
+        $dot.SetResourceReference([System.Windows.Shapes.Shape]::FillProperty, $brushes[$entry.Level])
         $dot.ToolTip = $entry.Summary
 
         if ($entry.Level -eq 'Over') {

@@ -35,10 +35,11 @@ function Open-WindowComponent {
     $Gui.MonitorComponent = $Name
 
     # The graph and the large number take the color of the component.
-    $brush = $Gui.Window.FindResource("${Name}Brush")
-    $controls.ComponentLine.Stroke = $brush
-    $controls.ComponentArea.Fill = $brush
-    $controls.ComponentValue.Foreground = $brush
+    # (A reference to the brush, not the brush itself, so the color follows the theme.)
+    $brush = "${Name}Brush"
+    $controls.ComponentLine.SetResourceReference([System.Windows.Shapes.Shape]::StrokeProperty, $brush)
+    $controls.ComponentArea.SetResourceReference([System.Windows.Shapes.Shape]::FillProperty, $brush)
+    $controls.ComponentValue.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, $brush)
 
     $controls.PageTitle.Text = Get-LocalizedText $titles[$Name]
     $controls.MonitorPanel.Visibility = [System.Windows.Visibility]::Collapsed

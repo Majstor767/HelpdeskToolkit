@@ -33,7 +33,6 @@ function Show-WindowReport {
     )
 
     $controls = $Gui.Controls
-    $window = $Gui.Window
     $summary = $Report.Summary
     $results = @($Report.Results)
     $visible = [System.Windows.Visibility]::Visible
@@ -50,8 +49,9 @@ function Show-WindowReport {
     if ($Report.PSObject.Properties['Score']) {
         $scoreLevel = if ($Report.Score -ge 90) { 'Ok' } elseif ($Report.Score -ge 60) { 'Warning' } else { 'Critical' }
         $controls.ScoreCount.Text = [string]$Report.Score
-        $controls.ScoreCount.Foreground = $window.FindResource("${scoreLevel}Brush")
-        $controls.ScoreBorder.BorderBrush = $window.FindResource("${scoreLevel}Brush")
+        # (References to the brushes, not the brushes themselves, so the colors follow the theme.)
+        $controls.ScoreCount.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "${scoreLevel}Brush")
+        $controls.ScoreBorder.SetResourceReference([System.Windows.Controls.Border]::BorderBrushProperty, "${scoreLevel}Brush")
     }
     else {
         $controls.ScoreCount.Text = '-'
@@ -71,9 +71,9 @@ function Show-WindowReport {
         $verdict = Get-LocalizedText 'No problems found. All checks passed.'
     }
     $controls.VerdictText.Text = $verdict
-    $controls.VerdictText.Foreground = $window.FindResource("${level}Brush")
-    $controls.VerdictBorder.Background = $window.FindResource("${level}BackBrush")
-    $controls.VerdictBorder.BorderBrush = $window.FindResource("${level}Brush")
+    $controls.VerdictText.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "${level}Brush")
+    $controls.VerdictBorder.SetResourceReference([System.Windows.Controls.Border]::BackgroundProperty, "${level}BackBrush")
+    $controls.VerdictBorder.SetResourceReference([System.Windows.Controls.Border]::BorderBrushProperty, "${level}Brush")
     $controls.VerdictBorder.Visibility = $visible
 
     $controls.ComputerText.Text = (Get-LocalizedText 'Computer: {0}  |  checked {1}  |  {2} s') -f $Report.ComputerName, $Report.GeneratedAt, [string]$Report.DurationSeconds

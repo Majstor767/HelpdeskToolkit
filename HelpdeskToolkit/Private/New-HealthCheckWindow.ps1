@@ -10,7 +10,8 @@ function New-HealthCheckWindow {
         - Window:       the window object
         - Controls:     every element that has an x:Name in the XAML, by that name
         - ManifestPath: where the module is, for the background runspaces
-        - Settings, Theme: the settings of the window and the theme it was built with
+        - Settings, Theme, Palette: the settings of the window, the theme that is on,
+          and the colors of both themes (see Set-WindowTheme)
         - Page:         name of the page that is shown
         - CardState:    which compact result cards the user has opened or closed, by
                         "category|check" (see Show-WindowPage)
@@ -33,7 +34,8 @@ function New-HealthCheckWindow {
         Before the XAML becomes a window, two things are changed in it:
 
         - Theme:    for the dark theme, the color of every named brush is replaced
-                    with the one in Assets\DarkTheme.psd1.
+                    with the one in Assets\DarkTheme.psd1. The theme can be changed
+                    later, while the window is open (Set-WindowTheme).
         - Language: every text written in the XAML is replaced with its translation
                     (see Get-LocalizedText). The language is the one in $script:Language.
 
@@ -65,14 +67,19 @@ function New-HealthCheckWindow {
     $namespaces = New-Object -TypeName System.Xml.XmlNamespaceManager -ArgumentList $xaml.NameTable
     $namespaces.AddNamespace('x', $xamlNamespace)
 
-    # Dark theme: the colors of the named brushes are exchanged.
-    if ($Theme -eq 'Dark') {
-        $palette = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\DarkTheme.psd1')
-        foreach ($brush in $xaml.SelectNodes('//*[local-name()="SolidColorBrush"][@x:Key]', $namespaces)) {
-            $key = $brush.GetAttribute('Key', $xamlNamespace)
-            if ($palette.ContainsKey($key)) {
-                $brush.SetAttribute('Color', $palette[$key])
-            }
+    # The colors of both themes, by the name of the brush: the light ones as the
+    # layout has them, the dark ones from Assets\DarkTheme.psd1 (a brush that is not
+    # listed there keeps its color). They are kept for switching the theme later.
+    $darkColors = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\DarkTheme.psd1')
+    $palettes = @{ Light = @{}; Dark = @{} }
+    foreach ($brush in $xaml.SelectNodes('//*[local-name()="SolidColorBrush"][@x:Key]', $namespaces)) {
+        $key = $brush.GetAttribute('Key', $xamlNamespace)
+        $palettes.Light[$key] = $brush.GetAttribute('Color')
+        $palettes.Dark[$key] = if ($darkColors.ContainsKey($key)) { $darkColors[$key] } else { $brush.GetAttribute('Color') }
+
+        # Dark theme from the start: the window is built with those colors.
+        if ($Theme -eq 'Dark') {
+            $brush.SetAttribute('Color', $palettes.Dark[$key])
         }
     }
 
@@ -114,6 +121,12 @@ function New-HealthCheckWindow {
         ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
     )
 
+    # The switch in the header starts on the side of the theme that is on.
+    $controls.ThemeToggle.IsChecked = $Theme -eq 'Dark'
+    if ($Theme -eq 'Dark') {
+        $controls.ThemeToggle.ToolTip = Get-LocalizedText 'Switch to the light theme (Ctrl+T)'
+    }
+
     $newHistory = { New-Object -TypeName 'System.Collections.Generic.List[double]' }
 
     @{
@@ -122,6 +135,8 @@ function New-HealthCheckWindow {
         ManifestPath      = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
         Settings          = $Setting
         Theme             = $Theme
+        # The colors of the light and of the dark theme, by the name of the brush.
+        Palette           = $palettes
         Page              = 'Overview'
         CardState         = @{}
         AppLock           = $null

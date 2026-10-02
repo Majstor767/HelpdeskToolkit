@@ -68,7 +68,7 @@ function Show-WindowPage {
 
     # The Settings button is drawn like the selected entry of the list while its page is open.
     if ($Name -eq 'Settings') {
-        $controls.SettingsButton.Background = $Gui.Window.FindResource('SelectedBrush')
+        $controls.SettingsButton.SetResourceReference([System.Windows.Controls.Control]::BackgroundProperty, 'SelectedBrush')
         if ($controls.CategoryList.SelectedIndex -ne -1) {
             $wasLoading = $Gui.Loading
             $Gui.Loading = $true

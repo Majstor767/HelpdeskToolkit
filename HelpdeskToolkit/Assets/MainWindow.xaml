@@ -22,7 +22,10 @@
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <!-- Light theme; the same colors as the HTML report. -->
+        <!-- Light theme; the same colors as the HTML report. The layout refers to these
+             brushes with DynamicResource, never StaticResource: the theme is changed
+             while the window is open by putting other brushes under the same names
+             (see Set-WindowTheme). -->
         <SolidColorBrush x:Key="WindowBrush" Color="#F3F5F8"/>
         <SolidColorBrush x:Key="HeaderBrush" Color="#14233A"/>
         <SolidColorBrush x:Key="HeaderMutedBrush" Color="#B3C0D3"/>
@@ -92,54 +95,54 @@
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Template" Value="{StaticResource ButtonTemplate}"/>
             <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource HoverBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{StaticResource SelectedBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource SelectedBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- The main action of the side bar: filled with the accent color -->
         <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{StaticResource AccentPressedBrush}"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource AccentPressedBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- The Run button on the dark header: a brighter blue, without a border -->
         <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="20,9"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryPressedBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource PrimaryPressedBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -158,6 +161,40 @@
             <Setter Property="Padding" Value="12,7"/>
         </Style>
 
+        <!-- The switch between the light and the dark theme in the header: a sun or a
+             moon, and a track with a thumb that sits on the right while the dark theme
+             is on -->
+        <Style x:Key="ThemeSwitch" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <TextBlock x:Name="Icon" Text="&#xE706;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                       Foreground="{DynamicResource OnAccentBrush}" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                            <Border x:Name="Track" Width="40" Height="20" CornerRadius="10" Background="{DynamicResource HeaderMutedBrush}" VerticalAlignment="Center">
+                                <Ellipse x:Name="Thumb" Width="14" Height="14" Fill="{DynamicResource OnAccentBrush}" HorizontalAlignment="Left" Margin="3,0"/>
+                            </Border>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Icon" Property="Text" Value="&#xE708;"/>
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="Track" Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Track" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource OnAccentBrush}"/>
+                                <Setter TargetName="Track" Property="BorderThickness" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- The warning triangle on a tile of the Live monitor; a click opens the advice -->
         <Style x:Key="WarningToggle" TargetType="ToggleButton">
             <Setter Property="Cursor" Value="Hand"/>
@@ -165,14 +202,14 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
                         <Border x:Name="Chrome" Background="Transparent" CornerRadius="4" Padding="4,2">
-                            <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource CriticalBrush}"/>
+                            <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource CriticalBrush}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -182,7 +219,7 @@
 
         <!-- "Show 5 more": a line of text with an arrow that opens and closes a list -->
         <Style x:Key="LinkToggle" TargetType="ToggleButton">
-            <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Template">
@@ -204,10 +241,10 @@
 
         <!-- Text field with rounded corners, in the colors of the theme -->
         <Style x:Key="InputBox" TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="CaretBrush" Value="{StaticResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Template">
@@ -219,7 +256,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -244,7 +281,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-                        <Border Background="{StaticResource ScrollThumbBrush}" CornerRadius="4" Margin="2"/>
+                        <Border Background="{DynamicResource ScrollThumbBrush}" CornerRadius="4" Margin="2"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -303,7 +340,7 @@
         </Style>
 
         <Style x:Key="Tile" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="BorderThickness" Value="1,4,1,1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,8"/>
@@ -318,7 +355,7 @@
         <Style x:Key="TileLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
         </Style>
 
         <!-- A slim, rounded bar. Used for the progress of a run and for the meters of the
@@ -328,8 +365,8 @@
             <Setter Property="Height" Value="8"/>
             <Setter Property="Minimum" Value="0"/>
             <Setter Property="Maximum" Value="100"/>
-            <Setter Property="Background" Value="{StaticResource TrackBrush}"/>
-            <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource TrackBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ProgressBar">
@@ -358,12 +395,12 @@
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
         </Style>
 
         <Style x:Key="SectionCard" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,12"/>
@@ -371,8 +408,8 @@
         </Style>
 
         <Style x:Key="MonitorTile" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,10"/>
@@ -384,8 +421,8 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
-                    <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource HoverBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -398,7 +435,7 @@
 
         <Style x:Key="MonitorTileSub" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
 
@@ -406,15 +443,15 @@
              Show-WindowMonitor into the Canvas inside the frame. -->
         <Style x:Key="GraphCaption" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
-            <Setter Property="Foreground" Value="{StaticResource GraphCaptionBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource GraphCaptionBrush}"/>
             <Setter Property="Margin" Value="6,3,0,0"/>
             <Setter Property="IsHitTestVisible" Value="False"/>
         </Style>
 
         <Style x:Key="GraphFrame" TargetType="Border">
             <Setter Property="Height" Value="64"/>
-            <Setter Property="Background" Value="{StaticResource GraphBackBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource GraphBackBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
@@ -426,7 +463,7 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource HoverBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -445,10 +482,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavBackground" Property="Background" Value="{StaticResource HoverBrush}"/>
+                                <Setter TargetName="NavBackground" Property="Background" Value="{DynamicResource HoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="NavBackground" Property="Background" Value="{StaticResource SelectedBrush}"/>
+                                <Setter TargetName="NavBackground" Property="Background" Value="{DynamicResource SelectedBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -458,7 +495,7 @@
 
         <!-- The head of a column of results: the name of the status and how many results it has -->
         <Style x:Key="ColumnHeader" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="BorderThickness" Value="1,4,1,1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="12,7"/>
@@ -474,13 +511,13 @@
                     <ControlTemplate TargetType="ToggleButton">
                         <Border x:Name="Chrome" Background="Transparent" CornerRadius="6" Padding="12,9,8,9">
                             <DockPanel>
-                                <TextBlock x:Name="Arrow" DockPanel.Dock="Right" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Top" Margin="6,4,0,0"/>
+                                <TextBlock x:Name="Arrow" DockPanel.Dock="Right" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Top" Margin="6,4,0,0"/>
                                 <ContentPresenter/>
                             </DockPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource HoverBrush}"/>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource HoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Arrow" Property="Text" Value="&#xE70E;"/>
@@ -496,14 +533,14 @@
              whole value, the rest of a long list, the allowed range, the explanation and
              the recommendation with its button. -->
         <DataTemplate x:Key="CompactCard">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Margin="0,0,0,8">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Margin="0,0,0,8">
                 <Border.Style>
                     <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                         <Setter Property="BorderThickness" Value="1"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Highlight}" Value="Yes">
-                                <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
                                 <Setter Property="BorderThickness" Value="2"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -512,8 +549,8 @@
                 <StackPanel>
                     <ToggleButton x:Name="CardToggle" IsChecked="{Binding Expanded, Mode=OneWay}" Style="{StaticResource CardToggle}">
                         <StackPanel>
-                            <TextBlock Text="{Binding Check}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding Value}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0">
+                            <TextBlock Text="{Binding Check}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Value}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>
@@ -538,7 +575,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="{Binding More}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,5">
+                        <TextBlock Text="{Binding More}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,5">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -549,7 +586,7 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <TextBlock Text="{Binding Reference}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,3">
+                        <TextBlock Text="{Binding Reference}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,3">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -560,7 +597,7 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap">
+                        <TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -582,18 +619,18 @@
                                     </Style.Triggers>
                                 </Style>
                             </StackPanel.Style>
-                            <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock Text="{Binding Risk}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="{Binding Risk}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>                        <Border CornerRadius="5" Padding="9,7" Margin="0,8,0,0">
                             <Border.Style>
                                 <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource InfoBackBrush}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                            <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                            <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                            <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                            <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Recommendation}" Value="">
                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -602,8 +639,8 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                                <TextBlock Text="{Binding Recommendation}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                                <TextBlock Text="{Binding Recommendation}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                 <Button Content="{Binding ActionLabel}" Tag="&#xE8A7;" HorizontalAlignment="Left" Margin="0,8,0,1">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SmallButton}">
@@ -637,7 +674,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,12,0"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,12,0"/>
                                     <ProgressBar Grid.Column="1" Value="{Binding Percent, Mode=OneWay}" Width="170" VerticalAlignment="Center" Margin="0,0,12,0">
                                         <ProgressBar.Style>
                                             <Style TargetType="ProgressBar" BasedOn="{StaticResource MeterBar}">
@@ -649,7 +686,7 @@
                                             </Style>
                                         </ProgressBar.Style>
                                     </ProgressBar>
-                                    <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -660,23 +697,24 @@
     </Window.Resources>
 
     <Window.Background>
-        <StaticResource ResourceKey="WindowBrush"/>
+        <DynamicResource ResourceKey="WindowBrush"/>
     </Window.Background>
 
     <Grid>
     <DockPanel x:Name="MainLayout">
 
         <!-- Header: title on the left, options and the Run button on the right -->
-        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderBrush}" Padding="20,14">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="20,14">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left">
-                    <TextBlock Text="HELPDESKTOOLKIT" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource HeaderMutedBrush}"/>
+                    <TextBlock Text="HELPDESKTOOLKIT" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource HeaderMutedBrush}"/>
                     <TextBlock Text="PC Health Check" FontSize="22" FontWeight="SemiBold" Foreground="White"/>
-                    <TextBlock x:Name="ComputerText" Foreground="{StaticResource HeaderMutedBrush}"/>
+                    <TextBlock x:Name="ComputerText" Foreground="{DynamicResource HeaderMutedBrush}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ToggleButton x:Name="ThemeToggle" Style="{StaticResource ThemeSwitch}" ToolTip="Switch to the dark theme (Ctrl+T)" VerticalAlignment="Center" Margin="0,0,22,0"/>
                     <CheckBox x:Name="SkipNetworkCheckBox" Content="Skip network tests" Foreground="White" VerticalAlignment="Center" Margin="0,0,18,0"/>
-                    <TextBlock Text="History period" Foreground="{StaticResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="History period" Foreground="{DynamicResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="DaysComboBox" Width="92" VerticalAlignment="Center" SelectedIndex="0">
                         <ComboBoxItem Content="7 days" Tag="7"/>
                         <ComboBoxItem Content="14 days" Tag="14"/>
@@ -690,20 +728,20 @@
 
         <!-- Progress of a running check: what is being checked, which step, how far.
              Only visible while a check runs. -->
-        <Border x:Name="RunPanel" DockPanel.Dock="Top" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,12,20,14" Visibility="Collapsed">
+        <Border x:Name="RunPanel" DockPanel.Dock="Top" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,12,20,14" Visibility="Collapsed">
             <StackPanel>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock x:Name="RunPercent" DockPanel.Dock="Right" Text="0 %" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource InfoBrush}"/>
-                    <TextBlock x:Name="RunStep" DockPanel.Dock="Right" Text="" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" Margin="0,0,16,0"/>
-                    <TextBlock x:Name="RunTitle" Text="Starting the check ..." FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock x:Name="RunPercent" DockPanel.Dock="Right" Text="0 %" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}"/>
+                    <TextBlock x:Name="RunStep" DockPanel.Dock="Right" Text="" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Bottom" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="RunTitle" Text="Starting the check ..." FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                 </DockPanel>
                 <ProgressBar x:Name="ProgressBar" Style="{StaticResource RunProgressBar}"/>
             </StackPanel>
         </Border>
 
         <!-- Status bar -->
-        <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="20,7">
-            <TextBlock x:Name="StatusText" Text="Ready. Click Run check to examine this computer." Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="20,7">
+            <TextBlock x:Name="StatusText" Text="Ready. Click Run check to examine this computer." Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
         </Border>
 
         <Grid>
@@ -713,21 +751,21 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left: pages, and the report buttons below them -->
-            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
                 <DockPanel Margin="10,12">
                     <StackPanel DockPanel.Dock="Bottom" Margin="2,10,2,0">
                         <!-- Shows whether the window runs with administrator rights; the button
                              below it is hidden once it does. -->
-                        <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"/>
+                        <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"/>
                         <Button x:Name="ElevateButton" Content="Restart as administrator" Tag="&#xEA18;" Style="{StaticResource ActionButton}" Margin="0,0,0,14"/>
                         <Button x:Name="OpenReportButton" Content="Open HTML report" Tag="&#xE8A7;" Style="{StaticResource AccentButton}" IsEnabled="False" Margin="0,0,0,6"/>
                         <Button x:Name="CopySummaryButton" Content="Copy summary" Tag="&#xE8C8;" ToolTip="Copy the problems as text for a ticket or an e-mail (Ctrl+Shift+C)" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
                         <Button x:Name="SaveAsButton" Content="Save as..." Tag="&#xE74E;" ToolTip="Save the report as HTML, PDF, JSON or CSV (Ctrl+S)" Style="{StaticResource ActionButton}" IsEnabled="False"/>
-                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-2,12,-2,0" Padding="0,8,0,0">
+                        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-2,12,-2,0" Padding="0,8,0,0">
                             <Button x:Name="SettingsButton" Content="Settings" Tag="&#xE713;" ToolTip="Language, theme and the automatic check (Ctrl+,)" Style="{StaticResource NavButton}"/>
                         </Border>
                     </StackPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PAGES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="12,2,0,6"/>
+                    <TextBlock DockPanel.Dock="Top" Text="PAGES" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" Margin="12,2,0,6"/>
                     <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
                              ItemContainerStyle="{StaticResource NavItem}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -747,10 +785,10 @@
                                     <Border DockPanel.Dock="Right" CornerRadius="9" Padding="7,0" MinWidth="22" VerticalAlignment="Center">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                                <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                        <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Badge}" Value="">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -761,10 +799,10 @@
                                         <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                            <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -775,25 +813,25 @@
                                     <Ellipse Width="9" Height="9" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Ellipse.Style>
                                             <Style TargetType="Ellipse">
-                                                <Setter Property="Fill" Value="{StaticResource NeutralBrush}"/>
+                                                <Setter Property="Fill" Value="{DynamicResource NeutralBrush}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Worst}" Value="OK">
-                                                        <Setter Property="Fill" Value="{StaticResource OkBrush}"/>
+                                                        <Setter Property="Fill" Value="{DynamicResource OkBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Worst}" Value="Info">
-                                                        <Setter Property="Fill" Value="{StaticResource InfoBrush}"/>
+                                                        <Setter Property="Fill" Value="{DynamicResource InfoBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Worst}" Value="Warning">
-                                                        <Setter Property="Fill" Value="{StaticResource WarningDotBrush}"/>
+                                                        <Setter Property="Fill" Value="{DynamicResource WarningDotBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                        <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                                                        <Setter Property="Fill" Value="{DynamicResource CriticalBrush}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Ellipse.Style>
                                     </Ellipse>
-                                    <TextBlock Text="{Binding Label}" FontSize="14" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}"/>
+                                    <TextBlock Text="{Binding Label}" FontSize="14" VerticalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
                                 </DockPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -812,17 +850,17 @@
 
                 <!-- Problems that an automatic check has found. A click on one of them opens
                      its result. Shown on every page until it is dismissed. -->
-                <Border x:Name="NoticeBorder" Grid.Row="0" Background="{StaticResource WarningBackBrush}" BorderBrush="{StaticResource WarningDotBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,9,8,9" Margin="0,0,6,12" Visibility="Collapsed">
+                <Border x:Name="NoticeBorder" Grid.Row="0" Background="{DynamicResource WarningBackBrush}" BorderBrush="{DynamicResource WarningDotBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,9,8,9" Margin="0,0,6,12" Visibility="Collapsed">
                     <DockPanel>
                         <Button x:Name="NoticeCloseButton" DockPanel.Dock="Right" Tag="&#xE711;" ToolTip="Dismiss" Style="{StaticResource NavButton}" Padding="8,5,0,5" VerticalAlignment="Top"/>
                         <StackPanel>
-                            <TextBlock x:Name="NoticeTitle" FontWeight="SemiBold" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="NoticeTitle" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap"/>
                             <ItemsControl x:Name="NoticeItems" Margin="0,4,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel Style="{StaticResource ClickableRow}" Margin="0,1,0,0">
-                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Link}" Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" Margin="12,2,4,2"/>
-                                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Link}" Foreground="{DynamicResource InfoBrush}" FontWeight="SemiBold" Margin="12,2,4,2"/>
+                                            <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
                                         </DockPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -836,7 +874,7 @@
                     <StackPanel x:Name="FilterPanel" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,2,6,0" Visibility="Collapsed">
                         <Grid Width="220">
                             <TextBox x:Name="SearchBox" Style="{StaticResource InputBox}" ToolTip="Search all results (Ctrl+F)"/>
-                            <TextBlock x:Name="SearchHint" Text="Search all results ..." Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            <TextBlock x:Name="SearchHint" Text="Search all results ..." Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
                         </Grid>
                         <ComboBox x:Name="StatusFilter" Width="140" Margin="8,0,0,0" VerticalAlignment="Center" SelectedIndex="0">
                             <ComboBoxItem Content="All statuses" Tag=""/>
@@ -848,8 +886,8 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel>
-                        <TextBlock x:Name="PageTitle" Text="Overview" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock x:Name="PageSubtitle" Text="Click Run check to examine this computer." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="PageTitle" Text="Overview" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                        <TextBlock x:Name="PageSubtitle" Text="Click Run check to examine this computer." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </DockPanel>
 
@@ -860,41 +898,41 @@
                         <TextBlock x:Name="VerdictText" FontSize="14" TextWrapping="Wrap"/>
                     </Border>
                     <UniformGrid Columns="5" Margin="0,0,-10,14">
-                        <Border x:Name="ScoreBorder" Style="{StaticResource Tile}" BorderBrush="{StaticResource NeutralBrush}"
+                        <Border x:Name="ScoreBorder" Style="{StaticResource Tile}" BorderBrush="{DynamicResource NeutralBrush}"
                                 ToolTip="100 minus 15 points for every critical result and 4 for every warning">
                             <StackPanel>
-                                <TextBlock x:Name="ScoreCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource TextBrush}"/>
+                                <TextBlock x:Name="ScoreCount" Text="-" Style="{StaticResource TileCount}" Foreground="{DynamicResource TextBrush}"/>
                                 <TextBlock Text="HEALTH SCORE" Style="{StaticResource TileLabel}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource CriticalBrush}">
+                        <Border Style="{StaticResource Tile}" BorderBrush="{DynamicResource CriticalBrush}">
                             <StackPanel>
-                                <TextBlock x:Name="CriticalCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource CriticalBrush}"/>
+                                <TextBlock x:Name="CriticalCount" Text="-" Style="{StaticResource TileCount}" Foreground="{DynamicResource CriticalBrush}"/>
                                 <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource WarningBrush}">
+                        <Border Style="{StaticResource Tile}" BorderBrush="{DynamicResource WarningBrush}">
                             <StackPanel>
-                                <TextBlock x:Name="WarningCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource WarningBrush}"/>
+                                <TextBlock x:Name="WarningCount" Text="-" Style="{StaticResource TileCount}" Foreground="{DynamicResource WarningBrush}"/>
                                 <TextBlock Text="WARNING" Style="{StaticResource TileLabel}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource OkBrush}">
+                        <Border Style="{StaticResource Tile}" BorderBrush="{DynamicResource OkBrush}">
                             <StackPanel>
-                                <TextBlock x:Name="OkCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource OkBrush}"/>
+                                <TextBlock x:Name="OkCount" Text="-" Style="{StaticResource TileCount}" Foreground="{DynamicResource OkBrush}"/>
                                 <TextBlock Text="OK" Style="{StaticResource TileLabel}"/>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource Tile}" BorderBrush="{StaticResource InfoBrush}">
+                        <Border Style="{StaticResource Tile}" BorderBrush="{DynamicResource InfoBrush}">
                             <StackPanel>
-                                <TextBlock x:Name="InfoCount" Text="-" Style="{StaticResource TileCount}" Foreground="{StaticResource InfoBrush}"/>
+                                <TextBlock x:Name="InfoCount" Text="-" Style="{StaticResource TileCount}" Foreground="{DynamicResource InfoBrush}"/>
                                 <TextBlock Text="INFO" Style="{StaticResource TileLabel}"/>
                             </StackPanel>
                         </Border>
                     </UniformGrid>
 
                     <!-- Where the points of the score went, for example "Points lost: Security -19" -->
-                    <TextBlock x:Name="ScoreDetailText" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="2,-6,6,12" Visibility="Collapsed"/>
+                    <TextBlock x:Name="ScoreDetailText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="2,-6,6,12" Visibility="Collapsed"/>
 
                     <!-- What changed since the previous check of this computer -->
                     <Border x:Name="ChangesBorder" Style="{StaticResource SectionCard}" Margin="0,0,6,12" Visibility="Collapsed">
@@ -907,10 +945,10 @@
                                             <Border DockPanel.Dock="Left" CornerRadius="9" Padding="9,1" Margin="0,0,10,0" MinWidth="96" VerticalAlignment="Center">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource OkBackBrush}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource OkBackBrush}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Level}" Value="Worse">
-                                                                <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                                <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -918,18 +956,18 @@
                                                 <TextBlock Text="{Binding Change}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="{StaticResource OkBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource OkBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Level}" Value="Worse">
-                                                                    <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
                                             </Border>
-                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Transition}" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Transition}" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                            <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                         </DockPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -944,14 +982,14 @@
                         <ItemsControl x:Name="ResultItems" Margin="0,0,6,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                                                 <Setter Property="BorderThickness" Value="1"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Highlight}" Value="Yes">
-                                                        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
                                                         <Setter Property="BorderThickness" Value="2"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -967,16 +1005,16 @@
                                             <Border Grid.Column="0" CornerRadius="9" Padding="9,1" Margin="0,2,0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource InfoBackBrush}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Status}" Value="OK">
-                                                                <Setter Property="Background" Value="{StaticResource OkBackBrush}"/>
+                                                                <Setter Property="Background" Value="{DynamicResource OkBackBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                                <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                                                <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                                <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                                <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -984,16 +1022,16 @@
                                                 <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="{StaticResource InfoBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Status}" Value="OK">
-                                                                    <Setter Property="Foreground" Value="{StaticResource OkBrush}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource OkBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                                    <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1004,12 +1042,12 @@
                                             <StackPanel Grid.Column="1">
                                                 <!-- Check name, with the category where cards of several categories are mixed -->
                                                 <DockPanel>
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Category}" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding Check}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Category}" Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Check}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                                 </DockPanel>
 
                                                 <!-- What was found -->
-                                                <TextBlock Text="{Binding Value}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                <TextBlock Text="{Binding Value}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
 
                                                 <!-- The rest of a long list, opened on click -->
                                                 <StackPanel Margin="0,4,0,0">
@@ -1023,7 +1061,7 @@
                                                         </Style>
                                                     </StackPanel.Style>
                                                     <ToggleButton x:Name="MoreToggle" Content="{Binding MoreHeader}" Style="{StaticResource LinkToggle}"/>
-                                                    <TextBlock Text="{Binding More}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="16,4,0,2">
+                                                    <TextBlock Text="{Binding More}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="16,4,0,2">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Style.Triggers>
@@ -1037,7 +1075,7 @@
                                                 </StackPanel>
 
                                                 <!-- Allowed range and typical value of a measurement -->
-                                                <TextBlock Text="{Binding Reference}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                <TextBlock Text="{Binding Reference}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Style.Triggers>
@@ -1050,7 +1088,7 @@
                                                 </TextBlock>
 
                                                 <!-- What the checked thing is -->
-                                                <TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
+                                                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,3,0,0">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Style.Triggers>
@@ -1073,21 +1111,21 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </StackPanel.Style>
-                                                    <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                                                    <TextBlock Text="{Binding Risk}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                    <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Risk}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                                 </StackPanel>
                                                 <!-- What to do about it, with a button that opens the place in
                                                      Windows where it is done -->
                                                 <Border CornerRadius="5" Padding="10,7" Margin="0,8,0,2">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource InfoBackBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Warning">
-                                                                    <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Status}" Value="Critical">
-                                                                    <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                                                    <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Recommendation}" Value="">
                                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -1096,8 +1134,8 @@
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
-                                                        <TextBlock Text="{Binding Recommendation}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                                                        <TextBlock Text="{Binding Recommendation}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                                         <Button Content="{Binding ActionLabel}" Tag="&#xE8A7;" HorizontalAlignment="Left" Margin="0,8,0,1">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource SmallButton}">
@@ -1125,64 +1163,64 @@
                          and the others share its room. -->
                     <UniformGrid x:Name="ColumnsPanel" Rows="1" Margin="0,0,-10,0" Visibility="Collapsed">
                         <DockPanel x:Name="ColumnCritical" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource CriticalBrush}">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource CriticalBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnCriticalCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource CriticalBrush}"/>
-                                    <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}" Foreground="{StaticResource CriticalBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnCriticalCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource CriticalBrush}"/>
+                                    <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}" Foreground="{DynamicResource CriticalBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
                                 <ScrollViewer x:Name="ColumnCriticalScroll" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl x:Name="ColumnCriticalItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnCriticalEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnCriticalEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                         <DockPanel x:Name="ColumnWarning" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource WarningBrush}">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource WarningBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnWarningCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
-                                    <TextBlock Text="WARNING" Style="{StaticResource TileLabel}" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnWarningCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
+                                    <TextBlock Text="WARNING" Style="{StaticResource TileLabel}" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
                                 <ScrollViewer x:Name="ColumnWarningScroll" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl x:Name="ColumnWarningItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnWarningEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnWarningEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                         <DockPanel x:Name="ColumnOK" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource OkBrush}">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource OkBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnOKCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource OkBrush}"/>
-                                    <TextBlock Text="OK" Style="{StaticResource TileLabel}" Foreground="{StaticResource OkBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnOKCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource OkBrush}"/>
+                                    <TextBlock Text="OK" Style="{StaticResource TileLabel}" Foreground="{DynamicResource OkBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
                                 <ScrollViewer x:Name="ColumnOKScroll" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl x:Name="ColumnOKItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnOKEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnOKEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                         <DockPanel x:Name="ColumnInfo" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource InfoBrush}">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource InfoBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnInfoCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource InfoBrush}"/>
-                                    <TextBlock Text="INFO" Style="{StaticResource TileLabel}" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnInfoCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource InfoBrush}"/>
+                                    <TextBlock Text="INFO" Style="{StaticResource TileLabel}" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
                                 <ScrollViewer x:Name="ColumnInfoScroll" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl x:Name="ColumnInfoItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnInfoEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnInfoEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                     </UniformGrid>
 
-                    <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
+                    <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{DynamicResource MutedBrush}" FontSize="14"
                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
 
                     <!-- Timeline page: what happened on the computer lately, one group per day.
@@ -1197,7 +1235,7 @@
                                 </ComboBox>
                                 <StackPanel>
                                     <TextBlock x:Name="TimelineSummary" Style="{StaticResource SectionTitle}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    <TextBlock Text="Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -1207,22 +1245,22 @@
                                     <DataTemplate>
                                         <StackPanel Margin="0,0,0,12">
                                             <DockPanel Margin="2,0,2,5">
-                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
-                                                <TextBlock Text="{Binding Day}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                                <TextBlock Text="{Binding Day}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                                             </DockPanel>
-                                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Padding="12,8">
+                                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Padding="12,8">
                                                 <ItemsControl ItemsSource="{Binding Events}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <DockPanel Margin="0,2">
-                                                                <TextBlock DockPanel.Dock="Left" Text="{Binding Time}" Width="46" Foreground="{StaticResource MutedBrush}"/>
+                                                                <TextBlock DockPanel.Dock="Left" Text="{Binding Time}" Width="46" Foreground="{DynamicResource MutedBrush}"/>
                                                                 <Ellipse DockPanel.Dock="Left" Width="9" Height="9" Margin="0,0,9,0" VerticalAlignment="Center">
                                                                     <Ellipse.Style>
                                                                         <Style TargetType="Ellipse">
-                                                                            <Setter Property="Fill" Value="{StaticResource InfoBrush}"/>
+                                                                            <Setter Property="Fill" Value="{DynamicResource InfoBrush}"/>
                                                                             <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding Level}" Value="Problem">
-                                                                                    <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                                                                                    <Setter Property="Fill" Value="{DynamicResource CriticalBrush}"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
@@ -1231,18 +1269,18 @@
                                                                 <TextBlock DockPanel.Dock="Left" Text="{Binding Kind}" Width="220" TextTrimming="CharacterEllipsis">
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
-                                                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                                                                             <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding Level}" Value="Problem">
-                                                                                    <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                                    <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
                                                                                     <Setter Property="FontWeight" Value="SemiBold"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
                                                                     </TextBlock.Style>
                                                                 </TextBlock>
-                                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Times}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
-                                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Times}" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
                                                             </DockPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
@@ -1263,7 +1301,7 @@
                             <!-- Tool bar: pause, refresh rate, recording to a file -->
                             <DockPanel Margin="0,0,0,10">
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <TextBlock Text="Record for" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Record for" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <ComboBox x:Name="MonitorRecordMinutes" Width="92" VerticalAlignment="Center" SelectedIndex="1">
                                         <ComboBoxItem Content="1 minute" Tag="1"/>
                                         <ComboBoxItem Content="5 minutes" Tag="5"/>
@@ -1274,7 +1312,7 @@
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="MonitorPauseButton" Content="Pause" Tag="&#xE769;" Style="{StaticResource SmallButton}"/>
-                                    <TextBlock Text="Refresh every" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                                    <TextBlock Text="Refresh every" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="14,0,8,0"/>
                                     <ComboBox x:Name="MonitorIntervalBox" Width="104" VerticalAlignment="Center" SelectedIndex="0">
                                         <ComboBoxItem Content="2 seconds" Tag="2"/>
                                         <ComboBoxItem Content="5 seconds" Tag="5"/>
@@ -1283,14 +1321,14 @@
                                     </ComboBox>
                                 </StackPanel>
                             </DockPanel>
-                            <TextBlock x:Name="MonitorRecordText" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,-4,0,10" Visibility="Collapsed"/>
+                            <TextBlock x:Name="MonitorRecordText" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,-4,0,10" Visibility="Collapsed"/>
 
                             <!-- Warnings about a value that has stayed high for a while -->
                             <ItemsControl x:Name="MonitorAlerts">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="{StaticResource WarningBackBrush}" BorderBrush="{StaticResource WarningDotBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,9" Margin="0,0,0,10">
-                                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
+                                        <Border Background="{DynamicResource WarningBackBrush}" BorderBrush="{DynamicResource WarningDotBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,9" Margin="0,0,0,10">
+                                            <TextBlock Text="{Binding Text}" Foreground="{DynamicResource WarningBrush}" TextWrapping="Wrap"/>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -1302,10 +1340,10 @@
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorCpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
-                                            <Ellipse x:Name="MonitorCpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <Ellipse x:Name="MonitorCpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{DynamicResource NeutralBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="PROCESSOR" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
-                                        <TextBlock x:Name="MonitorTileCpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource CpuBrush}"/>
+                                        <TextBlock x:Name="MonitorTileCpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource CpuBrush}"/>
                                         <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
@@ -1313,10 +1351,10 @@
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorMemoryAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
-                                            <Ellipse x:Name="MonitorMemoryDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <Ellipse x:Name="MonitorMemoryDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{DynamicResource NeutralBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="MEMORY" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
-                                        <TextBlock x:Name="MonitorTileMemory" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource MemoryBrush}"/>
+                                        <TextBlock x:Name="MonitorTileMemory" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource MemoryBrush}"/>
                                         <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
@@ -1324,27 +1362,27 @@
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorGpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
-                                            <Ellipse x:Name="MonitorGpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <Ellipse x:Name="MonitorGpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{DynamicResource NeutralBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="GRAPHICS" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
-                                        <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource GpuBrush}"/>
+                                        <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource GpuBrush}"/>
                                         <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
                                 <Border x:Name="MonitorLatencyTile" Style="{StaticResource MonitorTile}">
                                     <StackPanel>
                                         <DockPanel>
-                                            <Ellipse x:Name="MonitorLatencyDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <Ellipse x:Name="MonitorLatencyDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{DynamicResource NeutralBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="INTERNET" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
-                                        <TextBlock x:Name="MonitorTileLatency" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock x:Name="MonitorTileLatency" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource TextBrush}"/>
                                         <TextBlock x:Name="MonitorTileLatencySub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource MonitorTile}">
                                     <StackPanel>
                                         <TextBlock Text="RUNNING FOR" Style="{StaticResource TileLabel}"/>
-                                        <TextBlock x:Name="MonitorTileUptime" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock x:Name="MonitorTileUptime" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource TextBrush}"/>
                                         <TextBlock x:Name="MonitorTileUptimeSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
@@ -1352,15 +1390,15 @@
 
                             <!-- What to do about a value that is above its limit. Opened with the
                                  triangle on the tile of that value. -->
-                            <Border x:Name="MonitorAdviceCard" Background="{StaticResource CriticalBackBrush}" BorderBrush="{StaticResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
+                            <Border x:Name="MonitorAdviceCard" Background="{DynamicResource CriticalBackBrush}" BorderBrush="{DynamicResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock x:Name="MonitorAdviceTitle" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="MonitorAdviceTitle" FontWeight="SemiBold" Foreground="{DynamicResource CriticalBrush}" TextWrapping="Wrap"/>
                                     <ItemsControl x:Name="MonitorAdviceItems" Margin="0,6,0,0">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,4">
-                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{StaticResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
-                                                    <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{DynamicResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
+                                                    <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                                 </DockPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1373,19 +1411,19 @@
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock x:Name="MonitorCpuText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBlock x:Name="MonitorCpuText" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}"/>
                                         <TextBlock Text="Processor" Style="{StaticResource SectionTitle}"/>
                                     </DockPanel>
                                     <Border Style="{StaticResource GraphFrame}">
                                         <Grid>
                                             <Canvas x:Name="MonitorCpuGraph" ClipToBounds="True">
-                                                <Polygon x:Name="MonitorCpuArea" Fill="{StaticResource CpuBrush}" Opacity="0.16"/>
-                                                <Polyline x:Name="MonitorCpuLine" Stroke="{StaticResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polygon x:Name="MonitorCpuArea" Fill="{DynamicResource CpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorCpuLine" Stroke="{DynamicResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock Text="last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
                                     </Border>
-                                    <TextBlock x:Name="MonitorCpuDetail" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                    <TextBlock x:Name="MonitorCpuDetail" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
                                     <ItemsControl x:Name="MonitorProcessors">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -1396,10 +1434,10 @@
                                             <DataTemplate>
                                                 <StackPanel Margin="0,0,14,10" ToolTip="{Binding Tip}" Background="Transparent">
                                                     <DockPanel Margin="0,0,0,3">
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource MutedBrush}"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource MutedBrush}"/>
                                                     </DockPanel>
-                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{StaticResource CpuBrush}" Height="6"/>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{DynamicResource CpuBrush}" Height="6"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1411,15 +1449,15 @@
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock x:Name="MonitorMemoryText" DockPanel.Dock="Right" Foreground="{StaticResource MutedBrush}"/>
+                                        <TextBlock x:Name="MonitorMemoryText" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}"/>
                                         <TextBlock Text="Memory" Style="{StaticResource SectionTitle}"/>
                                     </DockPanel>
-                                    <ProgressBar x:Name="MonitorMemoryBar" Style="{StaticResource MeterBar}" Height="10" Foreground="{StaticResource MemoryBrush}" Margin="0,0,0,10"/>
+                                    <ProgressBar x:Name="MonitorMemoryBar" Style="{StaticResource MeterBar}" Height="10" Foreground="{DynamicResource MemoryBrush}" Margin="0,0,0,10"/>
                                     <Border Style="{StaticResource GraphFrame}">
                                         <Grid>
                                             <Canvas x:Name="MonitorMemoryGraph" ClipToBounds="True">
-                                                <Polygon x:Name="MonitorMemoryArea" Fill="{StaticResource MemoryBrush}" Opacity="0.16"/>
-                                                <Polyline x:Name="MonitorMemoryLine" Stroke="{StaticResource MemoryBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polygon x:Name="MonitorMemoryArea" Fill="{DynamicResource MemoryBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorMemoryLine" Stroke="{DynamicResource MemoryBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock Text="last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
@@ -1433,8 +1471,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Margin="0,0,14,6">
-                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
-                                                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1446,12 +1484,12 @@
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
                                     <TextBlock Text="Graphics" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>
-                                    <TextBlock x:Name="MonitorGpuEmpty" Text="No graphics data available." Foreground="{StaticResource MutedBrush}" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="MonitorGpuEmpty" Text="No graphics data available." Foreground="{DynamicResource MutedBrush}" Visibility="Collapsed"/>
                                     <Border x:Name="MonitorGpuGraphFrame" Style="{StaticResource GraphFrame}">
                                         <Grid>
                                             <Canvas x:Name="MonitorGpuGraph" ClipToBounds="True">
-                                                <Polygon x:Name="MonitorGpuArea" Fill="{StaticResource GpuBrush}" Opacity="0.16"/>
-                                                <Polyline x:Name="MonitorGpuLine" Stroke="{StaticResource GpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polygon x:Name="MonitorGpuArea" Fill="{DynamicResource GpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorGpuLine" Stroke="{DynamicResource GpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock Text="last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
@@ -1461,11 +1499,11 @@
                                             <DataTemplate>
                                                 <StackPanel Margin="0,0,0,8">
                                                     <DockPanel Margin="0,0,0,3">
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
-                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"/>
                                                     </DockPanel>
-                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{StaticResource GpuBrush}"/>
-                                                    <TextBlock Text="{Binding Detail}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{DynamicResource GpuBrush}"/>
+                                                    <TextBlock Text="{Binding Detail}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1481,8 +1519,8 @@
                                     <Border Style="{StaticResource GraphFrame}">
                                         <Grid>
                                             <Canvas x:Name="MonitorDiskGraph" ClipToBounds="True">
-                                                <Polygon x:Name="MonitorDiskArea" Fill="{StaticResource DiskBrush}" Opacity="0.16"/>
-                                                <Polyline x:Name="MonitorDiskLine" Stroke="{StaticResource DiskBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polygon x:Name="MonitorDiskArea" Fill="{DynamicResource DiskBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="MonitorDiskLine" Stroke="{DynamicResource DiskBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock Text="busiest disk, last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
@@ -1492,10 +1530,10 @@
                                             <DataTemplate>
                                                 <StackPanel Margin="0,0,0,8">
                                                     <DockPanel Margin="0,0,0,3">
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
-                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"/>
                                                     </DockPanel>
-                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{StaticResource DiskBrush}"/>
+                                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Style="{StaticResource MeterBar}" Foreground="{DynamicResource DiskBrush}"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1506,8 +1544,8 @@
                                             <DataTemplate>
                                                 <StackPanel Margin="0,0,0,8">
                                                     <DockPanel Margin="0,0,0,3">
-                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
-                                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"/>
                                                     </DockPanel>
                                                     <!-- The meter turns orange and red as the drive fills up -->
                                                     <ProgressBar Value="{Binding Percent, Mode=OneWay}">
@@ -1515,10 +1553,10 @@
                                                             <Style TargetType="ProgressBar" BasedOn="{StaticResource MeterBar}">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Level}" Value="Warning">
-                                                                        <Setter Property="Foreground" Value="{StaticResource WarningDotBrush}"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource WarningDotBrush}"/>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Level}" Value="Critical">
-                                                                        <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -1527,7 +1565,7 @@
 
                                                     <!-- What takes up the space: measured when the line is opened -->
                                                     <ToggleButton x:Name="VolumeToggle" Content="{Binding ToggleText}" IsChecked="{Binding Expanded, Mode=OneWay}" Style="{StaticResource LinkToggle}" Margin="0,6,0,0"/>
-                                                    <Border Background="{StaticResource GraphBackBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12,10" Margin="0,6,0,4">
+                                                    <Border Background="{DynamicResource GraphBackBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12,10" Margin="0,6,0,4">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Style.Triggers>
@@ -1538,7 +1576,7 @@
                                                             </Style>
                                                         </Border.Style>
                                                         <StackPanel>
-                                                            <TextBlock Text="{Binding State}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                            <TextBlock Text="{Binding State}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                                             <Grid Margin="0,10,0,0">
                                                                 <Grid.Style>
                                                                     <Style TargetType="Grid">
@@ -1560,8 +1598,8 @@
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
                                                                                 <DockPanel Style="{StaticResource ClickableRow}" ToolTip="{Binding Tip}" Margin="0,0,0,3">
-                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
-                                                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                                                                                 </DockPanel>
                                                                             </DataTemplate>
                                                                         </ItemsControl.ItemTemplate>
@@ -1573,15 +1611,15 @@
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
                                                                                 <DockPanel Margin="0,0,0,3">
-                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
-                                                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                                                                                 </DockPanel>
                                                                             </DataTemplate>
                                                                         </ItemsControl.ItemTemplate>
                                                                     </ItemsControl>
                                                                 </StackPanel>
                                                             </Grid>
-                                                            <TextBlock Text="{Binding Note}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0">
+                                                            <TextBlock Text="{Binding Note}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Style.Triggers>
@@ -1614,8 +1652,8 @@
                                     <Border Style="{StaticResource GraphFrame}">
                                         <Grid>
                                             <Canvas x:Name="MonitorNetworkGraph" ClipToBounds="True">
-                                                <Polyline x:Name="MonitorNetworkUpLine" Stroke="{StaticResource GpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
-                                                <Polyline x:Name="MonitorNetworkDownLine" Stroke="{StaticResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polyline x:Name="MonitorNetworkUpLine" Stroke="{DynamicResource GpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polyline x:Name="MonitorNetworkDownLine" Stroke="{DynamicResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock x:Name="MonitorNetworkCaption" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
@@ -1624,8 +1662,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,5">
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
-                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                                                 </DockPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1642,13 +1680,13 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,5">
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}"/>
-                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                                                 </DockPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock x:Name="MonitorNote" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
+                                    <TextBlock x:Name="MonitorNote" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
                                                Text="The temperature of the processor, the fans of the motherboard and voltages are not shown: Windows does not expose them, and tools that show them install their own hardware driver."/>
                                 </StackPanel>
                             </Border>
@@ -1668,15 +1706,15 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <DockPanel Margin="0,0,0,8">
-                                                <TextBlock DockPanel.Dock="Right" Text="processor  |  memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                                <TextBlock DockPanel.Dock="Right" Text="processor  |  memory" Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
                                                 <TextBlock Text="Busiest programs" Style="{StaticResource SectionTitle}"/>
                                             </DockPanel>
                                             <ItemsControl x:Name="MonitorProcesses">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <DockPanel Style="{StaticResource ClickableRow}" Margin="0,0,0,1">
-                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="0,2"/>
-                                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
+                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" Margin="0,2"/>
+                                                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
                                                         </DockPanel>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -1684,15 +1722,15 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <DockPanel Margin="0,0,0,8">
-                                                <TextBlock DockPanel.Dock="Right" Text="memory" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                                <TextBlock DockPanel.Dock="Right" Text="memory" Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
                                                 <TextBlock Text="Most memory" Style="{StaticResource SectionTitle}"/>
                                             </DockPanel>
                                             <ItemsControl x:Name="MonitorMemoryProcesses">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <DockPanel Style="{StaticResource ClickableRow}" Margin="0,0,0,1">
-                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="0,2"/>
-                                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
+                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" Margin="0,2"/>
+                                                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
                                                         </DockPanel>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -1700,16 +1738,16 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="4">
                                             <DockPanel Margin="0,0,0,8">
-                                                <TextBlock DockPanel.Dock="Right" Text="read + written" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                                <TextBlock DockPanel.Dock="Right" Text="read + written" Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
                                                 <TextBlock Text="Most data" Style="{StaticResource SectionTitle}"/>
                                             </DockPanel>
-                                            <TextBlock x:Name="MonitorIoEmpty" Text="No program is reading or writing." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                                            <TextBlock x:Name="MonitorIoEmpty" Text="No program is reading or writing." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Visibility="Collapsed"/>
                                             <ItemsControl x:Name="MonitorIoProcesses">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <DockPanel Style="{StaticResource ClickableRow}" Margin="0,0,0,1">
-                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="0,2"/>
-                                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
+                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" Margin="0,2"/>
+                                                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
                                                         </DockPanel>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -1718,22 +1756,22 @@
                                     </Grid>
 
                                     <!-- Details of the program that was clicked -->
-                                    <Border x:Name="MonitorProgramCard" Background="{StaticResource GraphBackBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12,10" Margin="0,10,0,0" Visibility="Collapsed">
+                                    <Border x:Name="MonitorProgramCard" Background="{DynamicResource GraphBackBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12,10" Margin="0,10,0,0" Visibility="Collapsed">
                                         <StackPanel>
                                             <TextBlock x:Name="MonitorProgramTitle" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                                             <ItemsControl x:Name="MonitorProgramDetails">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <DockPanel Margin="0,0,0,4">
-                                                            <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" Foreground="{StaticResource MutedBrush}" Width="150"/>
-                                                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                            <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" Foreground="{DynamicResource MutedBrush}" Width="150"/>
+                                                            <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                                         </DockPanel>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock x:Name="MonitorProgramHint" Text="Click a program to see its details." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,8,0,0"/>
+                                    <TextBlock x:Name="MonitorProgramHint" Text="Click a program to see its details." Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -1747,7 +1785,7 @@
                             <DockPanel Margin="0,0,0,10">
                                 <Button x:Name="ComponentBackButton" DockPanel.Dock="Left" Content="Back to the Live monitor" Tag="&#xE72B;" ToolTip="Back to the Live monitor (Esc)" Style="{StaticResource SmallButton}"/>
                                 <Button x:Name="ComponentRefreshButton" DockPanel.Dock="Right" Content="Read again" Tag="&#xE72C;" Style="{StaticResource SmallButton}"/>
-                                <TextBlock x:Name="ComponentState" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="14,0"/>
+                                <TextBlock x:Name="ComponentState" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="14,0"/>
                             </DockPanel>
 
                             <!-- The value right now, its status and its history -->
@@ -1755,14 +1793,14 @@
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,10">
                                         <TextBlock x:Name="ComponentValue" DockPanel.Dock="Right" Text="-" FontSize="26" FontWeight="Bold" Margin="14,0,0,0"/>
-                                        <Ellipse x:Name="ComponentDot" DockPanel.Dock="Left" Width="12" Height="12" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock x:Name="ComponentSummary" Foreground="{StaticResource TextBrush}" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                        <Ellipse x:Name="ComponentDot" DockPanel.Dock="Left" Width="12" Height="12" Fill="{DynamicResource NeutralBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock x:Name="ComponentSummary" Foreground="{DynamicResource TextBrush}" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center"/>
                                     </DockPanel>
                                     <Border Style="{StaticResource GraphFrame}" Height="150" Margin="0">
                                         <Grid>
                                             <Canvas x:Name="ComponentGraph" ClipToBounds="True">
-                                                <Polygon x:Name="ComponentArea" Fill="{StaticResource CpuBrush}" Opacity="0.16"/>
-                                                <Polyline x:Name="ComponentLine" Stroke="{StaticResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                <Polygon x:Name="ComponentArea" Fill="{DynamicResource CpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="ComponentLine" Stroke="{DynamicResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                                             </Canvas>
                                             <TextBlock Text="last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
                                         </Grid>
@@ -1771,15 +1809,15 @@
                             </Border>
 
                             <!-- What to do, while the value is close to its limit or above it -->
-                            <Border x:Name="ComponentAdviceCard" Background="{StaticResource CriticalBackBrush}" BorderBrush="{StaticResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
+                            <Border x:Name="ComponentAdviceCard" Background="{DynamicResource CriticalBackBrush}" BorderBrush="{DynamicResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
                                 <StackPanel>
-                                    <TextBlock x:Name="ComponentAdviceTitle" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="ComponentAdviceTitle" FontWeight="SemiBold" Foreground="{DynamicResource CriticalBrush}" TextWrapping="Wrap"/>
                                     <ItemsControl x:Name="ComponentAdviceItems" Margin="0,6,0,0">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,4">
-                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{StaticResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
-                                                    <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{DynamicResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
+                                                    <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
                                                 </DockPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1803,21 +1841,21 @@
                                 <StackPanel>
                                     <TextBlock Text="Appearance" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock DockPanel.Dock="Left" Text="Language" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock DockPanel.Dock="Left" Text="Language" Width="150" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                                         <ComboBox x:Name="LanguageBox" Width="220" HorizontalAlignment="Left">
                                             <ComboBoxItem Content="English" Tag="en"/>
                                             <ComboBoxItem Content="Hrvatski" Tag="hr"/>
                                         </ComboBox>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock DockPanel.Dock="Left" Text="Theme" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock DockPanel.Dock="Left" Text="Theme" Width="150" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                                         <ComboBox x:Name="ThemeBox" Width="220" HorizontalAlignment="Left">
                                             <ComboBoxItem Content="Same as Windows" Tag="System"/>
                                             <ComboBoxItem Content="Light" Tag="Light"/>
                                             <ComboBoxItem Content="Dark" Tag="Dark"/>
                                         </ComboBox>
                                     </DockPanel>
-                                    <TextBlock x:Name="SettingsRestartText" Text="The language and the theme are applied when the application starts the next time." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,8"/>
+                                    <TextBlock x:Name="SettingsRestartText" Text="The theme changes at once. The language is applied when the application starts the next time." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,8"/>
                                     <Button x:Name="RestartButton" Content="Restart now" Tag="&#xE72C;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 </StackPanel>
                             </Border>
@@ -1826,14 +1864,14 @@
                                 <StackPanel>
                                     <TextBlock Text="When the application starts" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock DockPanel.Dock="Left" Text="Administrator rights" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock DockPanel.Dock="Left" Text="Administrator rights" Width="150" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                                         <ComboBox x:Name="StartupBox" Width="260" HorizontalAlignment="Left">
                                             <ComboBoxItem Content="Ask every time" Tag="Ask"/>
                                             <ComboBoxItem Content="Always start as administrator" Tag="Always"/>
                                             <ComboBoxItem Content="Always start with standard rights" Tag="Never"/>
                                         </ComboBox>
                                     </DockPanel>
-                                    <TextBlock Text="The check starts by itself as soon as the application is open. Before Windows gives administrator rights, it always asks for confirmation." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                    <TextBlock Text="The check starts by itself as soon as the application is open. Before Windows gives administrator rights, it always asks for confirmation." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 
@@ -1841,7 +1879,7 @@
                                 <StackPanel>
                                     <TextBlock Text="Automatic check" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock DockPanel.Dock="Left" Text="Repeat the check" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock DockPanel.Dock="Left" Text="Repeat the check" Width="150" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                                         <ComboBox x:Name="AutoCheckBox" Width="220" HorizontalAlignment="Left">
                                             <ComboBoxItem Content="Every 5 minutes" Tag="5"/>
                                             <ComboBoxItem Content="Every 15 minutes" Tag="15"/>
@@ -1850,7 +1888,7 @@
                                             <ComboBoxItem Content="Never" Tag="0"/>
                                         </ComboBox>
                                     </DockPanel>
-                                    <TextBlock Text="After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                    <TextBlock Text="After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 
@@ -1861,8 +1899,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <DockPanel Margin="0,0,0,5">
-                                                    <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" Width="150" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
-                                                    <TextBlock Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                                                    <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" Width="150" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
                                                 </DockPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1873,9 +1911,9 @@
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
                                     <TextBlock Text="About" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
-                                    <TextBlock x:Name="AboutText" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks and recordings of the Live monitor are kept in the folder below." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
-                                    <TextBlock x:Name="DataFolderText" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    <TextBlock x:Name="AboutText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks and recordings of the Live monitor are kept in the folder below." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
+                                    <TextBlock x:Name="DataFolderText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                     <Button x:Name="OpenDataFolderButton" Content="Open the folder" Tag="&#xE838;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left"/>
                                 </StackPanel>
                             </Border>
@@ -1888,19 +1926,19 @@
 
     <!-- The question at the start: with administrator rights or without? It covers the
          window until it is answered; the check then starts by itself. -->
-    <Border x:Name="StartupOverlay" Background="{StaticResource OverlayBrush}" Visibility="Collapsed">
-        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="28,24" MaxWidth="580" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border x:Name="StartupOverlay" Background="{DynamicResource OverlayBrush}" Visibility="Collapsed">
+        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="28,24" MaxWidth="580" HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel>
-                <TextBlock Text="&#xEA18;" FontFamily="Segoe MDL2 Assets" FontSize="30" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12"/>
-                <TextBlock Text="Run the check with administrator rights?" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
-                <TextBlock Text="With administrator rights the check also shows what Windows only tells administrators: BitLocker and TPM, the temperature and wear of the drives, failed sign-ins and restore points. Windows asks you to confirm. Without them the check shows everything a standard user may see." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
-                <TextBlock Text="The check starts by itself after your answer." Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock Text="&#xEA18;" FontFamily="Segoe MDL2 Assets" FontSize="30" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,12"/>
+                <TextBlock Text="Run the check with administrator rights?" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="With administrator rights the check also shows what Windows only tells administrators: BitLocker and TPM, the temperature and wear of the drives, failed sign-ins and restore points. Windows asks you to confirm. Without them the check shows everything a standard user may see." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock Text="The check starts by itself after your answer." Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
                 <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
                     <Button x:Name="StartupYesButton" Content="Yes, as administrator" Tag="&#xEA18;" ToolTip="Key: Enter" Style="{StaticResource AccentButton}" Margin="0,0,10,0"/>
                     <Button x:Name="StartupNoButton" Content="No, standard rights" ToolTip="Key: Esc" Style="{StaticResource ActionButton}"/>
                 </StackPanel>
-                <CheckBox x:Name="StartupRememberBox" Content="Remember my answer and do not ask again" Foreground="{StaticResource TextBrush}" Margin="0,18,0,0"/>
-                <TextBlock Text="The answer can be changed on the Settings page." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="20,3,0,0"/>
+                <CheckBox x:Name="StartupRememberBox" Content="Remember my answer and do not ask again" Foreground="{DynamicResource TextBrush}" Margin="0,18,0,0"/>
+                <TextBlock Text="The answer can be changed on the Settings page." Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="20,3,0,0"/>
             </StackPanel>
         </Border>
     </Border>

@@ -29,7 +29,6 @@ function Show-WindowComponent {
     }
 
     $controls = $Gui.Controls
-    $window = $Gui.Window
     $snapshot = $Gui.MonitorSnapshot
     $visible = [System.Windows.Visibility]::Visible
     $collapsed = [System.Windows.Visibility]::Collapsed
@@ -62,14 +61,14 @@ function Show-WindowComponent {
     $status = @($Gui.MonitorStatus) | Where-Object { $_.Name -eq $name } | Select-Object -First 1
     $level = if ($status) { $status.Level } else { 'None' }
     $brushes = @{ Ok = 'OkBrush'; Near = 'WarningDotBrush'; Over = 'CriticalBrush'; None = 'NeutralBrush' }
-    $controls.ComponentDot.Fill = $window.FindResource($brushes[$level])
+    $controls.ComponentDot.SetResourceReference([System.Windows.Shapes.Shape]::FillProperty, $brushes[$level])
     $controls.ComponentSummary.Text = if ($status) { $status.Summary } else { Get-LocalizedText 'No measurement yet.' }
 
     if ($level -in 'Near', 'Over') {
         $kind = if ($level -eq 'Over') { 'Critical' } else { 'Warning' }
-        $controls.ComponentAdviceCard.Background = $window.FindResource("${kind}BackBrush")
-        $controls.ComponentAdviceCard.BorderBrush = $window.FindResource($brushes[$level])
-        $controls.ComponentAdviceTitle.Foreground = $window.FindResource("${kind}Brush")
+        $controls.ComponentAdviceCard.SetResourceReference([System.Windows.Controls.Border]::BackgroundProperty, "${kind}BackBrush")
+        $controls.ComponentAdviceCard.SetResourceReference([System.Windows.Controls.Border]::BorderBrushProperty, $brushes[$level])
+        $controls.ComponentAdviceTitle.SetResourceReference([System.Windows.Controls.TextBlock]::ForegroundProperty, "${kind}Brush")
         $controls.ComponentAdviceTitle.Text = $status.Title
         $controls.ComponentAdviceItems.ItemsSource = @($status.Advice | ForEach-Object { [PSCustomObject]@{ Text = $_ } })
 

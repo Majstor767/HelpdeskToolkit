@@ -252,7 +252,7 @@ function Show-WindowMonitor {
 
         $controls.MonitorTileLatency.Text = $connection.Value
         $controls.MonitorTileLatencySub.Text = $connection.Sub
-        $controls.MonitorLatencyDot.Fill = $Gui.Window.FindResource($brushes[$connection.Level])
+        $controls.MonitorLatencyDot.SetResourceReference([System.Windows.Shapes.Shape]::FillProperty, $brushes[$connection.Level])
         $controls.MonitorLatencyTile.ToolTip = $connection.Summary
 
         $latencyRows = @(
@@ -265,7 +265,7 @@ function Show-WindowMonitor {
     else {
         $controls.MonitorTileLatency.Text = '-'
         $controls.MonitorTileLatencySub.Text = Get-LocalizedText 'not measured: network tests are skipped'
-        $controls.MonitorLatencyDot.Fill = $Gui.Window.FindResource($brushes.None)
+        $controls.MonitorLatencyDot.SetResourceReference([System.Windows.Shapes.Shape]::FillProperty, $brushes.None)
         $controls.MonitorLatencyTile.ToolTip = Get-LocalizedText 'Untick "Skip network tests" to measure how quickly the internet answers.'
     }
 

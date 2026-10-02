@@ -122,7 +122,6 @@
         'Same as Windows'                                      = 'Kao Windows'
         'Light'                                                = 'Svijetla'
         'Dark'                                                 = 'Tamna'
-        'The language and the theme are applied when the application starts the next time.' = 'Jezik i tema primjenjuju se pri sljedećem pokretanju aplikacije.'
         'Restart now'                                          = 'Ponovno pokreni sada'
         'The application could not be restarted: {0}'          = 'Aplikaciju nije moguće ponovno pokrenuti: {0}'
         'Keyboard shortcuts'                                   = 'Tipkovni prečaci'
@@ -995,6 +994,14 @@
 
         # --- Buttons that open a place in Windows -----------------------------------
         'Open App & browser control'                           = 'Otvori Kontrolu aplikacija i preglednika'
+
+        # --- Theme switch -----------------------------------------------------------
+        'Switch to the dark theme (Ctrl+T)'                    = 'Prebaci na tamnu temu (Ctrl+T)'
+        'Switch to the light theme (Ctrl+T)'                   = 'Prebaci na svijetlu temu (Ctrl+T)'
+        'Switch between the light and the dark theme'          = 'Prebacivanje između svijetle i tamne teme'
+        'The theme changes at once. The language is applied when the application starts the next time.' = 'Tema se mijenja odmah. Jezik se primjenjuje pri sljedećem pokretanju aplikacije.'
+
+        # --- Buttons that open a place in Windows, continued ------------------------
         'Open Core isolation'                                  = 'Otvori Izolaciju jezgre'
         'Open Windows Features'                                = 'Otvori Značajke sustava Windows'
         'Open Lock screen settings'                            = 'Otvori postavke zaključanog zaslona'

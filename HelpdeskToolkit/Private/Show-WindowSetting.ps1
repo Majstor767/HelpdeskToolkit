@@ -49,6 +49,7 @@ function Show-WindowSetting {
         [PSCustomObject]@{ Name = 'Ctrl+Shift+C'; Text = Get-LocalizedText 'Copy the summary for a ticket' }
         [PSCustomObject]@{ Name = 'Ctrl+M'; Text = Get-LocalizedText 'Open the Live monitor' }
         [PSCustomObject]@{ Name = 'Ctrl+,'; Text = Get-LocalizedText 'Open the settings' }
+        [PSCustomObject]@{ Name = 'Ctrl+T'; Text = Get-LocalizedText 'Switch between the light and the dark theme' }
     )
 
     $controls.AboutText.Text = (Get-LocalizedText 'HelpdeskToolkit {0}  |  PowerShell {1}') -f (Get-ToolVersion), $PSVersionTable.PSVersion
