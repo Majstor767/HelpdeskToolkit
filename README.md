@@ -33,10 +33,11 @@ problems it found and what to do about them.
 
 \* needs administrator rights; otherwise marked "Requires admin". See [Administrator rights](#administrator-rights).
 
-Every result has a status (**OK**, **Warning**, **Critical** or **Info**), a short
-explanation of what the checked thing is, and a recommended fix whenever the status is
-Warning or Critical. Measurements also show the allowed range and a typical value for
-comparison.
+Every result has a status (**OK**, **Warning**, **Critical** or **Info**) and a short
+explanation of what the checked thing is. A result with the status Warning or Critical
+also says **why it is a problem**, that is what it leads to when it is left as it is,
+and has a recommended fix. Measurements also show the allowed range and a typical
+value for comparison.
 
 ## The window
 
@@ -388,7 +389,7 @@ real connection between two computers.
 
 ## Configuration
 
-Three data files control the behaviour; no code has to be changed:
+Four data files control the behaviour; no code has to be changed:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   the limits for Warning and Critical (for example free disk space below 15 % and 5 %),
@@ -398,6 +399,8 @@ Three data files control the behaviour; no code has to be changed:
   when a new feature release appears).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):
   the explanation shown for every check.
+- [`HelpdeskToolkit/Config/Risks.psd1`](HelpdeskToolkit/Config/Risks.psd1):
+  why a problem matters, shown next to every Warning and Critical result.
 - [`HelpdeskToolkit/Config/Actions.psd1`](HelpdeskToolkit/Config/Actions.psd1):
   which page of Windows the button next to a recommended fix opens.
 
@@ -420,7 +423,7 @@ English.
 HelpdeskToolkit/          the module
   Public/                 exported commands, one per file
   Private/                internal helpers, one per file
-  Config/                 thresholds, descriptions and the targets of the fix buttons
+  Config/                 thresholds, descriptions, consequences and the targets of the fix buttons
   Lang/                   translations of the window
   Assets/                 report stylesheet, window layout (XAML), dark theme, icon
 tests/                    Pester tests

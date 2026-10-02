@@ -36,10 +36,11 @@ engleskom, pa su i nazivi u ovom dokumentu navedeni onako kako pišu na englesko
 
 \* traži administratorska prava; inače je označeno s "Requires admin". Vidi [Administratorska prava](#administratorska-prava).
 
-Svaki rezultat ima status (**OK**, **Warning**, **Critical** ili **Info**), kratko
-objašnjenje što je to što se provjerava i preporučeno rješenje kad god je status Warning
-ili Critical. Uz mjerenja se prikazuju i dopušteni raspon te tipična vrijednost za
-usporedbu.
+Svaki rezultat ima status (**OK**, **Warning**, **Critical** ili **Info**) i kratko
+objašnjenje što je to što se provjerava. Rezultat sa statusom Warning ili Critical
+dodatno kaže **zašto je to problem**, odnosno do čega dovodi ako se ostavi kako jest,
+i ima preporučeno rješenje. Uz mjerenja se prikazuju i dopušteni raspon te tipična
+vrijednost za usporedbu.
 
 ## Prozor
 
@@ -385,7 +386,7 @@ preko stvarne veze između dva računala.
 
 ## Konfiguracija
 
-Ponašanje određuju tri podatkovne datoteke; kod se ne mora mijenjati:
+Ponašanje određuju četiri podatkovne datoteke; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
@@ -395,6 +396,8 @@ Ponašanje određuju tri podatkovne datoteke; kod se ne mora mijenjati:
   redak).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):
   objašnjenje koje se prikazuje uz svaku provjeru.
+- [`HelpdeskToolkit/Config/Risks.psd1`](HelpdeskToolkit/Config/Risks.psd1):
+  zašto je problem važan; prikazuje se uz svaki rezultat Warning i Critical.
 - [`HelpdeskToolkit/Config/Actions.psd1`](HelpdeskToolkit/Config/Actions.psd1):
   koju stranicu Windowsa otvara gumb uz preporučeno rješenje.
 
@@ -416,7 +419,7 @@ uz engleske izvornike. Tekst bez prijevoda jednostavno se prikaže na engleskom.
 HelpdeskToolkit/          modul
   Public/                 izvezene naredbe, jedna po datoteci
   Private/                interne pomoćne funkcije, jedna po datoteci
-  Config/                 pragovi, opisi i odredišta gumba uz rješenja
+  Config/                 pragovi, opisi, posljedice i odredišta gumba uz rješenja
   Lang/                   prijevodi prozora
   Assets/                 stilovi izvještaja, izgled prozora (XAML), tamna tema, ikona
 tests/                    Pester testovi

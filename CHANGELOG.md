@@ -12,8 +12,9 @@ The first public version. It will be released as 1.0.0.
 
 - Ten categories of read-only checks: System, Specifications, Hardware, Software,
   Event Log, Windows Update, Security, Network, Printers and Services.
-- Every result has a status (OK, Warning, Critical or Info), an explanation of what
-  was checked and, for Warning and Critical, a recommended fix. Measurements show the
+- Every result has a status (OK, Warning, Critical or Info) and an explanation of what
+  was checked. Warning and Critical results also say why they are a problem (what
+  they lead to when left alone) and have a recommended fix. Measurements show the
   allowed range and a typical value.
 - Works without administrator rights; the checks that need them are marked
   "Requires admin" and are included after "Restart as administrator".
