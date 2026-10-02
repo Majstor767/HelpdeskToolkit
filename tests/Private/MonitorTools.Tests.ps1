@@ -245,7 +245,7 @@ Describe 'Switch-WindowMonitorPause' -Skip:(-not $isSta) {
 Describe 'Enable-WindowMonitor: refresh rate' -Skip:(-not $isSta) {
     It 'hands the refresh rate of the settings to the background loop' {
         $gui = New-TestWindow
-        $gui.Settings = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 10 }
+        $gui.Settings = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 10; AutoCheckMinutes = 5 }
         # A module path that does not exist: the loop cannot measure this computer.
         $gui.ManifestPath = Join-Path -Path $TestDrive -ChildPath 'Missing.psd1'
         try {

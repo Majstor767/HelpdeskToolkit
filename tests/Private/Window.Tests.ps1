@@ -60,8 +60,8 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
         $gui.Controls.SaveAsButton.IsEnabled | Should -BeFalse
     }
 
-    It 'starts with the three pages that need no health check, and a hint' {
-        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'Settings')
+    It 'starts with the two pages that need no health check, and a hint' {
+        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor')
         $gui.Controls.PageSubtitle.Text | Should -Match 'Run check'
     }
 
@@ -162,7 +162,7 @@ Describe 'Show-WindowReport' -Skip:(-not $isSta) {
     }
 
     It 'lists Overview, Live monitor, every category in the order it ran, and the settings' {
-        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'System', 'Hardware', 'Network', 'Settings')
+        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'System', 'Hardware', 'Network')
     }
 
     It 'marks every entry with the worst status and the number of problems' {
@@ -786,7 +786,7 @@ Describe 'Receive-WindowCheck' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Receive-WindowCheck -Gui $Gui }
 
         $gui.Controls.OkCount.Text | Should -Be '1'
-        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'System', 'Settings')
+        @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'System')
         $gui.Controls.RunButton.IsEnabled | Should -BeTrue
         $gui.Controls.RunButton.Content | Should -Be 'Run check'
         $gui.Controls.RunPanel.Visibility | Should -Be 'Collapsed'

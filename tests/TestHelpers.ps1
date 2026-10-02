@@ -45,7 +45,7 @@ function Set-TestThreshold {
                 WarningDaysBeforeEnd = 90
             }
             Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
-            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderTimeoutMs = 1000; LargestFolderBudgetMs = 3000 }
+            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderTimeoutMs = 1000; LargestFolderBudgetMs = 3000; ProgramSizeTimeoutMs = 500; ProgramSizeBudgetMs = 2000; UsageProgramCount = 3; UsageFolderCount = 2 }
             Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30 }
             DriveDetail   = @{ TemperatureWarning = 60; TemperatureCritical = 70; TypicalTemperature = '30 - 50'; WearWarningPercent = 80; WearCriticalPercent = 95 }
             SignIn        = @{ FailedWarningAbove = 20; TypicalFailed = 'typical failed sign-ins' }
@@ -94,7 +94,22 @@ function Set-TestThreshold {
                 TypicalWifiSignal   = 'typical wifi'
             }
             Score         = @{ CriticalPenalty = 15; WarningPenalty = 4 }
-            Monitor       = @{ CpuAlertPercent = 90; MemoryAlertPercent = 90; DiskAlertPercent = 90; AlertSamples = 3; GpuTemperatureAlert = 85 }
+            Monitor       = @{
+                CpuAlertPercent     = 90
+                MemoryAlertPercent  = 90
+                DiskAlertPercent    = 90
+                AlertSamples        = 3
+                GpuTemperatureAlert = 85
+                # Status dots: the average of three measurements is judged; a rise is
+                # looked for in six and projected six ahead.
+                StatusSamples       = 3
+                GpuWarningPercent   = 95
+                NearMarginPercent   = 10
+                GpuTemperatureNear  = 75
+                TrendSamples        = 6
+                TrendAheadSamples   = 6
+                TrendMinimumPercent = 50
+            }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }
     }

@@ -87,9 +87,10 @@ Describe 'New-HealthCheckWindow: theme and language' -Skip:(-not $isSta) {
             $gui.Controls.RunButton.Content | Should -Be 'Pokreni provjeru'
             $gui.Controls.StatusText.Text | Should -Be 'Spremno. Klikni Pokreni provjeru da pregledaš ovo računalo.'
             $gui.Window.Title | Should -Be 'HelpdeskToolkit - provjera računala'
-            @($gui.Controls.CategoryList.ItemsSource).Label | Should -Be @('Pregled', 'Praćenje uživo', 'Postavke')
+            @($gui.Controls.CategoryList.ItemsSource).Label | Should -Be @('Pregled', 'Praćenje uživo')
+            $gui.Controls.SettingsButton.Content | Should -Be 'Postavke'
             # The names the code works with stay English.
-            @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor', 'Settings')
+            @($gui.Controls.CategoryList.ItemsSource).Name | Should -Be @('Overview', 'Live monitor')
         }
         finally {
             InModuleScope HelpdeskToolkit { $script:Language = 'en'; $script:Translations = $null }
@@ -384,13 +385,17 @@ Describe 'Show-WindowPage: search, filter and settings' -Skip:(-not $isSta) {
 Describe 'Show-WindowSetting' -Skip:(-not $isSta) {
     BeforeAll {
         $gui = New-TestWindow
-        $gui.Settings = @{ Language = 'hr'; Theme = 'Dark'; MonitorIntervalSeconds = 2 }
+        $gui.Settings = @{ Language = 'hr'; Theme = 'Dark'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 30 }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowSetting -Gui $Gui }
     }
 
     It 'selects the language and the theme that are in use' {
         $gui.Controls.LanguageBox.SelectedItem.Tag | Should -Be 'hr'
         $gui.Controls.ThemeBox.SelectedItem.Tag | Should -Be 'Dark'
+    }
+
+    It 'selects how often the check is repeated' {
+        $gui.Controls.AutoCheckBox.SelectedItem.Tag | Should -Be '30'
     }
 
     It 'does not leave the window in the "being filled" state' {
@@ -461,8 +466,7 @@ Describe 'Invoke-WindowShortcut' -Skip:(-not $isSta) {
     }
 
     It 'goes to the Overview for Ctrl+F when the open page has no search field' {
-        $gui.Controls.CategoryList.SelectedIndex = @($gui.Controls.CategoryList.Items).Count - 1
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'Settings' }
         $gui.Controls.FilterPanel.Visibility | Should -Be 'Collapsed'
 
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowShortcut -Gui $Gui -Key 'F' -Control } | Should -BeTrue

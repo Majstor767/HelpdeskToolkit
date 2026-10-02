@@ -234,6 +234,7 @@ Describe 'Get-InstalledProgram' {
             [PSCustomObject]@{ DisplayName = 'Windows Component'; SystemComponent = 1 }
             [PSCustomObject]@{ DisplayVersion = '1.0' }
             [PSCustomObject]@{ DisplayName = 'Broken Date'; InstallDate = '00000000' }
+            [PSCustomObject]@{ DisplayName = 'Contoso Game'; EstimatedSize = 2048; InstallLocation = '"D:\Games\Contoso Game\"' }
         }
         $programs = @(InModuleScope HelpdeskToolkit { Get-InstalledProgram })
     }
@@ -243,7 +244,19 @@ Describe 'Get-InstalledProgram' {
     }
 
     It 'skips entries without a name and system components' {
-        $programs.Name | Should -Be @('Contoso Office', 'Archive Tool', 'Broken Date')
+        $programs.Name | Should -Be @('Contoso Office', 'Archive Tool', 'Broken Date', 'Contoso Game')
+    }
+
+    It 'reads the size in bytes and the folder, without quotes and the last backslash' {
+        $game = $programs | Where-Object Name -eq 'Contoso Game'
+        $game.SizeBytes | Should -Be 2MB
+        $game.Location | Should -Be 'D:\Games\Contoso Game'
+    }
+
+    It 'leaves the size and the folder empty when the installer did not store them' {
+        $tool = $programs | Where-Object Name -eq 'Archive Tool'
+        $tool.SizeBytes | Should -BeNullOrEmpty
+        $tool.Location | Should -Be ''
     }
 
     It 'reads the version and converts the install date' {
