@@ -50,6 +50,7 @@ function Show-WindowSetting {
         [PSCustomObject]@{ Name = 'Ctrl+M'; Text = Get-LocalizedText 'Open the Live monitor' }
         [PSCustomObject]@{ Name = 'Ctrl+,'; Text = Get-LocalizedText 'Open the settings' }
         [PSCustomObject]@{ Name = 'Ctrl+T'; Text = Get-LocalizedText 'Switch between the light and the dark theme' }
+        [PSCustomObject]@{ Name = 'PrtSc'; Text = Get-LocalizedText 'Copy a picture of the window' }
     )
 
     $controls.AboutText.Text = (Get-LocalizedText 'HelpdeskToolkit {0}  |  PowerShell {1}') -f (Get-ToolVersion), $PSVersionTable.PSVersion

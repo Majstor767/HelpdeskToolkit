@@ -1004,6 +1004,11 @@
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
 
+        # --- Print Screen -----------------------------------------------------------
+        'Copy a picture of the window'                         = 'Kopiranje slike prozora'
+        'A picture of the window was copied. Paste it with Ctrl+V.' = 'Slika prozora je kopirana. Zalijepi je s Ctrl+V.'
+        'The picture of the window could not be copied: {0}'   = 'Slika prozora nije se mogla kopirati: {0}'
+
         # --- A faster check ---------------------------------------------------------
         'The check is running. It usually takes 10 to 20 seconds.' = 'Provjera je u tijeku. Obično traje 10 do 20 sekundi.'
         'Checking {0} categories at the same time ...'         = 'Provjeravam {0} kategorija istovremeno ...'

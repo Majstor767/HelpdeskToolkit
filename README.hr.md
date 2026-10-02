@@ -151,6 +151,12 @@ Tipkovni prečaci:
 | `Ctrl+M` | Live monitor |
 | `Ctrl+,` | Settings |
 | `Ctrl+T` | Prebacivanje između svijetle i tamne teme |
+| `PrtSc` | Kopiranje slike prozora u međuspremnik |
+
+`PrtSc` postoji zato što aplikacija obično radi s administratorskim pravima: Windows
+tada tipke pritisnute u njezinu prozoru ne prosljeđuje programima bez tih prava, pa
+prečac alata za snimanje zaslona ne radi dok je prozor u prvom planu. Prozor zato sam
+napravi sliku; na njoj je samo prozor, a ne ostatak zaslona.
 
 ### Jezik i tema
 

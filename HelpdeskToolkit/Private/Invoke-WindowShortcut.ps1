@@ -15,6 +15,9 @@ function Invoke-WindowShortcut {
         Ctrl+M        open the Live monitor
         Ctrl+,        open the settings
         Ctrl+T        switch between the light and the dark theme
+        PrtSc         copy a picture of the window (see Copy-WindowImage); Windows only
+                      reports this key when it is released, so the caller hands it in
+                      from there
 
         A shortcut does what the button with the same purpose does, by "clicking" that
         button, and does nothing while the button is disabled.
@@ -49,6 +52,13 @@ function Invoke-WindowShortcut {
         if ($Button.IsEnabled -and $Button.Visibility -eq [System.Windows.Visibility]::Visible) {
             $Button.RaiseEvent((New-Object -TypeName System.Windows.RoutedEventArgs -ArgumentList ([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent)))
         }
+    }
+
+    # Works everywhere, the question at the start included. "Snapshot" is the name
+    # Windows gives the Print Screen key.
+    if ($Key -eq 'Snapshot') {
+        [void](Copy-WindowImage -Gui $Gui)
+        return $true
     }
 
     if ($controls.StartupOverlay.Visibility -eq [System.Windows.Visibility]::Visible) {

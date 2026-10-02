@@ -444,6 +444,16 @@ function Show-PCHealthCheck {
             }
         })
 
+    # Print Screen: Windows reports this key only when it is released, never when it
+    # is pressed. With Alt held down it arrives as a "system key".
+    $window.Add_PreviewKeyUp({
+            $keyEvent = $args[1]
+            $key = if ($keyEvent.Key -eq [System.Windows.Input.Key]::System) { $keyEvent.SystemKey } else { $keyEvent.Key }
+            if ($key -eq [System.Windows.Input.Key]::Snapshot) {
+                [void](Invoke-WindowShortcut -Gui $script:HealthCheckWindow -Key 'Snapshot')
+            }
+        })
+
     # Closing the window stops the background work and remembers where the window was.
     $window.Add_Closing({
             $state = $script:HealthCheckWindow

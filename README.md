@@ -152,6 +152,13 @@ Keyboard shortcuts:
 | `Ctrl+M` | Live monitor |
 | `Ctrl+,` | Settings |
 | `Ctrl+T` | Switch between the light and the dark theme |
+| `PrtSc` | Copy a picture of the window to the clipboard |
+
+`PrtSc` is there because the application usually runs with administrator rights:
+Windows then keeps the keys pressed in its window away from programs without those
+rights, so the shortcut of a screenshot tool does nothing while the window is in
+front. The window takes the picture itself; it shows the window only, not what else
+is on the screen.
 
 ### Language and theme
 
