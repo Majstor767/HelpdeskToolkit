@@ -44,6 +44,8 @@ Describe 'Get-HardwareHealth' {
         Mock -ModuleName HelpdeskToolkit Get-ChildItem { }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PnPSignedDriver' } { }
         Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity { }
+        # No memory test on record; the event log of the test computer is never read.
+        Mock -ModuleName HelpdeskToolkit Get-MemoryDiagnosticResult { }
         Mock -ModuleName HelpdeskToolkit Get-LargestFolder { throw 'Must only be called for a disk that is running full' }
 
         # A driver as Win32_PnPSignedDriver reports it.
@@ -576,6 +578,36 @@ Describe 'Get-HardwareHealth' {
 
         It 'is left out when the battery reports no capacity' {
             Get-HardwareHealth | Where-Object Check -eq 'Battery health' | Should -BeNullOrEmpty
+        }
+    }
+
+    Context 'memory test' {
+        It 'says so when the memory was never tested' {
+            $result = Get-HardwareHealth | Where-Object Check -eq 'Memory test'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'No test on record'
+        }
+
+        It 'reports a test without errors as OK, with its date' {
+            Mock -ModuleName HelpdeskToolkit Get-MemoryDiagnosticResult { [PSCustomObject]@{ TestedAt = [datetime]'2026-01-11 07:30'; HasErrors = $false } }
+            $result = Get-HardwareHealth | Where-Object Check -eq 'Memory test'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'No errors (tested 2026-01-11)'
+        }
+
+        It 'reports faulty memory as Critical' {
+            Mock -ModuleName HelpdeskToolkit Get-MemoryDiagnosticResult { [PSCustomObject]@{ TestedAt = [datetime]'2026-01-11 07:30'; HasErrors = $true } }
+            $result = Get-HardwareHealth | Where-Object Check -eq 'Memory test'
+            $result.Status | Should -Be 'Critical'
+            $result.Value | Should -Be 'Errors found (tested 2026-01-11)'
+            $result.Recommendation | Should -Match 'replace it'
+        }
+
+        It 'reports the test as unavailable when the event log cannot be read, and goes on' {
+            Mock -ModuleName HelpdeskToolkit Get-MemoryDiagnosticResult { throw 'The event log service is not running' }
+            $results = Get-HardwareHealth
+            ($results | Where-Object Check -eq 'Memory test').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Battery').Value | Should -Be 'No battery (desktop computer)'
         }
     }
 }

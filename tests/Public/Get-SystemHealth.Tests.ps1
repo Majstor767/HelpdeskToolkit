@@ -47,6 +47,11 @@ Describe 'Get-SystemHealth' {
         Mock -ModuleName HelpdeskToolkit Get-PowerPlanName { 'Balanced' }
         # HiberbootEnabled = 1: Fast Startup is on.
         Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'HiberbootEnabled' } { 1 }
+        # No System File Checker run on record and nothing that delayed a startup; the
+        # servicing log and the event log of the test computer are never read.
+        Mock -ModuleName HelpdeskToolkit Get-SystemFileCheckResult { }
+        Mock -ModuleName HelpdeskToolkit Get-BootDegradation { }
+        Mock -ModuleName HelpdeskToolkit Get-Windows11Readiness { throw 'Must only be called on Windows 10' }
     }
 
     Context 'on a healthy computer' {
@@ -345,6 +350,150 @@ Describe 'Get-SystemHealth' {
         ) {
             Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'HiberbootEnabled' } { $Value }
             (Get-SystemHealth | Where-Object Check -eq 'Fast Startup').Value | Should -Be $Expected
+        }
+    }
+
+    Context 'System File Checker' {
+        It 'says so when no check is on record' {
+            $result = Get-SystemHealth | Where-Object Check -eq 'System file check'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'No check on record'
+        }
+
+        It 'reports a <Verdict> result as <Status>' -ForEach @(
+            @{ Verdict = 'Clean'; Status = 'OK'; Value = 'No damaged files (checked 2026-01-09)' }
+            @{ Verdict = 'Repaired'; Status = 'Info'; Value = 'Damaged files were found and repaired (checked 2026-01-09)' }
+            @{ Verdict = 'Unrepaired'; Status = 'Warning'; Value = 'Damaged files could not be repaired (checked 2026-01-09)' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-SystemFileCheckResult { [PSCustomObject]@{ CheckedAt = [datetime]'2026-01-09 21:04'; Verdict = $Verdict } }.GetNewClosure()
+            $result = Get-SystemHealth | Where-Object Check -eq 'System file check'
+            $result.Status | Should -Be $Status
+            $result.Value | Should -Be $Value
+        }
+
+        It 'tells how to repair what the checker could not' {
+            Mock -ModuleName HelpdeskToolkit Get-SystemFileCheckResult { [PSCustomObject]@{ CheckedAt = Get-Date; Verdict = 'Unrepaired' } }
+            (Get-SystemHealth | Where-Object Check -eq 'System file check').Recommendation | Should -Match 'DISM /Online /Cleanup-Image /RestoreHealth'
+        }
+
+        It 'marks the check "Requires admin" when the log may not be read' {
+            Mock -ModuleName HelpdeskToolkit Get-SystemFileCheckResult { throw (New-Object -TypeName System.UnauthorizedAccessException -ArgumentList 'Access is denied') }
+            (Get-SystemHealth | Where-Object Check -eq 'System file check').Value | Should -Be 'Requires admin'
+        }
+    }
+
+    Context 'what delayed the startup' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+            Mock -ModuleName HelpdeskToolkit Get-LastBootDuration { }
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_UserProfile' } { }
+        }
+
+        It 'is marked "Requires admin" without administrator rights' {
+            Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
+            (Get-SystemHealth | Where-Object Check -eq 'Startup delays').Value | Should -Be 'Requires admin'
+            Should -Invoke -ModuleName HelpdeskToolkit Get-BootDegradation -Times 0 -Exactly
+        }
+
+        It 'is OK when Windows blamed nothing' {
+            $result = Get-SystemHealth | Where-Object Check -eq 'Startup delays'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'Nothing slowed the startup in the last 30 days'
+        }
+
+        It 'lists small delays for information, the longest first, averaged per culprit' {
+            Mock -ModuleName HelpdeskToolkit Get-BootDegradation {
+                [PSCustomObject]@{ Kind = 'driver'; Name = 'ctsdrv'; Milliseconds = 2100; MeasuredAt = Get-Date }
+                [PSCustomObject]@{ Kind = 'program'; Name = 'Contoso Sync'; Milliseconds = 5000; MeasuredAt = Get-Date }
+                [PSCustomObject]@{ Kind = 'program'; Name = 'Contoso Sync'; Milliseconds = 7000; MeasuredAt = Get-Date }
+            }
+            $result = Get-SystemHealth | Where-Object Check -eq 'Startup delays'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be '2 culprits in the last 30 days: Contoso Sync (program, 6 s), ctsdrv (driver, 2 s)'
+            $result.Recommendation | Should -BeNullOrEmpty
+            $result.Allowed | Should -Be '0 - 10 seconds'
+        }
+
+        It 'is a Warning when something held up the startup for longer than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-BootDegradation {
+                [PSCustomObject]@{ Kind = 'service'; Name = 'Contoso Agent'; Milliseconds = 24000; MeasuredAt = Get-Date }
+            }
+            $result = Get-SystemHealth | Where-Object Check -eq 'Startup delays'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Be '1 culprit in the last 30 days: Contoso Agent (service, 24 s)'
+            $result.Recommendation | Should -Match 'Startup apps'
+        }
+
+        It 'looks back as far as a startup measurement counts as recent' {
+            Get-SystemHealth | Out-Null
+            Should -Invoke -ModuleName HelpdeskToolkit Get-BootDegradation -ParameterFilter {
+                [math]::Abs(($Since - (Get-Date).AddDays(-30)).TotalMinutes) -lt 5
+            }
+        }
+    }
+
+    Context 'on Windows 10' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_OperatingSystem' } {
+                [PSCustomObject]@{
+                    Caption = 'Microsoft Windows 10 Pro'; BuildNumber = '19045'; LastBootUpTime = (Get-Date).AddDays(-1)
+                    InstallDate = [datetime]'2021-03-01'; ProductType = 1
+                }
+            }
+            Mock -ModuleName HelpdeskToolkit Get-OSDisplayVersion { '22H2' }
+
+            function New-TestReadiness {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+                    Justification = 'Test helper that only builds objects in memory.')]
+                param($Ready, $Tpm = $true, $Processor = $true)
+
+                [PSCustomObject]@{
+                    Ready        = $Ready
+                    Requirements = @(
+                        [PSCustomObject]@{ Name = 'Processor (64-bit, 2 cores, 1 GHz)'; Met = $Processor; Value = '64-bit, 1 cores, 2400 MHz' }
+                        [PSCustomObject]@{ Name = 'Memory (4 GB)'; Met = $true; Value = '8 GB' }
+                        [PSCustomObject]@{ Name = 'TPM 2.0'; Met = $Tpm; Value = 'version 1.2' }
+                    )
+                }
+            }
+        }
+
+        It 'says that the computer can run Windows 11, with every requirement as a detail' {
+            Mock -ModuleName HelpdeskToolkit Get-Windows11Readiness { New-TestReadiness -Ready $true }
+            $result = Get-SystemHealth | Where-Object Check -eq 'Windows 11 readiness'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'This computer meets the requirements of Windows 11'
+            $result.Details | Should -Contain 'Memory (4 GB): yes (8 GB)'
+        }
+
+        It 'names what stands in the way' {
+            Mock -ModuleName HelpdeskToolkit Get-Windows11Readiness { New-TestReadiness -Ready $false -Tpm $false -Processor $false }
+            $result = Get-SystemHealth | Where-Object Check -eq 'Windows 11 readiness'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Does not meet the requirements: Processor (64-bit, 2 cores, 1 GHz) (64-bit, 1 cores, 2400 MHz); TPM 2.0 (version 1.2)'
+            $result.Details | Should -Contain 'TPM 2.0: no (version 1.2)'
+            $result.Recommendation | Should -Match 'Extended Security Updates'
+        }
+
+        It 'leaves the answer open when something could not be found out' {
+            Mock -ModuleName HelpdeskToolkit Get-Windows11Readiness { New-TestReadiness -Ready $null -Tpm $null }
+            $result = Get-SystemHealth | Where-Object Check -eq 'Windows 11 readiness'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Not decided, could not be found out: TPM 2.0'
+            $result.Details | Should -Contain 'TPM 2.0: unknown (version 1.2)'
+            $result.Recommendation | Should -Match 'as administrator'
+        }
+
+        It 'reports the check as unavailable when the hardware cannot be read' {
+            Mock -ModuleName HelpdeskToolkit Get-Windows11Readiness { throw 'WMI is not working' }
+            (Get-SystemHealth | Where-Object Check -eq 'Windows 11 readiness').Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'on Windows 11' {
+        It 'has no result about Windows 11 readiness' {
+            Get-SystemHealth | Where-Object Check -eq 'Windows 11 readiness' | Should -BeNullOrEmpty
+            Should -Invoke -ModuleName HelpdeskToolkit Get-Windows11Readiness -Times 0 -Exactly
         }
     }
 }

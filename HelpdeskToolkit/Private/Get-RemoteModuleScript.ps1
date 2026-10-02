@@ -13,6 +13,8 @@ function Get-RemoteModuleScript {
         - the source of every function in the Private and Public folders
         - three lines that take the configuration and the version from the parameters
           of the script, because the configuration files are not there either
+        - the list of programs without support (Config\EndOfLife.psd1), written into
+          the script as text for the same reason
 
         It expects three arguments: the text of Thresholds.psd1, the text of
         Descriptions.psd1 and the version of the tool.
@@ -46,6 +48,10 @@ function Get-RemoteModuleScript {
     $parts.Add('$script:Thresholds = ConvertFrom-DataFileText -Text $RemoteThresholdText')
     $parts.Add('$script:Descriptions = ConvertFrom-DataFileText -Text $RemoteDescriptionText')
     $parts.Add('$script:ToolVersion = $RemoteToolVersion')
+
+    # A here-string keeps the text of the file as it is; no line of it starts with '@.
+    $endOfLife = [System.IO.File]::ReadAllText((Join-Path -Path $script:ModuleRoot -ChildPath 'Config\EndOfLife.psd1'))
+    $parts.Add("`$script:EndOfLife = @((ConvertFrom-DataFileText -Text @'`n$endOfLife`n'@).Products)")
 
     $parts -join "`n"
 }

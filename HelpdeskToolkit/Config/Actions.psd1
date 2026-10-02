@@ -8,6 +8,10 @@
     #
     # Target is what Windows opens: a page of the Settings app (ms-settings:...), a
     # management console (.msc) or a program. Arguments are optional.
+    #
+    # An entry with Vendors instead of Target depends on the value of the result: the
+    # key is a regular expression for the name of the maker, the value the address
+    # that is opened in the browser. Only addresses written here are ever opened.
 
     # --- System ---------------------------------------------------------------------
     'Windows support'                   = @{ Label = 'Open Windows Update'; Target = 'ms-settings:windowsupdate' }
@@ -20,6 +24,27 @@
     'Fast Startup'                      = @{ Label = 'Open Power Options'; Target = 'control.exe'; Arguments = '/name Microsoft.PowerOptions' }
     'Time zone'                         = @{ Label = 'Open Date and time settings'; Target = 'ms-settings:dateandtime' }
     'User profiles'                     = @{ Label = 'Open Storage settings'; Target = 'ms-settings:storagesense' }
+    'Startup delays'                    = @{ Label = 'Open Startup apps'; Target = 'ms-settings:startupapps' }
+    'Windows 11 readiness'              = @{ Label = 'Open Windows Update'; Target = 'ms-settings:windowsupdate' }
+
+    # --- Specifications -------------------------------------------------------------
+    'BIOS'                              = @{ Label = 'Open System Information'; Target = 'msinfo32.exe' }
+    # The support page of the maker, where the warranty is looked up by serial number.
+    'Warranty and support'              = @{
+        Label   = 'Open the support page'
+        Vendors = @{
+            'Dell'             = 'https://www.dell.com/support/home'
+            'Lenovo'           = 'https://pcsupport.lenovo.com/warrantylookup'
+            '^HP\b|Hewlett'    = 'https://support.hp.com/checkwarranty'
+            'ASUS'             = 'https://www.asus.com/support/warranty-status-inquiry/'
+            'Acer'             = 'https://www.acer.com/support'
+            'Microsoft'        = 'https://account.microsoft.com/devices'
+            'MSI|Micro-Star'   = 'https://www.msi.com/support'
+            'Samsung'          = 'https://www.samsung.com/support/'
+            'Fujitsu'          = 'https://support.ts.fujitsu.com/'
+            'Toshiba|Dynabook' = 'https://support.dynabook.com/'
+        }
+    }
 
     # --- Hardware -------------------------------------------------------------------
     'CPU load'                          = @{ Label = 'Open Task Manager'; Target = 'taskmgr.exe' }
@@ -43,12 +68,17 @@
     'Drivers'                           = @{ Label = 'Open Device Manager'; Target = 'devmgmt.msc' }
     'Battery'                           = @{ Label = 'Open Power settings'; Target = 'ms-settings:powersleep' }
     'Battery health'                    = @{ Label = 'Open Power settings'; Target = 'ms-settings:powersleep' }
+    # Opens the dialog of Windows; the test itself needs a restart, which the user decides there.
+    'Memory test'                       = @{ Label = 'Open Windows Memory Diagnostic'; Target = 'mdsched.exe' }
 
     # --- Software -------------------------------------------------------------------
     'Installed programs'                = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
     'Recently installed'                = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
     'Application crashes'               = @{ Label = 'Open Event Viewer'; Target = 'eventvwr.msc' }
     'Default browser'                   = @{ Label = 'Open Default apps'; Target = 'ms-settings:defaultapps' }
+    'Unsupported programs'              = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
+    'Program updates'                   = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
+    'Microsoft Office'                  = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
 
     # --- Event Log, Windows Update, Printers, Services: one place for the category ---
     'Category:Event Log'                = @{ Label = 'Open Event Viewer'; Target = 'eventvwr.msc' }
@@ -68,6 +98,14 @@
     'Firewall - Public profile'         = @{ Label = 'Open Firewall settings'; Target = 'windowsdefender://network' }
     'Firewall'                          = @{ Label = 'Open Firewall settings'; Target = 'windowsdefender://network' }
     'User Account Control'              = @{ Label = 'Open User Account Control settings'; Target = 'UserAccountControlSettings.exe' }
+    'SmartScreen'                       = @{ Label = 'Open App & browser control'; Target = 'windowsdefender://appbrowser' }
+    'Memory integrity'                  = @{ Label = 'Open Core isolation'; Target = 'windowsdefender://coreisolation' }
+    'LSA protection'                    = @{ Label = 'Open Core isolation'; Target = 'windowsdefender://coreisolation' }
+    'SMB 1.0'                           = @{ Label = 'Open Windows Features'; Target = 'OptionalFeatures.exe' }
+    'Screen lock'                       = @{ Label = 'Open Lock screen settings'; Target = 'ms-settings:lockscreen' }
+    'Camera use'                        = @{ Label = 'Open Camera privacy settings'; Target = 'ms-settings:privacy-webcam' }
+    'Microphone use'                    = @{ Label = 'Open Microphone privacy settings'; Target = 'ms-settings:privacy-microphone' }
+    'Location use'                      = @{ Label = 'Open Location privacy settings'; Target = 'ms-settings:privacy-location' }
     'Remote Desktop'                    = @{ Label = 'Open Remote Desktop settings'; Target = 'ms-settings:remotedesktop' }
     'Account type'                      = @{ Label = 'Open account settings'; Target = 'ms-settings:otherusers' }
     'Administrators'                    = @{ Label = 'Open account settings'; Target = 'ms-settings:otherusers' }

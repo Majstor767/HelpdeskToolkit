@@ -19,13 +19,20 @@ function Get-SystemHealth {
         - More startup programs than the configured limit is a Warning, because they
           slow down sign-in.
 
+        - On Windows 10: whether the computer meets the requirements of Windows 11,
+          with every requirement listed.
+        - The outcome of the last System File Checker run that is still on record;
+          damaged files that could not be repaired are a Warning.
+        - What Windows blamed for slowing down its startup (a program, a driver, a
+          service); a long delay is a Warning.
+
         Also listed: the scheduled tasks that do not belong to Windows, the active
         power plan and whether Fast Startup is on.
 
-        Everything is read through CIM (WMI) and the registry and nothing on the system
-        is changed. Two results need administrator rights and are otherwise marked
-        "Requires admin": the duration of the last measured startup and the size of
-        every user profile.
+        Everything is read through CIM (WMI), the registry and the logs of Windows, and
+        nothing on the system is changed. Three results need administrator rights and
+        are otherwise marked "Requires admin": the duration of the last measured
+        startup, what delayed it, and the size of every user profile.
     .EXAMPLE
         Get-SystemHealth
 
@@ -70,6 +77,38 @@ function Get-SystemHealth {
         -DisplayVersion $displayVersion -ProductType $os.ProductType
     New-CheckResult -Category $category -Check 'Windows support' -Status $support.Status -Value $support.Value `
         -Recommendation $support.Recommendation
+
+    # Can this Windows 10 computer be upgraded to Windows 11? The severity of running
+    # Windows 10 is in "Windows support"; this result only answers what comes next.
+    if ([string]$os.Caption -match 'Windows 10') {
+        try {
+            $readiness = Get-Windows11Readiness
+            $lines = @($readiness.Requirements | ForEach-Object {
+                    $mark = if ($_.Met -eq $true) { 'yes' } elseif ($_.Met -eq $false) { 'no' } else { 'unknown' }
+                    '{0}: {1} ({2})' -f $_.Name, $mark, $_.Value
+                })
+
+            if ($readiness.Ready -eq $true) {
+                New-CheckResult -Category $category -Check 'Windows 11 readiness' -Status OK -Details $lines `
+                    -Value 'This computer meets the requirements of Windows 11'
+            }
+            elseif ($readiness.Ready -eq $false) {
+                $failed = @($readiness.Requirements | Where-Object { $_.Met -eq $false } | ForEach-Object { '{0} ({1})' -f $_.Name, $_.Value })
+                New-CheckResult -Category $category -Check 'Windows 11 readiness' -Status Info -Details $lines `
+                    -Value ('Does not meet the requirements: {0}' -f ($failed -join '; ')) `
+                    -Recommendation 'Windows 11 cannot be installed on this computer in the supported way. A TPM and Secure Boot can often be switched on in the UEFI firmware settings; a processor that is not supported or too little memory means new hardware. Until then, Extended Security Updates keep Windows 10 patched for a limited time.'
+            }
+            else {
+                $open = @($readiness.Requirements | Where-Object { $null -eq $_.Met } | ForEach-Object { $_.Name })
+                New-CheckResult -Category $category -Check 'Windows 11 readiness' -Status Info -Details $lines `
+                    -Value ('Not decided, could not be found out: {0}' -f ($open -join ', ')) `
+                    -Recommendation 'Start the tool as administrator, so the TPM can be read. The PC Health Check app of Microsoft gives the final answer, including the processor model.'
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check 'Windows 11 readiness' -ErrorRecord $_
+        }
+    }
 
     if ($os.InstallDate) {
         New-CheckResult -Category $category -Check 'Windows installed' -Status Info -Value ('{0:yyyy-MM-dd}' -f $os.InstallDate)
@@ -201,9 +240,39 @@ function Get-SystemHealth {
     $fastStartupValue = if ($null -eq $fastStartup) { 'Unknown' } elseif ($fastStartup -eq 1) { 'Enabled' } else { 'Disabled' }
     New-CheckResult -Category $category -Check 'Fast Startup' -Status Info -Value $fastStartupValue
 
+    # Outcome of the last "sfc /scannow" that is still in the servicing log
+    try {
+        $fileCheck = Get-SystemFileCheckResult
+        if (-not $fileCheck) {
+            New-CheckResult -Category $category -Check 'System file check' -Status Info -Value 'No check on record'
+        }
+        else {
+            switch ($fileCheck.Verdict) {
+                'Unrepaired' {
+                    New-CheckResult -Category $category -Check 'System file check' -Status Warning `
+                        -Value ('Damaged files could not be repaired (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt) `
+                        -Recommendation 'Files of Windows are damaged and the System File Checker could not repair them. Open a terminal as administrator and run "DISM /Online /Cleanup-Image /RestoreHealth", then "sfc /scannow" again.'
+                }
+                'Repaired' {
+                    New-CheckResult -Category $category -Check 'System file check' -Status Info `
+                        -Value ('Damaged files were found and repaired (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt) `
+                        -Recommendation 'Files of Windows were damaged and have been repaired. When that happens again, test the drive and the memory: damaged system files often come from failing hardware or from switching the computer off the hard way.'
+                }
+                default {
+                    New-CheckResult -Category $category -Check 'System file check' -Status OK `
+                        -Value ('No damaged files (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt)
+                }
+            }
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'System file check' -ErrorRecord $_
+    }
+
     # Checks that Windows only allows for administrators.
     if (-not (Test-IsAdministrator)) {
         New-AdminRequiredResult -Category $category -Check 'Last startup duration'
+        New-AdminRequiredResult -Category $category -Check 'Startup delays'
         New-AdminRequiredResult -Category $category -Check 'User profiles'
         return
     }
@@ -239,6 +308,45 @@ function Get-SystemHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Last startup duration' -ErrorRecord $_
+    }
+
+    # What Windows blamed for a slow startup. The same culprit usually shows up at
+    # several startups, so the delays are averaged per culprit.
+    try {
+        $days = $thresholds.Boot.StaleDays
+        $delays = @(Get-BootDegradation -Since (Get-Date).AddDays(-$days) | Where-Object { $_.Milliseconds -gt 0 })
+        if ($delays.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Startup delays' -Status OK -Value ('Nothing slowed the startup in the last {0} days' -f $days)
+        }
+        else {
+            $culprits = @($delays | Group-Object -Property Kind, Name | ForEach-Object {
+                    [PSCustomObject]@{
+                        Name    = $_.Group[0].Name
+                        Kind    = $_.Group[0].Kind
+                        Seconds = [int][math]::Max(1, [math]::Round(($_.Group | Measure-Object -Property Milliseconds -Average).Average / 1000))
+                        Count   = $_.Count
+                    }
+                } | Sort-Object -Property Seconds -Descending)
+
+            $names = @($culprits | ForEach-Object { '{0} ({1}, {2} s)' -f $_.Name, $_.Kind, $_.Seconds })
+            $list = ConvertTo-ListValue -Item $names -Shown 4
+            $value = '{0} {1} in the last {2} days: {3}' -f $culprits.Count, $(if ($culprits.Count -eq 1) { 'culprit' } else { 'culprits' }), $days, $list.Value
+
+            $status = Get-ThresholdStatus -Value $culprits[0].Seconds -Warning $thresholds.Boot.DelayWarningSeconds
+            $recommendation = if ($status -ne 'OK') {
+                'Windows names what held up its startup. A program: turn it off in Task Manager > Startup apps or update it. A driver or a device: install the current driver from the manufacturer. A service: check in services.msc whether it is needed at startup.'
+            }
+            else {
+                ''
+            }
+            # Short delays are listed for information only.
+            New-CheckResult -Category $category -Check 'Startup delays' -Status $(if ($status -eq 'OK') { 'Info' } else { $status }) `
+                -Value $value -Details $list.Details -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $thresholds.Boot.DelayWarningSeconds -Unit 'seconds')
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Startup delays' -ErrorRecord $_
     }
 
     # Size of every user profile. "Special" profiles belong to Windows itself.

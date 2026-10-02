@@ -1,7 +1,7 @@
 function Get-SoftwareHealth {
     <#
     .SYNOPSIS
-        Reports installed programs, recent installations, application crashes, browser extensions and the default browser.
+        Reports installed programs, unsupported and outdated ones, Microsoft Office, application crashes, browser extensions and the default browser.
     .DESCRIPTION
         - Installed programs: how many there are and their names with versions. The
           first few are part of the value, the rest is returned in the Details property.
@@ -9,13 +9,26 @@ function Get-SoftwareHealth {
           recently?" is often the fastest way to the cause of a new problem.
         - Application crashes: how often programs crashed in the selected period and
           which ones. More crashes than the limit in Config\Thresholds.psd1 is a Warning.
+        - Unsupported programs: installed programs whose maker no longer releases
+          security updates for them (the list is in Config\EndOfLife.psd1). A Warning.
+        - Program updates: programs for which winget knows a newer version. More of
+          them than the limit is a Warning. This asks the internet and is left out
+          with -SkipUpdateCheck.
+        - Microsoft Office: version, update channel, and a Warning when its automatic
+          updates are switched off.
+        - Outlook data files: the mailbox files of the signed-in user. A file near
+          the size limit of Outlook is a Warning or Critical.
         - Browser extensions of Chrome, Edge, Brave and Opera, with their versions.
         - Default browser.
 
-        Everything is read from the registry and the Application event log, without
-        administrator rights. Nothing is installed, removed or changed.
+        Everything is read from the registry, the Application event log and the list
+        of winget, without administrator rights. Nothing is installed, updated,
+        removed or changed.
     .PARAMETER Days
         How many days of crash history to analyze. The default is 7.
+    .PARAMETER SkipUpdateCheck
+        Do not ask winget for newer versions of the installed programs. Use it on a
+        computer without an internet connection; the check is then marked "Skipped".
     .EXAMPLE
         Get-SoftwareHealth
 
@@ -32,7 +45,9 @@ function Get-SoftwareHealth {
     [OutputType('HelpdeskToolkit.CheckResult')]
     param(
         [ValidateRange(1, 365)]
-        [int]$Days = 7
+        [int]$Days = 7,
+
+        [switch]$SkipUpdateCheck
     )
 
     $category = 'Software'
@@ -69,9 +84,116 @@ function Get-SoftwareHealth {
             $value = '{0} and {1} more' -f $value, $remaining.Count
         }
         New-CheckResult -Category $category -Check 'Recently installed' -Status Info -Value $value -Details $remaining
+
+        # Programs whose maker no longer releases security updates for them
+        $unsupported = @(Get-UnsupportedProgram -Program $programs | Sort-Object -Property @{ Expression = 'Level'; Descending = $true }, Name)
+        if ($unsupported.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Unsupported programs' -Status OK -Value 'None found'
+        }
+        else {
+            $names = @($unsupported | ForEach-Object { '{0} (support ended {1:yyyy-MM-dd})' -f $_.Name, $_.EndDate })
+            $list = ConvertTo-ListValue -Item $names -Shown 4
+            $value = '{0} {1} without security updates: {2}' -f $unsupported.Count, $(if ($unsupported.Count -eq 1) { 'program' } else { 'programs' }), $list.Value
+
+            if (@($unsupported | Where-Object { $_.Level -eq 'Warning' }).Count -gt 0) {
+                New-CheckResult -Category $category -Check 'Unsupported programs' -Status Warning -Value $value -Details $list.Details `
+                    -Recommendation 'These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings > Apps > Installed apps), above all the ones that open files or pages from the internet.'
+            }
+            else {
+                # Only runtimes that other programs brought along
+                New-CheckResult -Category $category -Check 'Unsupported programs' -Status Info -Value $value -Details $list.Details `
+                    -Recommendation 'These runtimes no longer get security updates. They were usually installed together with another program: update that program, and remove the runtime once nothing needs it any more.'
+            }
+        }
     }
     catch {
         New-FailureResult -Category $category -Check 'Installed programs' -ErrorRecord $_
+    }
+
+    # Programs for which a newer version exists (asks winget, which asks the internet)
+    if ($SkipUpdateCheck) {
+        New-CheckResult -Category $category -Check 'Program updates' -Status Info -Value 'Skipped'
+    }
+    else {
+        try {
+            $available = Get-ProgramUpdate -TimeoutSeconds $thresholds.UpdateTimeoutSeconds
+            if (-not $available) {
+                New-CheckResult -Category $category -Check 'Program updates' -Status Info -Value 'Not checked (winget is not installed for this user)'
+            }
+            elseif ($available.Updates.Count -eq 0) {
+                New-CheckResult -Category $category -Check 'Program updates' -Status OK -Value 'Every program winget knows is up to date' `
+                    -Allowed (Format-AllowedRange -Warning $thresholds.UpdateWarningAbove) -Typical $thresholds.TypicalUpdates
+            }
+            else {
+                # A name that ends with its version ("Contoso Edit 2.0.19") is shown without it.
+                $names = @($available.Updates | Sort-Object -Property Name | ForEach-Object {
+                        $name = $_.Name -replace ('\s+v?{0}$' -f [regex]::Escape($_.Version)), ''
+                        '{0} {1} -> {2}' -f $name, $_.Version, $_.Available
+                    })
+                $list = ConvertTo-ListValue -Item $names -Shown 5
+                $value = '{0} {1} can be updated: {2}' -f $names.Count, $(if ($names.Count -eq 1) { 'program' } else { 'programs' }), $list.Value
+
+                $status = Get-ThresholdStatus -Value $names.Count -Warning $thresholds.UpdateWarningAbove
+                $recommendation = if ($status -ne 'OK') {
+                    'Many programs are out of date. Old versions keep security holes that are already fixed in the new ones. Update them from within each program, or all at once in a terminal with "winget upgrade --all".'
+                }
+                else {
+                    'Newer versions exist. Update the programs from within each program, or all at once in a terminal with "winget upgrade --all".'
+                }
+                New-CheckResult -Category $category -Check 'Program updates' -Status $(if ($status -eq 'OK') { 'Info' } else { $status }) `
+                    -Value $value -Details $list.Details -Recommendation $recommendation `
+                    -Allowed (Format-AllowedRange -Warning $thresholds.UpdateWarningAbove) -Typical $thresholds.TypicalUpdates
+            }
+        }
+        catch {
+            # winget without an internet connection is not a problem of this computer.
+            New-CheckResult -Category $category -Check 'Program updates' -Status Info `
+                -Value ('Could not be checked: {0}' -f $_.Exception.Message.Trim())
+        }
+    }
+
+    # Microsoft Office (Click-to-Run): version, update channel and whether it updates itself
+    try {
+        $office = Get-OfficeInstallation
+        if ($office) {
+            $bits = switch ($office.Platform) { 'x64' { '64-bit' } 'x86' { '32-bit' } default { '' } }
+            $value = 'Version {0}{1}, {2}' -f $office.Version, $(if ($bits) { ' ({0})' -f $bits }), $office.Channel
+            if ($office.UpdatesEnabled) {
+                New-CheckResult -Category $category -Check 'Microsoft Office' -Status Info -Value ('{0}, automatic updates on' -f $value)
+            }
+            else {
+                New-CheckResult -Category $category -Check 'Microsoft Office' -Status Warning -Value ('{0}, automatic updates off' -f $value) `
+                    -Recommendation 'Office does not update itself, so security fixes for Word, Excel and Outlook never arrive. Turn the updates on in any Office program: File > Account > Update Options > Enable Updates. In a company the setting may come from a policy.'
+            }
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Microsoft Office' -ErrorRecord $_
+    }
+
+    # Mailbox files of Outlook. Outlook gets slow with a large file, and a file at its
+    # size limit (50 GB by default) takes no new mail.
+    try {
+        $mailboxes = @(Get-OutlookDataFile | Sort-Object -Property Bytes -Descending)
+        if ($mailboxes.Count -gt 0) {
+            $outlook = (Get-HealthThreshold).Outlook
+            $names = @($mailboxes | ForEach-Object { '{0} ({1})' -f $_.Name, (Format-Gigabyte -Bytes $_.Bytes) })
+            $list = ConvertTo-ListValue -Item $names -Shown 3
+            $value = '{0} {1}: {2}' -f $mailboxes.Count, $(if ($mailboxes.Count -eq 1) { 'file' } else { 'files' }), $list.Value
+
+            $status = Get-ThresholdStatus -Value ($mailboxes[0].Bytes / 1GB) -Warning $outlook.WarningGb -Critical $outlook.CriticalGb
+            $recommendation = switch ($status) {
+                'Critical' { 'A mailbox file is close to the size limit of Outlook (50 GB); at the limit Outlook stops storing new mail. Archive or delete old mail now, empty Deleted Items, and for an Exchange account shorten "Download email for the past" (File > Account Settings > Account Settings > Change).' }
+                'Warning' { 'A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten "Download email for the past" (File > Account Settings > Account Settings > Change).' }
+                default { '' }
+            }
+            New-CheckResult -Category $category -Check 'Outlook data files' -Status $status -Value $value -Details $list.Details `
+                -Recommendation $recommendation `
+                -Allowed (Format-AllowedRange -Warning $outlook.WarningGb -Critical $outlook.CriticalGb -Unit 'GB') -Typical $outlook.Typical
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Outlook data files' -ErrorRecord $_
     }
 
     # Application crashes. Event 1000 of the source "Application Error" is written every

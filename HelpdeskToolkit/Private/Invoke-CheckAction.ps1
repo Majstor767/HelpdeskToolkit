@@ -4,7 +4,8 @@ function Invoke-CheckAction {
         Opens the place in Windows where the problem of a check is fixed.
     .DESCRIPTION
         Starts what Get-CheckAction found for the check: a page of the Settings app
-        ("ms-settings:..."), a management console (".msc") or a system tool. The
+        ("ms-settings:..."), a management console (".msc"), a system tool, or the
+        support page of the maker of the computer in the default browser. The
         application itself still changes nothing; it only brings the user to the right
         place, where the user decides what to do.
 
@@ -17,10 +18,13 @@ function Invoke-CheckAction {
         [Parameter(Mandatory)]
         [string]$Check,
 
-        [string]$Category = ''
+        [string]$Category = '',
+
+        # The value of the result, for places that depend on it (see Get-CheckAction).
+        [string]$Value = ''
     )
 
-    $action = Get-CheckAction -Check $Check -Category $Category
+    $action = Get-CheckAction -Check $Check -Category $Category -Value $Value
     if (-not $action) {
         return $false
     }

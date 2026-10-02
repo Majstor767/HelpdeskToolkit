@@ -1,7 +1,7 @@
 ﻿@{
     # Croatian translation of the application window.
     #
-    # Text, Checks, Advice, Explain, Risk: English text = translation. A text with
+    # Text, Checks, Advice, Explain, Risk, Added: English text = translation. A text with
     #           placeholders ({0}, {1}) also translates texts in which the
     #           placeholders were filled in already. The tables are one list;
     #           it is divided because PowerShell accepts at most 500 entries per
@@ -962,7 +962,193 @@
         'A Windows service that should be running and is not takes its function away. Programs that rely on it fail in ways that are hard to explain.' = 'Servis Windowsa koji bi trebao raditi, a ne radi, oduzima svoju funkciju. Programi koji se na njega oslanjaju zakazuju na načine koje je teško objasniti.'
     }
 
+    Added    = @{
+        # --- Window: timeline, Internet tile, score, support page -------------------
+        'Everything'                                           = 'Sve'
+        'Changes only'                                         = 'Samo promjene'
+        'Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause.' = 'Potraži promjenu (instalaciju, ažuriranje, driver) neposredno prije prvog kvara: to je najčešći uzrok.'
+        'Timeline'                                             = 'Vremenska crta'
+        'What happened on this computer lately, as Windows recorded it: installations, updates, crashes and failures.' = 'Što se u zadnje vrijeme događalo na ovom računalu, kako je to zabilježio Windows: instalacije, ažuriranja, rušenja i kvarovi.'
+        '{0} problems and {1} changes on record'               = 'Zabilježeno problema: {0}, promjena: {1}'
+        '{0} problems'                                         = 'problema: {0}'
+        '1 change'                                             = '1 promjena'
+        '{0} changes'                                          = 'promjena: {0}'
+        'Today'                                                = 'Danas'
+        'Yesterday'                                            = 'Jučer'
+        'Nothing of that kind is on record.'                   = 'Ništa takvo nije zabilježeno.'
+        'Windows has nothing on record for the last weeks.'    = 'Windows nema ništa zabilježeno za zadnje tjedne.'
+        'Points lost: {0}'                                     = 'Izgubljeni bodovi: {0}'
+        'no answer'                                            = 'nema odgovora'
+        'average {0} ms, {1} % lost'                           = 'prosjek {0} ms, izgubljeno {1} %'
+        '{0} % lost'                                           = 'izgubljeno {0} %'
+        'The internet does not answer. Check the router answer time in the Network section below: when the router answers, the fault is with the provider.' = 'Internet ne odgovara. Pogledaj vrijeme odgovora routera u odjeljku Mreža niže: ako router odgovara, kvar je kod pružatelja usluge.'
+        'The connection is bad: {0} ms on average and {1} % of the answers lost over the last {2} measurements. Calls and remote work will break up.' = 'Veza je loša: u prosjeku {0} ms i {1} % izgubljenih odgovora u zadnjih {2} mjerenja. Pozivi i rad na daljinu će se prekidati.'
+        'The connection is unsteady: {0} ms on average and {1} % of the answers lost over the last {2} measurements; up to {3} ms and {4} % is fine.' = 'Veza je nestabilna: u prosjeku {0} ms i {1} % izgubljenih odgovora u zadnjih {2} mjerenja; do {3} ms i {4} % je u redu.'
+        'Fine: the internet answers in {0} ms on average and {1} % of the answers were lost over the last {2} measurements.' = 'U redu: internet odgovara u prosjeku za {0} ms, a u zadnjih {2} mjerenja izgubljeno je {1} % odgovora.'
+        'Router answers ({0})'                                 = 'Router odgovara ({0})'
+        'Internet answers ({0})'                               = 'Internet odgovara ({0})'
+        'not measured: network tests are skipped'              = 'ne mjeri se: mrežni testovi su preskočeni'
+        'Untick "Skip network tests" to measure how quickly the internet answers.' = 'Makni kvačicu s "Preskoči mrežne testove" da se mjeri koliko brzo internet odgovara.'
+        'The support page is open. Enter the serial number from the label of the computer there.' = 'Stranica podrške je otvorena. Ondje upiši serijski broj s naljepnice računala.'
+        'The support page is open. The serial number {0} was copied: paste it into the search field there (Ctrl+V).' = 'Stranica podrške je otvorena. Serijski broj {0} je kopiran: zalijepi ga ondje u polje za pretragu (Ctrl+V).'
+        'The support page is open. Enter the serial number {0} there.' = 'Stranica podrške je otvorena. Ondje upiši serijski broj {0}.'
+
+        # --- Buttons that open a place in Windows -----------------------------------
+        'Open App & browser control'                           = 'Otvori Kontrolu aplikacija i preglednika'
+        'Open Core isolation'                                  = 'Otvori Izolaciju jezgre'
+        'Open Windows Features'                                = 'Otvori Značajke sustava Windows'
+        'Open Lock screen settings'                            = 'Otvori postavke zaključanog zaslona'
+        'Open Camera privacy settings'                         = 'Otvori postavke privatnosti kamere'
+        'Open Microphone privacy settings'                     = 'Otvori postavke privatnosti mikrofona'
+        'Open Location privacy settings'                       = 'Otvori postavke privatnosti lokacije'
+        'Open Windows Memory Diagnostic'                       = 'Otvori Dijagnostiku memorije sustava Windows'
+        'Open the support page'                                = 'Otvori stranicu podrške'
+
+        # --- Timeline: what happened ------------------------------------------------
+        'Program crashed'                                      = 'Program se srušio'
+        'Program stopped responding'                           = 'Program je prestao odgovarati'
+        'Update installed'                                     = 'Ažuriranje instalirano'
+        'Update failed'                                        = 'Ažuriranje nije uspjelo'
+        'Program installed'                                    = 'Program instaliran'
+        'Program removed'                                      = 'Program uklonjen'
+        'Program updated'                                      = 'Program ažuriran'
+        'Driver installed'                                     = 'Driver instaliran'
+        'Unexpected shutdown'                                  = 'Neočekivano gašenje'
+        'Windows crashed (blue screen)'                        = 'Windows se srušio (plavi ekran)'
+        'Antivirus definitions'                                = 'Definicije antivirusa'
+
+        # --- Names of the checks ----------------------------------------------------
+        'Startup delays'                                       = 'Usporenja pri pokretanju'
+        'Windows 11 readiness'                                 = 'Spremnost za Windows 11'
+        'System file check'                                    = 'Provjera sistemskih datoteka'
+        'Warranty and support'                                 = 'Jamstvo i podrška'
+        'Memory integrity'                                     = 'Integritet memorije'
+        'LSA protection'                                       = 'LSA zaštita'
+        'Screen lock'                                          = 'Zaključavanje zaslona'
+        'Camera use'                                           = 'Korištenje kamere'
+        'Microphone use'                                       = 'Korištenje mikrofona'
+        'Location use'                                         = 'Korištenje lokacije'
+        'USB storage devices'                                  = 'USB memorije i diskovi'
+        'Memory test'                                          = 'Test memorije'
+        'Unsupported programs'                                 = 'Programi bez podrške'
+        'Program updates'                                      = 'Ažuriranja programa'
+        'Outlook data files'                                   = 'Outlook datoteke s poštom'
+
+        # --- Values -----------------------------------------------------------------
+        'Does not lock by itself after a time without activity' = 'Ne zaključava se sam nakon vremena bez aktivnosti'
+        'Turned on, but not running'                           = 'Uključeno, ali ne radi'
+        'Turned off for this account'                          = 'Isključeno za ovaj račun'
+        'Enabled (client)'                                     = 'Uključeno (klijent)'
+        'Enabled (server)'                                     = 'Uključeno (poslužitelj)'
+        'Enabled (client, server)'                             = 'Uključeno (klijent, poslužitelj)'
+        'None on record'                                       = 'Nema zabilježenih'
+        'No check on record'                                   = 'Nema zabilježene provjere'
+        'No test on record'                                    = 'Nema zabilježenog testa'
+        'This computer meets the requirements of Windows 11'   = 'Ovo računalo zadovoljava zahtjeve Windowsa 11'
+        'Every program winget knows is up to date'             = 'Svi programi koje winget poznaje su ažurni'
+        'Not checked (winget is not installed for this user)'  = 'Nije provjereno (winget nije instaliran za ovog korisnika)'
+        'No support page known for this manufacturer (a self-built computer has a warranty per component)' = 'Za ovog proizvođača nije poznata stranica podrške (samostalno složeno računalo ima jamstvo po komponenti)'
+
+        # --- Recommendations --------------------------------------------------------
+        'Windows does not check downloaded programs against the list of known malware. Turn it on in Windows Security > App & browser control > Reputation-based protection > "Check apps and files".' = 'Windows ne provjerava preuzete programe prema popisu poznatog zlonamjernog softvera. Uključi to u Sigurnost sustava Windows > Kontrola aplikacija i preglednika > Zaštita na temelju reputacije > "Provjeri aplikacije i datoteke".'
+        'Memory integrity is switched on but does not run. Restart the computer; when it still does not run, an incompatible driver blocks it, which Windows Security > Device security > Core isolation names.' = 'Integritet memorije je uključen, ali ne radi. Ponovno pokreni računalo; ako ni tada ne radi, blokira ga nekompatibilan driver, koji je naveden u Sigurnost sustava Windows > Sigurnost uređaja > Izolacija jezgre.'
+        'Memory integrity stops malicious drivers from getting into the core of Windows. It can be turned on in Windows Security > Device security > Core isolation; a restart is needed, and very old drivers may have to be updated first.' = 'Integritet memorije sprječava da zlonamjerni driveri uđu u jezgru Windowsa. Uključuje se u Sigurnost sustava Windows > Sigurnost uređaja > Izolacija jezgre; potrebno je ponovno pokretanje, a vrlo stare drivere možda prvo treba ažurirati.'
+        'Without this protection a program with administrator rights can read the saved sign-in data out of the memory. It can be turned on in Windows Security > Device security > Core isolation > Local Security Authority protection.' = 'Bez ove zaštite program s administratorskim pravima može iz memorije pročitati spremljene podatke za prijavu. Uključuje se u Sigurnost sustava Windows > Sigurnost uređaja > Izolacija jezgre > Zaštita lokalnog sigurnosnog tijela (LSA).'
+        'SMB 1.0 is an outdated file sharing protocol with known security holes; the WannaCry ransomware spread through it. Remove it in "Turn Windows features on or off" > "SMB 1.0/CIFS File Sharing Support", unless a very old device (an old NAS or scanner) still needs it.' = 'SMB 1.0 je zastarjeli protokol za dijeljenje datoteka s poznatim sigurnosnim propustima; kroz njega se širio ransomware WannaCry. Ukloni ga u "Uključivanje ili isključivanje značajki sustava Windows" > "Podrška za dijeljenje datoteka SMB 1.0/CIFS", osim ako ga još treba neki vrlo star uređaj (stari NAS ili skener).'
+        'Anyone who passes by an unattended computer can use the signed-in account. Lock the screen with the Windows key + L when leaving, or let Windows do it: Settings > Personalization > Lock screen > Screen saver, choose a waiting time and tick "On resume, display logon screen".' = 'Svatko tko prođe pokraj računala bez nadzora može koristiti prijavljeni račun. Pri odlasku zaključaj zaslon tipkama Windows + L ili to prepusti Windowsu: Postavke > Personalizacija > Zaključani zaslon > Čuvar zaslona, odaberi vrijeme čekanja i označi "Pri nastavku prikaži zaslon za prijavu".'
+        'Windows 11 cannot be installed on this computer in the supported way. A TPM and Secure Boot can often be switched on in the UEFI firmware settings; a processor that is not supported or too little memory means new hardware. Until then, Extended Security Updates keep Windows 10 patched for a limited time.' = 'Windows 11 se na ovo računalo ne može instalirati na podržan način. TPM i Secure Boot često se mogu uključiti u UEFI postavkama firmwarea; nepodržan procesor ili premalo memorije znače novi hardver. Do tada Extended Security Updates ograničeno vrijeme drže Windows 10 zakrpanim.'
+        'Start the tool as administrator, so the TPM can be read. The PC Health Check app of Microsoft gives the final answer, including the processor model.' = 'Pokreni alat kao administrator da se TPM može pročitati. Konačan odgovor, uključujući model procesora, daje Microsoftova aplikacija PC Health Check.'
+        'Files of Windows are damaged and the System File Checker could not repair them. Open a terminal as administrator and run "DISM /Online /Cleanup-Image /RestoreHealth", then "sfc /scannow" again.' = 'Datoteke Windowsa su oštećene i System File Checker ih nije uspio popraviti. Otvori terminal kao administrator i pokreni "DISM /Online /Cleanup-Image /RestoreHealth", a zatim ponovno "sfc /scannow".'
+        'Files of Windows were damaged and have been repaired. When that happens again, test the drive and the memory: damaged system files often come from failing hardware or from switching the computer off the hard way.' = 'Datoteke Windowsa bile su oštećene i popravljene su. Ako se to ponovi, testiraj disk i memoriju: oštećene sistemske datoteke često dolaze od hardvera koji otkazuje ili od nasilnog gašenja računala.'
+        'Windows names what held up its startup. A program: turn it off in Task Manager > Startup apps or update it. A driver or a device: install the current driver from the manufacturer. A service: check in services.msc whether it is needed at startup.' = 'Windows navodi što je zadržalo njegovo pokretanje. Program: isključi ga u Upravitelju zadataka > Aplikacije pri pokretanju ili ga ažuriraj. Driver ili uređaj: instaliraj aktualni driver proizvođača. Servis: u services.msc provjeri treba li se pokretati pri startu.'
+        'Windows Memory Diagnostic found faulty memory. Test the modules one at a time to find the bad one and replace it; until then crashes and damaged files are to be expected.' = 'Dijagnostika memorije sustava Windows pronašla je neispravnu memoriju. Testiraj module jedan po jedan da nađeš neispravan i zamijeni ga; do tada treba očekivati rušenja i oštećene datoteke.'
+        'These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings > Apps > Installed apps), above all the ones that open files or pages from the internet.' = 'Ovi programi više ne dobivaju sigurnosna ažuriranja od proizvođača. Zamijeni ih podržanom verzijom ili ih ukloni (Postavke > Aplikacije > Instalirane aplikacije), prije svega one koji otvaraju datoteke ili stranice s interneta.'
+        'These runtimes no longer get security updates. They were usually installed together with another program: update that program, and remove the runtime once nothing needs it any more.' = 'Ova izvršna okruženja (runtime) više ne dobivaju sigurnosna ažuriranja. Obično su instalirana zajedno s nekim drugim programom: ažuriraj taj program, a runtime ukloni kad ga više ništa ne treba.'
+        'Many programs are out of date. Old versions keep security holes that are already fixed in the new ones. Update them from within each program, or all at once in a terminal with "winget upgrade --all".' = 'Mnogo programa je zastarjelo. Stare verzije zadržavaju sigurnosne propuste koji su u novima već ispravljeni. Ažuriraj ih iz svakog programa posebno ili sve odjednom u terminalu naredbom "winget upgrade --all".'
+        'Newer versions exist. Update the programs from within each program, or all at once in a terminal with "winget upgrade --all".' = 'Postoje novije verzije. Ažuriraj programe iz svakog programa posebno ili sve odjednom u terminalu naredbom "winget upgrade --all".'
+        'Office does not update itself, so security fixes for Word, Excel and Outlook never arrive. Turn the updates on in any Office program: File > Account > Update Options > Enable Updates. In a company the setting may come from a policy.' = 'Office se ne ažurira sam, pa sigurnosni ispravci za Word, Excel i Outlook nikad ne stižu. Uključi ažuriranja u bilo kojem Office programu: Datoteka > Račun > Mogućnosti ažuriranja > Omogući ažuriranja. U tvrtki postavka može dolaziti iz pravila.'
+        'A mailbox file is close to the size limit of Outlook (50 GB); at the limit Outlook stops storing new mail. Archive or delete old mail now, empty Deleted Items, and for an Exchange account shorten "Download email for the past" (File > Account Settings > Account Settings > Change).' = 'Datoteka s poštom blizu je ograničenja veličine Outlooka (50 GB); na ograničenju Outlook prestaje spremati novu poštu. Odmah arhiviraj ili obriši staru poštu, isprazni Izbrisane stavke, a za Exchange račun skrati "Preuzmi e-poštu za proteklih" (Datoteka > Postavke računa > Postavke računa > Promijeni).'
+        'A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten "Download email for the past" (File > Account Settings > Account Settings > Change).' = 'Ovako velika datoteka s poštom čini Outlook sporim i sklonim greškama. Arhiviraj ili obriši staru poštu, isprazni Izbrisane stavke, a za Exchange račun skrati "Preuzmi e-poštu za proteklih" (Datoteka > Postavke računa > Postavke računa > Promijeni).'
+        'This BIOS/UEFI version is more than {0} years old. Makers fix security holes and problems with newer hardware and Windows versions in later versions; look for one on the support page of the manufacturer. An update is done with the charger connected and must not be interrupted.' = 'Ova verzija BIOS-a/UEFI-ja starija je od {0} godina. Proizvođači u novijim verzijama ispravljaju sigurnosne propuste i probleme s novijim hardverom i verzijama Windowsa; potraži noviju na stranici podrške proizvođača. Ažuriranje se radi sa spojenim punjačem i ne smije se prekinuti.'
+        'The support page of the manufacturer shows, for the serial number of this computer, how long the warranty runs and which drivers and BIOS versions are current.' = 'Stranica podrške proizvođača za serijski broj ovog računala pokazuje koliko traje jamstvo i koji su driveri i verzije BIOS-a aktualni.'
+
+        # --- Explanations of the checks ---------------------------------------------
+        'What Windows itself blamed for a slow startup: when it measures a startup and a program, a driver, a service or a device takes much longer than usual, it writes down which one and by how many seconds.' = 'Ono što je sam Windows okrivio za sporo pokretanje: kad mjeri pokretanje, a neki program, driver, servis ili uređaj traje puno dulje nego inače, zapiše koji je to i za koliko sekundi.'
+        'Whether this Windows 10 computer meets the hardware requirements of Windows 11: a supported 64-bit processor, 4 GB of memory, a 64 GB system drive, UEFI with Secure Boot and a TPM of version 2.0.' = 'Zadovoljava li ovo računalo s Windowsom 10 hardverske zahtjeve Windowsa 11: podržan 64-bitni procesor, 4 GB memorije, sistemski disk od 64 GB, UEFI sa Secure Bootom i TPM verzije 2.0.'
+        'The System File Checker ("sfc /scannow") compares the files of Windows with their originals and repairs damaged ones. Shown is the outcome of its last run that is still in the servicing log of Windows.' = 'System File Checker ("sfc /scannow") uspoređuje datoteke Windowsa s originalima i popravlja oštećene. Prikazan je ishod njegovog zadnjeg pokretanja koje je još u servisnom dnevniku Windowsa.'
+        'The support page of the manufacturer tells, for the serial number, how long the warranty runs and which drivers and BIOS versions are current. The button opens it and copies the serial number.' = 'Stranica podrške proizvođača za serijski broj kaže koliko traje jamstvo i koji su driveri i verzije BIOS-a aktualni. Gumb je otvara i kopira serijski broj.'
+        'Microsoft Defender SmartScreen checks programs and files from the internet against a list of known malware and warns before an unknown program is started.' = 'Microsoft Defender SmartScreen provjerava programe i datoteke s interneta prema popisu poznatog zlonamjernog softvera i upozorava prije pokretanja nepoznatog programa.'
+        'A part of "Core isolation" in Windows Security. It uses virtualization to check every driver before it is allowed into the core of Windows, which keeps malicious and vulnerable drivers out.' = 'Dio "Izolacije jezgre" u Sigurnosti sustava Windows. Pomoću virtualizacije provjerava svaki driver prije nego što ga pusti u jezgru Windowsa, čime zlonamjerne i ranjive drivere drži vani.'
+        'The Local Security Authority is the process of Windows that checks passwords and keeps the sign-in data in memory. With the protection on, other programs cannot read that memory.' = 'Local Security Authority je proces Windowsa koji provjerava lozinke i u memoriji drži podatke za prijavu. Uz uključenu zaštitu drugi programi ne mogu čitati tu memoriju.'
+        'The first version of the Windows file sharing protocol, from the 1990s. Current Windows uses versions 2 and 3; version 1 is only needed by very old devices and has known security holes.' = 'Prva verzija Windowsovog protokola za dijeljenje datoteka, iz 1990-ih. Današnji Windows koristi verzije 2 i 3; verziju 1 trebaju samo vrlo stari uređaji i ima poznate sigurnosne propuste.'
+        'Whether Windows locks the screen by itself after a time without activity, so that the password is needed again. Windows key + L locks it at once.' = 'Zaključava li Windows sam zaslon nakon vremena bez aktivnosti, tako da opet treba lozinka. Tipke Windows + L zaključavaju ga odmah.'
+        'Which programs used the camera lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Camera.' = 'Koji su programi u zadnje vrijeme koristili kameru, kako to Windows bilježi za prijavljenog korisnika. Isti popis je u Postavke > Privatnost i sigurnost > Kamera.'
+        'Which programs used the microphone lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Microphone.' = 'Koji su programi u zadnje vrijeme koristili mikrofon, kako to Windows bilježi za prijavljenog korisnika. Isti popis je u Postavke > Privatnost i sigurnost > Mikrofon.'
+        'Which programs asked for the location of the computer lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Location.' = 'Koji su programi u zadnje vrijeme tražili lokaciju računala, kako to Windows bilježi za prijavljenog korisnika. Isti popis je u Postavke > Privatnost i sigurnost > Lokacija.'
+        'USB sticks and USB disks that have been connected to this computer at some time. Windows remembers each one so it does not have to install its driver again.' = 'USB stickovi i USB diskovi koji su nekad bili spojeni na ovo računalo. Windows pamti svaki od njih da ne mora ponovno instalirati njegov driver.'
+        'The result of the last run of Windows Memory Diagnostic, which tests the memory modules for faults during a restart. Faulty memory causes crashes that seem to have no pattern.' = 'Rezultat zadnjeg pokretanja Dijagnostike memorije sustava Windows, koja tijekom ponovnog pokretanja testira memorijske module. Neispravna memorija izaziva rušenja koja naizgled nemaju pravilo.'
+        'Installed programs whose maker has ended the support for that version. They no longer get security updates, so every weakness found from then on stays open.' = 'Instalirani programi za čiju je verziju proizvođač ukinuo podršku. Više ne dobivaju sigurnosna ažuriranja, pa svaka slabost pronađena nakon toga ostaje otvorena.'
+        'Programs for which the package manager of Windows (winget) knows a newer version than the installed one. Only programs from its catalog are compared.' = 'Programi za koje Windowsov upravitelj paketa (winget) zna noviju verziju od instalirane. Uspoređuju se samo programi iz njegovog kataloga.'
+        'The installed version of Microsoft Office or Microsoft 365 Apps, the update channel it follows (how soon it gets new versions) and whether it updates itself.' = 'Instalirana verzija Microsoft Officea ili Microsoft 365 Appsa, kanal ažuriranja koji prati (koliko brzo dobiva nove verzije) i ažurira li se sam.'
+        'The files in which Outlook keeps the mailboxes on this computer: .ost for an Exchange or Microsoft 365 account, .pst for archives and older account types.' = 'Datoteke u kojima Outlook drži poštanske sandučiće na ovom računalu: .ost za Exchange ili Microsoft 365 račun, .pst za arhive i starije vrste računa.'
+
+        # --- Why a problem matters --------------------------------------------------
+        'What holds up the startup today will do so at every start, and a driver or device that answers slowly is often one that is about to fail.' = 'Ono što danas zadržava pokretanje činit će to pri svakom startu, a driver ili uređaj koji sporo odgovara često je onaj koji će uskoro otkazati.'
+        'Damaged files of Windows cause errors that are hard to explain: features that do not open, updates that fail, crashes. The damage does not repair itself and tends to spread with every failed update.' = 'Oštećene datoteke Windowsa izazivaju greške koje je teško objasniti: značajke koje se ne otvaraju, ažuriranja koja ne uspijevaju, rušenja. Oštećenje se ne popravlja samo i obično se širi sa svakim neuspjelim ažuriranjem.'
+        'Faulty memory corrupts whatever happens to be stored in it: programs crash at random, files are saved damaged, and Windows itself can be destroyed by an update written through bad memory.' = 'Neispravna memorija kvari sve što se u njoj zatekne: programi se nasumično ruše, datoteke se spremaju oštećene, a i sam Windows može uništiti ažuriranje zapisano kroz lošu memoriju.'
+        'A program without support keeps every security hole that is found from now on. Attackers study the fixes of the newer versions to learn where the old ones are weak, and a prepared document or web page is then enough to take over the computer.' = 'Program bez podrške zadržava svaki sigurnosni propust koji se od sada pronađe. Napadači proučavaju ispravke novijih verzija da saznaju gdje su stare slabe, a tada je za preuzimanje računala dovoljan pripremljen dokument ili web stranica.'
+        'Old versions keep security holes that are already fixed, and publicly described, in the new ones. The longer a program stays behind, the more of them pile up.' = 'Stare verzije zadržavaju sigurnosne propuste koji su u novima već ispravljeni i javno opisani. Što program dulje zaostaje, to ih se više nakupi.'
+        'Office opens documents from e-mail and the internet every day. Without updates, a prepared Word or Excel file can use a weakness that was fixed long ago.' = 'Office svaki dan otvara dokumente iz e-pošte i s interneta. Bez ažuriranja pripremljena Word ili Excel datoteka može iskoristiti slabost koja je odavno ispravljena.'
+        'A mailbox file that keeps growing makes Outlook slower and slower, with pauses while typing and searching. At its size limit Outlook stores no new mail, and a very large file is more easily damaged, which can cost the whole mailbox.' = 'Datoteka s poštom koja stalno raste čini Outlook sve sporijim, sa zastojima pri pisanju i pretraživanju. Na ograničenju veličine Outlook ne sprema novu poštu, a vrlo velika datoteka lakše se ošteti, što može stajati cijelog sandučića.'
+        'Without SmartScreen nothing warns before a program downloaded from the internet is started for the first time. A fake installer or an attachment made to look like a document then runs without any question.' = 'Bez SmartScreena ništa ne upozorava prije prvog pokretanja programa preuzetog s interneta. Lažni instalacijski program ili privitak prerušen u dokument tada se pokreće bez ikakvog pitanja.'
+        'SMB 1.0 has weaknesses that let malware spread from one computer to the next without anybody doing anything; whole company networks were encrypted that way. As long as it is enabled, one infected device on the network is enough.' = 'SMB 1.0 ima slabosti koje zlonamjernom softveru omogućuju širenje s računala na računalo bez ičije radnje; tako su šifrirane cijele mreže tvrtki. Dok je uključen, dovoljan je jedan zaražen uređaj u mreži.'
+    }
+
     Patterns = @(
+        # Values of the newer checks. They stand first, because some of them start like
+        # the more general patterns below ("3 programs ...", "2 devices ...").
+        @{ Match = '^Locks after (\d+) minutes? without activity$'; Text = 'Zaključava se nakon $1 min bez aktivnosti' },
+        @{ Match = '^Not used in the last (\d+) days$'; Text = 'Nije korišteno u zadnjih $1 dana' },
+        @{ Match = '^(\d+) programs? in the last (\d+) days: '; Text = 'Programi u zadnjih $2 dana ($1): ' },
+        @{ Match = '^(\d+) devices? connected so far: '; Text = 'Dosad spojeni uređaji ($1): ' },
+        @{ Match = '^Nothing slowed the startup in the last (\d+) days$'; Text = 'Ništa nije usporilo pokretanje u zadnjih $1 dana' },
+        @{ Match = '^(\d+) culprits? in the last (\d+) days: '; Text = 'Krivci u zadnjih $2 dana ($1): ' },
+        @{ Match = '^Does not meet the requirements: '; Text = 'Ne zadovoljava zahtjeve: ' },
+        @{ Match = '^Not decided, could not be found out: '; Text = 'Nije odlučeno, nije bilo moguće utvrditi: ' },
+        @{ Match = '^No damaged files \(checked (\S+)\)$'; Text = 'Nema oštećenih datoteka (provjereno $1)' },
+        @{ Match = '^Damaged files were found and repaired \(checked (\S+)\)$'; Text = 'Oštećene datoteke su pronađene i popravljene (provjereno $1)' },
+        @{ Match = '^Damaged files could not be repaired \(checked (\S+)\)$'; Text = 'Oštećene datoteke nije bilo moguće popraviti (provjereno $1)' },
+        @{ Match = '^No errors \(tested (\S+)\)$'; Text = 'Bez grešaka (testirano $1)' },
+        @{ Match = '^Errors found \(tested (\S+)\)$'; Text = 'Pronađene greške (testirano $1)' },
+        @{ Match = '^(\d+) programs? without security updates: '; Text = 'Programi bez sigurnosnih ažuriranja ($1): ' },
+        @{ Match = '^(\d+) programs? can be updated: '; Text = 'Programi koji se mogu ažurirati ($1): ' },
+        @{ Match = '^Could not be checked: '; Text = 'Nije bilo moguće provjeriti: ' },
+        @{ Match = '^Version (.+), automatic updates on$'; Text = 'Verzija $1, automatska ažuriranja uključena' },
+        @{ Match = '^Version (.+), automatic updates off$'; Text = 'Verzija $1, automatska ažuriranja isključena' },
+        @{ Match = '^(\d+) files?: '; Text = 'Datoteke ($1): ' },
+        @{ Match = '^(.+): looked up with the serial number on the support page of the manufacturer$'; Text = '$1: provjerava se serijskim brojem na stranici podrške proizvođača' },
+        @{ Match = '\(in use right now\)'; Text = '(upravo se koristi)' },
+        @{ Match = '\(support ended (\S+)\)'; Text = '(podrška završila $1)' },
+        @{ Match = '\(service, (\d+) s\)'; Text = '(servis, $1 s)' },
+        @{ Match = '\(device, (\d+) s\)'; Text = '(uređaj, $1 s)' },
+        @{ Match = 'background optimization'; Text = 'pozadinska optimizacija' },
+        @{ Match = 'computer policy'; Text = 'pravila računala' },
+        @{ Match = 'user policy'; Text = 'korisnička pravila' },
+        @{ Match = 'session start'; Text = 'početak sesije' },
+        @{ Match = 'Processor \(64-bit, 2 cores, 1 GHz\)'; Text = 'Procesor (64-bitni, 2 jezgre, 1 GHz)' },
+        @{ Match = 'Memory \(4 GB\)'; Text = 'Memorija (4 GB)' },
+        @{ Match = 'System drive \(64 GB\)'; Text = 'Sistemski disk (64 GB)' },
+        @{ Match = 'UEFI with Secure Boot'; Text = 'UEFI sa Secure Bootom' },
+        @{ Match = 'Assessment by Windows'; Text = 'Procjena Windowsa' },
+        @{ Match = 'processor model not supported'; Text = 'model procesora nije podržan' },
+        @{ Match = 'not present or switched off'; Text = 'ne postoji ili je isključen' },
+        @{ Match = 'not supported \(legacy BIOS mode\)'; Text = 'nije podržano (stari BIOS način)' },
+        @{ Match = 'TPM older than 2\.0'; Text = 'TPM stariji od 2.0' },
+        @{ Match = 'too little memory'; Text = 'premalo memorije' },
+        @{ Match = 'system drive too small'; Text = 'premali sistemski disk' },
+        @{ Match = '\(version ([\d.]+)\)'; Text = '(verzija $1)' },
+        @{ Match = '(\d+)-bit, (\d+) cores, (\d+) MHz'; Text = '$1-bitni, jezgri: $2, $3 MHz' },
+
         # Whole values that consist of a fixed text and numbers or names
         @{ Match = '^None in the last (\d+) days$'; Text = 'Nema u zadnjih $1 dana' },
         @{ Match = '^None older than (\d+) years$'; Text = 'Nema starijih od $1 godina' },

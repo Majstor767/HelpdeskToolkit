@@ -220,7 +220,7 @@ Describe 'The Croatian translation file' {
         # These are the same in both languages on purpose: names, abbreviations and the
         # terms of Windows for parts of the memory, which have no Croatian name in use.
         $same = 'HELPDESKTOOLKIT', 'OK', 'Info', 'English', 'Hrvatski', 'HelpdeskToolkit {0}  |  PowerShell {1}',
-            'Paged pool', 'Non-paged pool', 'Page file'
+            'Paged pool', 'Non-paged pool', 'Page file', 'INTERNET', '1 problem'
         $missing = Get-SourceText | Where-Object { $same -notcontains $_ -and (ConvertTo-Croatian $_) -ceq $_ }
         $missing | Should -BeNullOrEmpty -Because 'every text the window shows needs a Croatian translation in Lang\hr.psd1'
     }

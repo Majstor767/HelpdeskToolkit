@@ -22,6 +22,17 @@ Describe 'Get-SecurityHealth' {
         # no automatic sign-in (AutoAdminLogon = 0).
         Mock -ModuleName HelpdeskToolkit Get-RegistryValue { 1 }
         Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'AutoAdminLogon' } { '0' }
+        # Protection features: SmartScreen and the LSA protection are on (the registry
+        # mock above returns 1), memory integrity runs (2 is its number), SMB 1.0 is not
+        # installed, and the screen locks after 10 minutes.
+        Mock -ModuleName HelpdeskToolkit Get-DeviceGuardService { 2 }
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\mrxsmb10' } { }
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'SMB1' } { }
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'InactivityTimeoutSecs' } { 600 }
+        # Privacy: access allowed, nothing used the devices, no USB storage on record.
+        Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\ConsentStore\*' } { 'Allow' }
+        Mock -ModuleName HelpdeskToolkit Get-CapabilityUsage { }
+        Mock -ModuleName HelpdeskToolkit Get-UsbStorageDevice { }
         Mock -ModuleName HelpdeskToolkit Get-DefenderThreat { }
         Mock -ModuleName HelpdeskToolkit Get-AdministratorGroupMember { 'Administrator', 'support' }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministratorMember { $false }
@@ -92,6 +103,15 @@ Describe 'Get-SecurityHealth' {
             @{ Check = 'File History'; Status = 'Info'; Value = 'Set up, saves to Backup Drive (E:)' }
             @{ Check = 'OneDrive'; Status = 'Info'; Value = 'Not signed in' }
             @{ Check = 'System Restore'; Status = 'Info'; Value = 'On (the restore points are only shown to administrators)' }
+            @{ Check = 'SmartScreen'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'Memory integrity'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'LSA protection'; Status = 'OK'; Value = 'Enabled' }
+            @{ Check = 'SMB 1.0'; Status = 'OK'; Value = 'Disabled' }
+            @{ Check = 'Screen lock'; Status = 'OK'; Value = 'Locks after 10 minutes without activity' }
+            @{ Check = 'Camera use'; Status = 'Info'; Value = 'Not used in the last 30 days' }
+            @{ Check = 'Microphone use'; Status = 'Info'; Value = 'Not used in the last 30 days' }
+            @{ Check = 'Location use'; Status = 'Info'; Value = 'Not used in the last 30 days' }
+            @{ Check = 'USB storage devices'; Status = 'Info'; Value = 'None on record' }
         ) {
             $result = $results | Where-Object Check -eq $Check
             $result.Status | Should -Be $Status
@@ -542,6 +562,167 @@ Describe 'Get-SecurityHealth' {
             Mock -ModuleName HelpdeskToolkit Get-SignInEvent { }
             Mock -ModuleName HelpdeskToolkit Get-RestorePoint { }
             (Get-SecurityHealth | Where-Object Check -eq 'System Restore').Value | Should -Be 'On, no restore point yet'
+        }
+    }
+
+    Context 'protection features of Windows Security' {
+        It 'is a Warning when SmartScreen was switched off in Windows Security' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'EnableSmartScreen' } { }
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'SmartScreenEnabled' } { 'Off' }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'SmartScreen'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Be 'Disabled'
+            $result.Recommendation | Should -Match 'App & browser control'
+        }
+
+        It 'is a Warning when a policy switches SmartScreen off' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'EnableSmartScreen' } { 0 }
+            (Get-SecurityHealth | Where-Object Check -eq 'SmartScreen').Status | Should -Be 'Warning'
+        }
+
+        It 'lets a policy that switches SmartScreen on win over the setting' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'EnableSmartScreen' } { 1 }
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'SmartScreenEnabled' } { 'Off' }
+            (Get-SecurityHealth | Where-Object Check -eq 'SmartScreen').Status | Should -Be 'OK'
+        }
+
+        It 'counts SmartScreen as on when nothing is written down, which is the default of Windows' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -in 'EnableSmartScreen', 'SmartScreenEnabled' } { }
+            (Get-SecurityHealth | Where-Object Check -eq 'SmartScreen').Status | Should -Be 'OK'
+        }
+
+        It 'advises to turn memory integrity on when it is off' {
+            Mock -ModuleName HelpdeskToolkit Get-DeviceGuardService { 0 }
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*HypervisorEnforcedCodeIntegrity' } { 0 }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'Memory integrity'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Disabled'
+            $result.Recommendation | Should -Match 'Core isolation'
+        }
+
+        It 'notices memory integrity that is switched on but does not run' {
+            Mock -ModuleName HelpdeskToolkit Get-DeviceGuardService { 0 }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'Memory integrity'
+            $result.Value | Should -Be 'Turned on, but not running'
+            $result.Recommendation | Should -Match 'incompatible driver'
+        }
+
+        It 'trusts the setting of memory integrity where Windows cannot say what runs' {
+            Mock -ModuleName HelpdeskToolkit Get-DeviceGuardService { }
+            (Get-SecurityHealth | Where-Object Check -eq 'Memory integrity').Value | Should -Be 'Enabled'
+        }
+
+        It 'reports the LSA protection as <Value> when the registry says <Setting>' -ForEach @(
+            @{ Setting = 1; Value = 'Enabled'; Status = 'OK' }
+            @{ Setting = 2; Value = 'Enabled'; Status = 'OK' }
+            @{ Setting = 0; Value = 'Disabled'; Status = 'Info' }
+            @{ Setting = $null; Value = 'Disabled'; Status = 'Info' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'RunAsPPL' } { $Setting }.GetNewClosure()
+            $result = Get-SecurityHealth | Where-Object Check -eq 'LSA protection'
+            $result.Value | Should -Be $Value
+            $result.Status | Should -Be $Status
+        }
+    }
+
+    Context 'SMB 1.0' {
+        It 'is a Warning while the client is installed and not disabled' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\mrxsmb10' } { 2 }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'SMB 1.0'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Be 'Enabled (client)'
+            $result.Recommendation | Should -Match 'Turn Windows features on or off'
+        }
+
+        It 'names both parts when the server part is on as well' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\mrxsmb10' } { 2 }
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'SMB1' } { 1 }
+            (Get-SecurityHealth | Where-Object Check -eq 'SMB 1.0').Value | Should -Be 'Enabled (client, server)'
+        }
+
+        It 'is OK when the client driver is disabled (start type 4)' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\mrxsmb10' } { 4 }
+            (Get-SecurityHealth | Where-Object Check -eq 'SMB 1.0').Status | Should -Be 'OK'
+        }
+    }
+
+    Context 'screen lock' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'InactivityTimeoutSecs' } { }
+            # Screen saver values of the user: on, with password, after 5 minutes.
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*Control Panel\Desktop' } {
+                switch ($Name) {
+                    'ScreenSaveActive' { '1' }
+                    'ScreenSaverIsSecure' { '1' }
+                    'SCRNSAVE.EXE' { 'C:\Windows\System32\scrnsave.scr' }
+                    'ScreenSaveTimeOut' { '300' }
+                }
+            }
+        }
+
+        It 'counts a screen saver that asks for the password' {
+            $result = Get-SecurityHealth | Where-Object Check -eq 'Screen lock'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'Locks after 5 minutes without activity'
+        }
+
+        It 'says "minute" for one minute' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'InactivityTimeoutSecs' } { 60 }
+            (Get-SecurityHealth | Where-Object Check -eq 'Screen lock').Value | Should -Be 'Locks after 1 minute without activity'
+        }
+
+        It 'does not count a screen saver without a password, and advises Windows key + L' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Name -eq 'ScreenSaverIsSecure' } { '0' }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'Screen lock'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Does not lock by itself after a time without activity'
+            $result.Recommendation | Should -Match 'Windows key \+ L'
+        }
+    }
+
+    Context 'privacy' {
+        It 'lists the programs that used a device lately, the one using it right now first' {
+            Mock -ModuleName HelpdeskToolkit Get-CapabilityUsage -ParameterFilter { $Capability -eq 'microphone' } {
+                [PSCustomObject]@{ Program = 'chat.exe'; LastUsed = (Get-Date).Date.AddDays(-3); InUse = $false }
+                [PSCustomObject]@{ Program = 'record.exe'; LastUsed = (Get-Date).AddMinutes(-5); InUse = $true }
+                [PSCustomObject]@{ Program = 'Contoso.Meetings'; LastUsed = (Get-Date).Date.AddDays(-1); InUse = $false }
+                [PSCustomObject]@{ Program = 'old-game.exe'; LastUsed = (Get-Date).Date.AddDays(-200); InUse = $false }
+            }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'Microphone use'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be ('3 programs in the last 30 days: record.exe (in use right now), Contoso.Meetings ({0:yyyy-MM-dd}), chat.exe ({1:yyyy-MM-dd})' -f (Get-Date).Date.AddDays(-1), (Get-Date).Date.AddDays(-3))
+        }
+
+        It 'says "program" for a single one' {
+            Mock -ModuleName HelpdeskToolkit Get-CapabilityUsage -ParameterFilter { $Capability -eq 'webcam' } {
+                [PSCustomObject]@{ Program = 'chat.exe'; LastUsed = (Get-Date).Date; InUse = $false }
+            }
+            (Get-SecurityHealth | Where-Object Check -eq 'Camera use').Value | Should -Match '^1 program in the last 30 days: chat\.exe'
+        }
+
+        It 'says so when the access is turned off for the account, without looking further' {
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue -ParameterFilter { $Path -like '*\ConsentStore\location' } { 'Deny' }
+            (Get-SecurityHealth | Where-Object Check -eq 'Location use').Value | Should -Be 'Turned off for this account'
+            Should -Invoke -ModuleName HelpdeskToolkit Get-CapabilityUsage -Times 0 -Exactly -ParameterFilter { $Capability -eq 'location' }
+        }
+
+        It 'reports the use as unavailable when the records cannot be read, and goes on' {
+            Mock -ModuleName HelpdeskToolkit Get-CapabilityUsage { throw 'The registry is damaged' }
+            $results = Get-SecurityHealth
+            ($results | Where-Object Check -eq 'Camera use').Value | Should -Be 'Unavailable'
+            ($results | Where-Object Check -eq 'Secure Boot').Value | Should -Be 'Enabled'
+        }
+
+        It 'lists the USB storage devices that have been connected, each one once' {
+            Mock -ModuleName HelpdeskToolkit Get-UsbStorageDevice { 'Fabrikam Drive', 'Contoso Stick Pro', 'Contoso Stick Pro' }
+            $result = Get-SecurityHealth | Where-Object Check -eq 'USB storage devices'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be '2 devices connected so far: Contoso Stick Pro, Fabrikam Drive'
+        }
+
+        It 'says "device" for a single one' {
+            Mock -ModuleName HelpdeskToolkit Get-UsbStorageDevice { 'Contoso Stick Pro' }
+            (Get-SecurityHealth | Where-Object Check -eq 'USB storage devices').Value | Should -Be '1 device connected so far: Contoso Stick Pro'
         }
     }
 }

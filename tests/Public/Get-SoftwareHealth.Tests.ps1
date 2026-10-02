@@ -19,6 +19,10 @@ Describe 'Get-SoftwareHealth' {
         Mock -ModuleName HelpdeskToolkit Get-DefaultBrowserPath { 'C:\Contoso\browser.exe' }
         Mock -ModuleName HelpdeskToolkit Get-FileProductName { 'Contoso Browser' }
         Mock -ModuleName HelpdeskToolkit Get-BrowserExtension { }
+        # winget finds nothing to update; no Microsoft Office and no Outlook on this computer.
+        Mock -ModuleName HelpdeskToolkit Get-ProgramUpdate { [PSCustomObject]@{ Updates = @() } }
+        Mock -ModuleName HelpdeskToolkit Get-OfficeInstallation { }
+        Mock -ModuleName HelpdeskToolkit Get-OutlookDataFile { }
     }
 
     Context 'on a typical computer' {
@@ -26,8 +30,8 @@ Describe 'Get-SoftwareHealth' {
             $results = Get-SoftwareHealth
         }
 
-        It 'returns five results in the Software category' {
-            @($results).Count | Should -Be 5
+        It 'returns seven results in the Software category' {
+            @($results).Count | Should -Be 7
             $results.Category | Sort-Object -Unique | Should -Be 'Software'
         }
 
@@ -155,6 +159,148 @@ Describe 'Get-SoftwareHealth' {
             $results = Get-SoftwareHealth
             ($results | Where-Object Check -eq 'Browser extensions').Value | Should -Be 'Unavailable'
             ($results | Where-Object Check -eq 'Default browser').Value | Should -Be 'Contoso Browser'
+        }
+    }
+
+    Context 'programs without support' {
+        It 'is OK when none is installed' {
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Unsupported programs'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'None found'
+        }
+
+        It 'is a Warning for a program that opens content from the internet, listed first' {
+            Mock -ModuleName HelpdeskToolkit Get-InstalledProgram {
+                [PSCustomObject]@{ Name = 'Python 3.8.10 (64-bit)'; Version = '3.8.10150.0'; InstallDate = $null }
+                [PSCustomObject]@{ Name = 'Adobe Flash Player 32 NPAPI'; Version = '32.0.0.465'; InstallDate = $null }
+                [PSCustomObject]@{ Name = 'Contoso Office'; Version = '16.0'; InstallDate = $null }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Unsupported programs'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Be '2 programs without security updates: Adobe Flash Player 32 NPAPI 32.0.0.465 (support ended 2020-12-31), Python 3.8.10 (64-bit) (support ended 2024-10-07)'
+            $result.Recommendation | Should -Match 'Installed apps'
+        }
+
+        It 'is only information when nothing but runtimes is out of support' {
+            Mock -ModuleName HelpdeskToolkit Get-InstalledProgram {
+                [PSCustomObject]@{ Name = 'Python 3.8.10 (64-bit)'; Version = '3.8.10150.0'; InstallDate = $null }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Unsupported programs'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Match '^1 program without security updates: Python 3\.8\.10'
+            $result.Recommendation | Should -Match 'runtime'
+        }
+    }
+
+    Context 'program updates' {
+        It 'is OK when winget finds nothing to update' {
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Program updates'
+            $result.Status | Should -Be 'OK'
+            $result.Value | Should -Be 'Every program winget knows is up to date'
+            $result.Allowed | Should -Be '0 - 3'
+            $result.Typical | Should -Be 'typical updates'
+        }
+
+        It 'lists a few updates for information, without repeating a version that is part of the name' {
+            Mock -ModuleName HelpdeskToolkit Get-ProgramUpdate {
+                [PSCustomObject]@{
+                    Updates = @(
+                        [PSCustomObject]@{ Name = 'Fabrikam Archive'; Id = 'Fabrikam.Archive'; Version = '24.1'; Available = '25.0' }
+                        [PSCustomObject]@{ Name = 'Contoso Edit 2.0.19'; Id = 'Contoso.Edit'; Version = '2.0.19'; Available = '2.0.28' }
+                    )
+                }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Program updates'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be '2 programs can be updated: Contoso Edit 2.0.19 -> 2.0.28, Fabrikam Archive 24.1 -> 25.0'
+            $result.Recommendation | Should -Match 'winget upgrade --all'
+        }
+
+        It 'is a Warning above the limit and keeps the rest as details' {
+            Mock -ModuleName HelpdeskToolkit Get-ProgramUpdate {
+                [PSCustomObject]@{
+                    Updates = @(1..7 | ForEach-Object { [PSCustomObject]@{ Name = 'Program{0}' -f $_; Id = 'P.{0}' -f $_; Version = '1.0'; Available = '2.0' } })
+                }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Program updates'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Match '^7 programs can be updated: Program1 1\.0 -> 2\.0, .* and 2 more$'
+            $result.Details | Should -Be @('Program6 1.0 -> 2.0', 'Program7 1.0 -> 2.0')
+            $result.Recommendation | Should -Match 'security holes'
+        }
+
+        It 'passes the time limit of the configuration to winget' {
+            Get-SoftwareHealth | Out-Null
+            Should -Invoke -ModuleName HelpdeskToolkit Get-ProgramUpdate -ParameterFilter { $TimeoutSeconds -eq 5 }
+        }
+
+        It 'says so when winget is not installed' {
+            Mock -ModuleName HelpdeskToolkit Get-ProgramUpdate { }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Program updates'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Not checked (winget is not installed for this user)'
+        }
+
+        It 'is information, not a problem of this computer, when winget fails' {
+            Mock -ModuleName HelpdeskToolkit Get-ProgramUpdate { throw 'winget did not answer within 5 seconds' }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Program updates'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Could not be checked: winget did not answer within 5 seconds'
+        }
+
+        It 'does not ask winget at all with -SkipUpdateCheck' {
+            $result = Get-SoftwareHealth -SkipUpdateCheck | Where-Object Check -eq 'Program updates'
+            $result.Value | Should -Be 'Skipped'
+            Should -Invoke -ModuleName HelpdeskToolkit Get-ProgramUpdate -Times 0 -Exactly
+        }
+    }
+
+    Context 'Microsoft Office and Outlook' {
+        It 'has no result where neither is installed' {
+            Get-SoftwareHealth | Where-Object { $_.Check -in 'Microsoft Office', 'Outlook data files' } | Should -BeNullOrEmpty
+        }
+
+        It 'reports version, platform and update channel of Office' {
+            Mock -ModuleName HelpdeskToolkit Get-OfficeInstallation {
+                [PSCustomObject]@{ Version = '16.0.17928.20156'; Channel = 'Current Channel'; UpdatesEnabled = $true; Platform = 'x64'; Products = @('O365ProPlusRetail') }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Microsoft Office'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Version 16.0.17928.20156 (64-bit), Current Channel, automatic updates on'
+        }
+
+        It 'is a Warning when Office does not update itself' {
+            Mock -ModuleName HelpdeskToolkit Get-OfficeInstallation {
+                [PSCustomObject]@{ Version = '16.0.14332.20000'; Channel = 'Office LTSC 2021'; UpdatesEnabled = $false; Platform = 'x86'; Products = @() }
+            }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Microsoft Office'
+            $result.Status | Should -Be 'Warning'
+            $result.Value | Should -Be 'Version 16.0.14332.20000 (32-bit), Office LTSC 2021, automatic updates off'
+            $result.Recommendation | Should -Match 'Enable Updates'
+        }
+
+        It 'judges the mailbox files of Outlook by the largest one: <Gigabytes> GB is <Status>' -ForEach @(
+            @{ Gigabytes = 8; Status = 'OK' }
+            @{ Gigabytes = 31; Status = 'Warning' }
+            @{ Gigabytes = 48; Status = 'Critical' }
+        ) {
+            $bytes = [long]$Gigabytes * 1GB
+            Mock -ModuleName HelpdeskToolkit Get-OutlookDataFile {
+                [PSCustomObject]@{ Name = 'archive.pst'; Bytes = 2GB }
+                [PSCustomObject]@{ Name = 'm.horvat@contoso.com.ost'; Bytes = $bytes }
+            }.GetNewClosure()
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Outlook data files'
+            $result.Status | Should -Be $Status
+            $result.Value | Should -Be ('2 files: m.horvat@contoso.com.ost ({0} GB), archive.pst (2 GB)' -f $Gigabytes)
+            $result.Allowed | Should -Be '0 - 25 GB (critical above 45 GB)'
+            $result.Typical | Should -Be 'typical mailbox'
+        }
+
+        It 'warns about the size limit of Outlook when a file is close to it' {
+            Mock -ModuleName HelpdeskToolkit Get-OutlookDataFile { [PSCustomObject]@{ Name = 'big.ost'; Bytes = 48GB } }
+            $result = Get-SoftwareHealth | Where-Object Check -eq 'Outlook data files'
+            $result.Value | Should -Be '1 file: big.ost (48 GB)'
+            $result.Recommendation | Should -Match '50 GB'
         }
     }
 }

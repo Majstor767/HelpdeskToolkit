@@ -1,7 +1,7 @@
 function Get-SecurityHealth {
     <#
     .SYNOPSIS
-        Checks Microsoft Defender, the firewall, UAC, Remote Desktop, Secure Boot, TPM and BitLocker.
+        Checks Microsoft Defender, the firewall, the protection features of Windows, accounts, privacy, Secure Boot, TPM and BitLocker.
     .DESCRIPTION
         - Defender real-time protection. When it is off because a third-party
           antivirus is registered in Windows Security Center, that is reported as
@@ -11,6 +11,13 @@ function Get-SecurityHealth {
         - State of the Domain, Private and Public firewall profiles.
         - User Account Control, Remote Desktop and whether the signed-in user is a
           local administrator.
+        - The protection features Windows Security lists: SmartScreen, memory
+          integrity (Core isolation) and the protection of the sign-in data (LSA).
+          SmartScreen that is switched off is a Warning.
+        - SMB 1.0, the outdated file sharing protocol: a Warning while it is enabled.
+        - Whether the screen locks by itself after a time without activity.
+        - Which programs used the camera, the microphone and the location lately, and
+          which USB storage devices have been connected.
         - Threats Defender has found, with a Critical result for one that is still active.
         - The members of the Administrators group, automatic sign-in, local accounts
           (with a warning for an enabled Guest account) and folders shared on the network.
@@ -171,6 +178,63 @@ function Get-SecurityHealth {
         New-CheckResult -Category $category -Check 'User Account Control' -Status OK -Value 'Enabled'
     }
 
+    # SmartScreen for programs and files ("Check apps and files" in Windows Security).
+    # A policy decides when it is set; otherwise the setting of Windows Security counts.
+    $smartScreenPolicy = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' -Name 'EnableSmartScreen'
+    $smartScreen = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer' -Name 'SmartScreenEnabled'
+    if ($smartScreenPolicy -eq 0 -or ($null -eq $smartScreenPolicy -and [string]$smartScreen -eq 'Off')) {
+        New-CheckResult -Category $category -Check 'SmartScreen' -Status Warning -Value 'Disabled' `
+            -Recommendation 'Windows does not check downloaded programs against the list of known malware. Turn it on in Windows Security > App & browser control > Reputation-based protection > "Check apps and files".'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'SmartScreen' -Status OK -Value 'Enabled'
+    }
+
+    # Memory integrity (Core isolation). 2 is its number among the running features.
+    $guardServices = @(Get-DeviceGuardService)
+    $memoryIntegrity = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity' -Name 'Enabled'
+    if ($guardServices -contains 2) {
+        New-CheckResult -Category $category -Check 'Memory integrity' -Status OK -Value 'Enabled'
+    }
+    elseif ($memoryIntegrity -eq 1 -and $guardServices.Count -gt 0) {
+        New-CheckResult -Category $category -Check 'Memory integrity' -Status Info -Value 'Turned on, but not running' `
+            -Recommendation 'Memory integrity is switched on but does not run. Restart the computer; when it still does not run, an incompatible driver blocks it, which Windows Security > Device security > Core isolation names.'
+    }
+    elseif ($memoryIntegrity -eq 1) {
+        New-CheckResult -Category $category -Check 'Memory integrity' -Status OK -Value 'Enabled'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Memory integrity' -Status Info -Value 'Disabled' `
+            -Recommendation 'Memory integrity stops malicious drivers from getting into the core of Windows. It can be turned on in Windows Security > Device security > Core isolation; a restart is needed, and very old drivers may have to be updated first.'
+    }
+
+    # Protection of the process that holds the sign-in data (LSA). 1 and 2 both mean on.
+    $lsaProtection = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'RunAsPPL'
+    if ($lsaProtection -eq 1 -or $lsaProtection -eq 2) {
+        New-CheckResult -Category $category -Check 'LSA protection' -Status OK -Value 'Enabled'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'LSA protection' -Status Info -Value 'Disabled' `
+            -Recommendation 'Without this protection a program with administrator rights can read the saved sign-in data out of the memory. It can be turned on in Windows Security > Device security > Core isolation > Local Security Authority protection.'
+    }
+
+    # SMB 1.0, the file sharing protocol of the 1990s. The client is a driver of its
+    # own (mrxsmb10; start type 4 = disabled, no key = not installed), the server part
+    # is switched with one value.
+    $smbClient = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10' -Name 'Start'
+    $smbServer = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters' -Name 'SMB1'
+    $smbParts = @(
+        if ($null -ne $smbClient -and $smbClient -ne 4) { 'client' }
+        if ($smbServer -eq 1) { 'server' }
+    )
+    if ($smbParts.Count -gt 0) {
+        New-CheckResult -Category $category -Check 'SMB 1.0' -Status Warning -Value ('Enabled ({0})' -f ($smbParts -join ', ')) `
+            -Recommendation 'SMB 1.0 is an outdated file sharing protocol with known security holes; the WannaCry ransomware spread through it. Remove it in "Turn Windows features on or off" > "SMB 1.0/CIFS File Sharing Support", unless a very old device (an old NAS or scanner) still needs it.'
+    }
+    else {
+        New-CheckResult -Category $category -Check 'SMB 1.0' -Status OK -Value 'Disabled'
+    }
+
     # Remote Desktop. fDenyTSConnections = 0 means incoming connections are accepted.
     $denyRemoteDesktop = Get-RegistryValue -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections'
     if ($null -eq $denyRemoteDesktop) {
@@ -211,6 +275,37 @@ function Get-SecurityHealth {
     }
     else {
         New-CheckResult -Category $category -Check 'Automatic sign-in' -Status OK -Value 'Disabled'
+    }
+
+    # Does the screen lock by itself? Two things can do that after a time without
+    # activity: a limit set for the whole computer, or a screen saver that asks for the
+    # password (set by a policy or by the user).
+    $lockSeconds = 0
+    $machineLimit = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'InactivityTimeoutSecs'
+    if ($machineLimit -as [int] -gt 0) {
+        $lockSeconds = [int]$machineLimit
+    }
+    foreach ($desktop in 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop', 'HKCU:\Control Panel\Desktop') {
+        if ($lockSeconds -gt 0) {
+            break
+        }
+        $active = Get-RegistryValue -Path $desktop -Name 'ScreenSaveActive'
+        $secure = Get-RegistryValue -Path $desktop -Name 'ScreenSaverIsSecure'
+        $program = Get-RegistryValue -Path $desktop -Name 'SCRNSAVE.EXE'
+        $timeout = Get-RegistryValue -Path $desktop -Name 'ScreenSaveTimeOut'
+        if ([string]$active -eq '1' -and [string]$secure -eq '1' -and $program -and $timeout -as [int] -gt 0) {
+            $lockSeconds = [int]$timeout
+        }
+    }
+
+    if ($lockSeconds -gt 0) {
+        $minutes = [int][math]::Ceiling($lockSeconds / 60)
+        New-CheckResult -Category $category -Check 'Screen lock' -Status OK `
+            -Value ('Locks after {0} {1} without activity' -f $minutes, $(if ($minutes -eq 1) { 'minute' } else { 'minutes' }))
+    }
+    else {
+        New-CheckResult -Category $category -Check 'Screen lock' -Status Info -Value 'Does not lock by itself after a time without activity' `
+            -Recommendation 'Anyone who passes by an unattended computer can use the signed-in account. Lock the screen with the Windows key + L when leaving, or let Windows do it: Settings > Personalization > Lock screen > Screen saver, choose a waiting time and tick "On resume, display logon screen".'
     }
 
     # Local accounts. The built-in accounts are recognized by the end of their security
@@ -286,6 +381,60 @@ function Get-SecurityHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Listening ports' -ErrorRecord $_
+    }
+
+    # Which programs used the camera, the microphone and the location lately
+    $privacyDays = (Get-HealthThreshold).Privacy.RecentDays
+    $capabilities = [ordered]@{
+        'Camera use'     = 'webcam'
+        'Microphone use' = 'microphone'
+        'Location use'   = 'location'
+    }
+    foreach ($check in $capabilities.Keys) {
+        $capability = $capabilities[$check]
+        try {
+            $consent = Get-RegistryValue -Name 'Value' `
+                -Path ('HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\{0}' -f $capability)
+            if ([string]$consent -eq 'Deny') {
+                New-CheckResult -Category $category -Check $check -Status Info -Value 'Turned off for this account'
+                continue
+            }
+
+            $since = (Get-Date).AddDays(-$privacyDays)
+            $recent = @(Get-CapabilityUsage -Capability $capability | Where-Object { $_.InUse -or $_.LastUsed -ge $since } |
+                    Sort-Object -Property @{ Expression = 'InUse'; Descending = $true }, @{ Expression = 'LastUsed'; Descending = $true })
+
+            if ($recent.Count -eq 0) {
+                New-CheckResult -Category $category -Check $check -Status Info -Value ('Not used in the last {0} days' -f $privacyDays)
+            }
+            else {
+                $names = @($recent | ForEach-Object {
+                        if ($_.InUse) { '{0} (in use right now)' -f $_.Program } else { '{0} ({1:yyyy-MM-dd})' -f $_.Program, $_.LastUsed }
+                    })
+                $list = ConvertTo-ListValue -Item $names -Shown 4
+                New-CheckResult -Category $category -Check $check -Status Info -Details $list.Details `
+                    -Value ('{0} {1} in the last {2} days: {3}' -f $recent.Count, $(if ($recent.Count -eq 1) { 'program' } else { 'programs' }), $privacyDays, $list.Value)
+            }
+        }
+        catch {
+            New-FailureResult -Category $category -Check $check -ErrorRecord $_
+        }
+    }
+
+    # USB sticks and USB disks that have been connected to this computer
+    try {
+        $usbDevices = @(Get-UsbStorageDevice | Sort-Object -Unique)
+        if ($usbDevices.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'USB storage devices' -Status Info -Value 'None on record'
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $usbDevices -Shown 5
+            New-CheckResult -Category $category -Check 'USB storage devices' -Status Info -Details $list.Details `
+                -Value ('{0} {1} connected so far: {2}' -f $usbDevices.Count, $(if ($usbDevices.Count -eq 1) { 'device' } else { 'devices' }), $list.Value)
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'USB storage devices' -ErrorRecord $_
     }
 
     # Backup of personal files: File History and OneDrive

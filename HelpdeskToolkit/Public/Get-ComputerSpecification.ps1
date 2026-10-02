@@ -14,8 +14,10 @@ function Get-ComputerSpecification {
         - connected displays with manufacturer code and year of manufacture
         - physical drives with size, type and firmware version; optical drives
         - audio devices, keyboards and pointing devices
-        - motherboard, BIOS/UEFI version and date
-        - serial number, for warranty and inventory lookups
+        - motherboard, BIOS/UEFI version and date, with the advice to look for a newer
+          version when it is several years old
+        - serial number, and where the warranty is looked up with it (the support page
+          of the manufacturer, when it is one of the known makers)
 
         Everything is informational (status Info); health verdicts are produced by
         Get-HardwareHealth. The data is read through CIM (WMI) without administrator
@@ -312,7 +314,14 @@ function Get-ComputerSpecification {
         if ($env:firmware_type) {
             $value = '{0}, {1} mode' -f $value, $env:firmware_type
         }
-        New-CheckResult -Category $category -Check 'BIOS' -Status Info -Value $value
+        # An old version is no fault, but makers fix security holes and compatibility
+        # problems in newer ones, so it is worth a look.
+        $oldYears = (Get-HealthThreshold).Bios.OldYears
+        $recommendation = ''
+        if ($bios.ReleaseDate -and $bios.ReleaseDate -lt (Get-Date).AddYears(-$oldYears)) {
+            $recommendation = 'This BIOS/UEFI version is more than {0} years old. Makers fix security holes and problems with newer hardware and Windows versions in later versions; look for one on the support page of the manufacturer. An update is done with the charger connected and must not be interrupted.' -f $oldYears
+        }
+        New-CheckResult -Category $category -Check 'BIOS' -Status Info -Value $value -Recommendation $recommendation
 
         # Self-built desktops often carry a placeholder instead of a real serial number.
         $placeholders = @('', 'To Be Filled By O.E.M.', 'Default string', 'System Serial Number', 'None', '0')
@@ -324,5 +333,23 @@ function Get-ComputerSpecification {
     }
     catch {
         New-FailureResult -Category $category -Check 'BIOS' -ErrorRecord $_
+    }
+
+    # Where the warranty is looked up. The makers whose support page is known are
+    # listed in Config\Actions.psd1; the window opens that page with a button.
+    try {
+        $maker = ([string](Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop | Select-Object -First 1).Manufacturer).Trim()
+        if ($maker -and (Get-CheckAction -Check 'Warranty and support' -Category $category -Value $maker)) {
+            New-CheckResult -Category $category -Check 'Warranty and support' -Status Info `
+                -Value ('{0}: looked up with the serial number on the support page of the manufacturer' -f $maker) `
+                -Recommendation 'The support page of the manufacturer shows, for the serial number of this computer, how long the warranty runs and which drivers and BIOS versions are current.'
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Warranty and support' -Status Info `
+                -Value 'No support page known for this manufacturer (a self-built computer has a warranty per component)'
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Warranty and support' -ErrorRecord $_
     }
 }

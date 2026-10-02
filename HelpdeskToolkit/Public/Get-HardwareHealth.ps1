@@ -13,6 +13,7 @@ function Get-HardwareHealth {
           hibernation file
         - page file usage
         - devices without a working driver, unsigned drivers and old drivers
+        - the result of the last memory test (Windows Memory Diagnostic) on record
         - how much of its original capacity the battery still has
 
         Three checks need administrator rights and are otherwise marked "Requires
@@ -455,6 +456,25 @@ function Get-HardwareHealth {
     }
     catch {
         New-FailureResult -Category $category -Check 'Drivers' -ErrorRecord $_
+    }
+
+    # Result of the last memory test (Windows Memory Diagnostic), when one is on record
+    try {
+        $memoryTest = Get-MemoryDiagnosticResult
+        if (-not $memoryTest) {
+            New-CheckResult -Category $category -Check 'Memory test' -Status Info -Value 'No test on record'
+        }
+        elseif ($memoryTest.HasErrors) {
+            New-CheckResult -Category $category -Check 'Memory test' -Status Critical `
+                -Value ('Errors found (tested {0:yyyy-MM-dd})' -f $memoryTest.TestedAt) `
+                -Recommendation 'Windows Memory Diagnostic found faulty memory. Test the modules one at a time to find the bad one and replace it; until then crashes and damaged files are to be expected.'
+        }
+        else {
+            New-CheckResult -Category $category -Check 'Memory test' -Status OK -Value ('No errors (tested {0:yyyy-MM-dd})' -f $memoryTest.TestedAt)
+        }
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Memory test' -ErrorRecord $_
     }
 
     # Battery. Desktops simply have no Win32_Battery instance.

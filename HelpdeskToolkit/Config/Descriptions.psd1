@@ -21,8 +21,12 @@
     'User profiles'                     = 'The folders under C:\Users where each user keeps documents, downloads and program settings, and how much space each one takes.'
     'Windows activation'                = 'Activation confirms that this copy of Windows has a valid license. Without it Windows shows reminders and locks the personalization settings.'
     'Startup programs'                  = 'Programs that start automatically when the user signs in. Each one makes sign-in slower and keeps using memory in the background.'
+    'Startup delays'                    = 'What Windows itself blamed for a slow startup: when it measures a startup and a program, a driver, a service or a device takes much longer than usual, it writes down which one and by how many seconds.'
+    'Windows 11 readiness'              = 'Whether this Windows 10 computer meets the hardware requirements of Windows 11: a supported 64-bit processor, 4 GB of memory, a 64 GB system drive, UEFI with Secure Boot and a TPM of version 2.0.'
+    'System file check'                 = 'The System File Checker ("sfc /scannow") compares the files of Windows with their originals and repairs damaged ones. Shown is the outcome of its last run that is still in the servicing log of Windows.'
 
     # Specifications
+    'Warranty and support'              = 'The support page of the manufacturer tells, for the serial number, how long the warranty runs and which drivers and BIOS versions are current. The button opens it and copies the serial number.'
     'Processor'                         = 'The processor (CPU) executes every program. More cores and a higher clock speed let the computer do more work at the same time.'
     'Processor details'                 = 'The cache is very fast memory inside the processor; a larger cache helps demanding programs. Hardware virtualization is needed by virtual machines, WSL 2, Windows Sandbox and Android emulators, and is switched on in the BIOS/UEFI setup.'
     'Memory'                            = 'RAM is the short-term working memory of running programs. The module layout and the free slots show whether more memory can be added.'
@@ -152,4 +156,20 @@
     'Wi-Fi'                             = 'The wireless network the computer is connected to: signal strength, frequency band, Wi-Fi standard and how the connection is encrypted.'
     'Third-party services'              = 'Services that start together with Windows and were installed by other programs. Each one runs in the background all the time and uses some memory.'
     'Drivers'                           = 'The programs that let Windows use the hardware.'
+
+    # Checks taken over from what Windows Security and other health tools show
+    'SmartScreen'                       = 'Microsoft Defender SmartScreen checks programs and files from the internet against a list of known malware and warns before an unknown program is started.'
+    'Memory integrity'                  = 'A part of "Core isolation" in Windows Security. It uses virtualization to check every driver before it is allowed into the core of Windows, which keeps malicious and vulnerable drivers out.'
+    'LSA protection'                    = 'The Local Security Authority is the process of Windows that checks passwords and keeps the sign-in data in memory. With the protection on, other programs cannot read that memory.'
+    'SMB 1.0'                           = 'The first version of the Windows file sharing protocol, from the 1990s. Current Windows uses versions 2 and 3; version 1 is only needed by very old devices and has known security holes.'
+    'Screen lock'                       = 'Whether Windows locks the screen by itself after a time without activity, so that the password is needed again. Windows key + L locks it at once.'
+    'Camera use'                        = 'Which programs used the camera lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Camera.'
+    'Microphone use'                    = 'Which programs used the microphone lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Microphone.'
+    'Location use'                      = 'Which programs asked for the location of the computer lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Location.'
+    'USB storage devices'               = 'USB sticks and USB disks that have been connected to this computer at some time. Windows remembers each one so it does not have to install its driver again.'
+    'Memory test'                       = 'The result of the last run of Windows Memory Diagnostic, which tests the memory modules for faults during a restart. Faulty memory causes crashes that seem to have no pattern.'
+    'Unsupported programs'              = 'Installed programs whose maker has ended the support for that version. They no longer get security updates, so every weakness found from then on stays open.'
+    'Program updates'                   = 'Programs for which the package manager of Windows (winget) knows a newer version than the installed one. Only programs from its catalog are compared.'
+    'Microsoft Office'                  = 'The installed version of Microsoft Office or Microsoft 365 Apps, the update channel it follows (how soon it gets new versions) and whether it updates itself.'
+    'Outlook data files'                = 'The files in which Outlook keeps the mailboxes on this computer: .ost for an Exchange or Microsoft 365 account, .pst for archives and older account types.'
 }

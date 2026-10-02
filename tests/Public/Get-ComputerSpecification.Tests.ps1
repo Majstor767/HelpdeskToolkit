@@ -34,7 +34,7 @@ Describe 'Get-ComputerSpecification' {
             }
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' } {
-            [PSCustomObject]@{ HypervisorPresent = $false }
+            [PSCustomObject]@{ HypervisorPresent = $false; Manufacturer = 'Contoso' }
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_PhysicalMemory' } {
             New-TestMemoryModule -Slot 'DIMM A1'
@@ -312,6 +312,42 @@ Describe 'Get-ComputerSpecification' {
             ($results | Where-Object Check -eq 'Storage').Recommendation | Should -Match 'Query failed'
             ($results | Where-Object Check -eq 'Processor').Status | Should -Be 'Info'
             ($results | Where-Object Check -eq 'Input devices').Status | Should -Be 'Info'
+        }
+    }
+
+    Context 'age of the BIOS, warranty and support' {
+        It 'gives no advice about a BIOS of the last years' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BIOS' } {
+                [PSCustomObject]@{ Manufacturer = 'Contoso'; SMBIOSBIOSVersion = '1.14.2'; ReleaseDate = (Get-Date).AddYears(-1); SerialNumber = 'CNT4012XYZ' }
+            }
+            (Get-ComputerSpecification | Where-Object Check -eq 'BIOS').Recommendation | Should -BeNullOrEmpty
+        }
+
+        It 'advises to look for a newer version when the BIOS is older than the limit' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_BIOS' } {
+                [PSCustomObject]@{ Manufacturer = 'Contoso'; SMBIOSBIOSVersion = '1.02'; ReleaseDate = (Get-Date).AddYears(-6); SerialNumber = 'CNT4012XYZ' }
+            }
+            $result = Get-ComputerSpecification | Where-Object Check -eq 'BIOS'
+            $result.Status | Should -Be 'Info'
+            $result.Recommendation | Should -Match 'more than 4 years old'
+        }
+
+        It 'names the support page for a maker it knows' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' } {
+                [PSCustomObject]@{ HypervisorPresent = $false; Manufacturer = ' Dell Inc. ' }
+            }
+            $result = Get-ComputerSpecification | Where-Object Check -eq 'Warranty and support'
+            $result.Status | Should -Be 'Info'
+            $result.Value | Should -Be 'Dell Inc.: looked up with the serial number on the support page of the manufacturer'
+            $result.Recommendation | Should -Match 'how long the warranty runs'
+            # The window finds the page of the maker from this value.
+            (InModuleScope HelpdeskToolkit -Parameters @{ Value = $result.Value } { Get-CheckAction -Check 'Warranty and support' -Value $Value }).Target | Should -Match 'dell\.com'
+        }
+
+        It 'says so for a maker without a known support page, and offers no button' {
+            $result = Get-ComputerSpecification | Where-Object Check -eq 'Warranty and support'
+            $result.Value | Should -Match '^No support page known'
+            $result.Recommendation | Should -BeNullOrEmpty
         }
     }
 }

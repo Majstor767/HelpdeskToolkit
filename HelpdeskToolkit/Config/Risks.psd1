@@ -16,6 +16,8 @@
     'Windows activation'                = 'Windows that is not activated shows reminders and locks the personalization settings. In a company it can also mean an installation without a license, which is a problem at an audit.'
     'Startup programs'                  = 'Every program that starts with Windows makes signing in slower and keeps using memory and processor time all day. The more of them there are, the slower the whole computer feels.'
     'Last startup duration'             = 'A slow start costs time every day. It usually comes from too many startup programs or from a disk that struggles, and a disk problem gets worse with time.'
+    'Startup delays'                    = 'What holds up the startup today will do so at every start, and a driver or device that answers slowly is often one that is about to fail.'
+    'System file check'                 = 'Damaged files of Windows cause errors that are hard to explain: features that do not open, updates that fail, crashes. The damage does not repair itself and tends to spread with every failed update.'
     'Category:System'                   = 'A problem with Windows itself affects everything that runs on it. Left alone it shows up as a slower computer, as programs that fail, or as protection that is no longer complete.'
 
     # --- Hardware -------------------------------------------------------------------
@@ -33,10 +35,15 @@
     'Unsigned drivers'                  = 'A driver without a valid signature cannot be traced to its maker and may have been changed. Drivers run with full rights, so a bad one can crash Windows or be used to take over the computer.'
     'Battery'                           = 'A battery this low switches the computer off within minutes. Work that is not saved by then is lost.'
     'Battery health'                    = 'A worn battery holds less and less charge: the computer runs for a shorter time and can switch off suddenly although the display still shows some charge. A badly worn battery can swell and damage the case.'
+    'Memory test'                       = 'Faulty memory corrupts whatever happens to be stored in it: programs crash at random, files are saved damaged, and Windows itself can be destroyed by an update written through bad memory.'
     'Category:Hardware'                 = 'A hardware problem rarely goes away by itself. Left alone it leads to a slower computer, to crashes, or to a part that fails and takes data with it.'
 
     # --- Software -------------------------------------------------------------------
     'Application crashes'               = 'Every crash can lose unsaved work and damage the file that was open. Crashes that keep coming back point to a faulty program, add-in or driver, and they rarely stop by themselves.'
+    'Unsupported programs'              = 'A program without support keeps every security hole that is found from now on. Attackers study the fixes of the newer versions to learn where the old ones are weak, and a prepared document or web page is then enough to take over the computer.'
+    'Program updates'                   = 'Old versions keep security holes that are already fixed, and publicly described, in the new ones. The longer a program stays behind, the more of them pile up.'
+    'Microsoft Office'                  = 'Office opens documents from e-mail and the internet every day. Without updates, a prepared Word or Excel file can use a weakness that was fixed long ago.'
+    'Outlook data files'                = 'A mailbox file that keeps growing makes Outlook slower and slower, with pauses while typing and searching. At its size limit Outlook stores no new mail, and a very large file is more easily damaged, which can cost the whole mailbox.'
     'Category:Software'                 = 'A program that does not work properly costs time and can damage the files it works with. The cause usually stays until the program is updated, repaired or removed.'
 
     # --- Event Log ------------------------------------------------------------------
@@ -64,6 +71,8 @@
     'Tamper protection'                 = 'Without tamper protection a malicious program can switch the antivirus off before it does its damage.'
     'Threat history'                    = 'A threat that is still active can steal data, damage files or spread to other computers until it is removed.'
     'Firewall'                          = 'With the firewall off, other computers on the same network can reach every program on this one that accepts connections. On a public network that is an open door.'
+    'SmartScreen'                       = 'Without SmartScreen nothing warns before a program downloaded from the internet is started for the first time. A fake installer or an attachment made to look like a document then runs without any question.'
+    'SMB 1.0'                           = 'SMB 1.0 has weaknesses that let malware spread from one computer to the next without anybody doing anything; whole company networks were encrypted that way. As long as it is enabled, one infected device on the network is enough.'
     'User Account Control'              = 'With User Account Control off, any program can change Windows without asking. Malware has full control the moment it is started.'
     'Automatic sign-in'                 = 'With automatic sign-in, anybody who switches the computer on is signed in, with all files and saved passwords at hand. The password is also stored on the computer in a form that can be read out.'
     'Guest account'                     = 'An enabled Guest account lets anybody use the computer without a password and reach whatever is not locked down.'

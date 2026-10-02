@@ -54,6 +54,9 @@
         # Windows only measures the startup now and then. A measurement older than this
         # many days is shown for information only and not judged.
         StaleDays      = 30
+        # "Startup delays": something that held up the startup for more seconds than
+        # this, on average = Warning. Shorter delays are listed for information.
+        DelayWarningSeconds = 10
     }
 
     Startup       = @{
@@ -166,6 +169,37 @@
         # More application crashes than this in the selected period (-Days) = Warning.
         CrashWarningAbove = 5
         TypicalCrashes    = '0 - 2 per week'
+        # "Program updates": more programs with a newer version than this = Warning.
+        UpdateWarningAbove   = 10
+        TypicalUpdates       = '0 - 5'
+        # winget asks the internet; it is ended when it has not answered by then.
+        UpdateTimeoutSeconds = 30
+    }
+
+    Outlook       = @{
+        # Size of the largest mailbox file (.ost or .pst) in gigabytes above these
+        # values. Outlook gets slow from about 25 GB on and stores no new mail once a
+        # file reaches its limit, which is 50 GB by default.
+        WarningGb  = 25
+        CriticalGb = 45
+        Typical    = 'under 10 GB'
+    }
+
+    Privacy       = @{
+        # Programs that used the camera, the microphone or the location within this
+        # many days are listed.
+        RecentDays = 30
+    }
+
+    Bios          = @{
+        # A BIOS/UEFI version older than this many years gets the advice to look for a newer one.
+        OldYears = 4
+    }
+
+    Timeline      = @{
+        # How many days back the timeline of changes and failures reaches. Windows
+        # itself keeps about a month of it.
+        Days = 30
     }
 
     WindowsUpdate = @{
@@ -261,6 +295,16 @@
         # Detail page of a component: everything that does not come with the ordinary
         # measurements is read again after this many seconds while the page is open.
         DetailRefreshSeconds = 10
+
+        # Internet tile of the Live monitor: answer time of the router and of the
+        # internet, measured with every measurement. An answer that takes longer than
+        # LatencyTimeoutMs counts as lost.
+        LatencyTimeoutMs      = 1000
+        # Internet answer time above this many milliseconds, or more lost answers than
+        # this percentage of the last LatencySamples = orange; twice as much = red.
+        LatencyWarningMs      = 150
+        LatencyLossPercent    = 5
+        LatencySamples        = 30
     }
 
     Score         = @{

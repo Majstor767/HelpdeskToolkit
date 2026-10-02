@@ -46,7 +46,7 @@ function Set-TestThreshold {
             }
             Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
             Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderTimeoutMs = 1000; LargestFolderBudgetMs = 3000; ProgramSizeTimeoutMs = 500; ProgramSizeBudgetMs = 2000; UsageProgramCount = 3; UsageFolderCount = 2 }
-            Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30 }
+            Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30; DelayWarningSeconds = 10 }
             DriveDetail   = @{ TemperatureWarning = 60; TemperatureCritical = 70; TypicalTemperature = '30 - 50'; WearWarningPercent = 80; WearCriticalPercent = 95 }
             SignIn        = @{ FailedWarningAbove = 20; TypicalFailed = 'typical failed sign-ins' }
             PageFile      = @{ WarningPercent = 80; Typical = 'typical page file' }
@@ -71,7 +71,11 @@ function Set-TestThreshold {
                 BlueScreenWarningAbove         = 0
                 TypicalBlueScreens             = 'typical blue screens'
             }
-            Software      = @{ RecentDays = 30; CrashWarningAbove = 5; TypicalCrashes = 'typical crashes' }
+            Software      = @{ RecentDays = 30; CrashWarningAbove = 5; TypicalCrashes = 'typical crashes'; UpdateWarningAbove = 3; TypicalUpdates = 'typical updates'; UpdateTimeoutSeconds = 5 }
+            Outlook       = @{ WarningGb = 25; CriticalGb = 45; Typical = 'typical mailbox' }
+            Privacy       = @{ RecentDays = 30 }
+            Bios          = @{ OldYears = 4 }
+            Timeline      = @{ Days = 30 }
             WindowsUpdate = @{ WarningDaysSinceLastUpdate = 45; Typical = 'typical update'; FailedDays = 30 }
             Defender      = @{
                 SignatureWarningDays  = 3
@@ -110,6 +114,10 @@ function Set-TestThreshold {
                 TrendAheadSamples   = 6
                 TrendMinimumPercent = 50
                 DetailRefreshSeconds = 10
+                LatencyTimeoutMs      = 1000
+                LatencyWarningMs      = 150
+                LatencyLossPercent    = 5
+                LatencySamples        = 6
             }
             Services      = @('Spooler', 'Dhcp', 'BITS', 'Missing')
         }

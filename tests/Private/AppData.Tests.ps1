@@ -169,6 +169,23 @@ Describe 'Get-CheckAction' {
     It 'returns nothing for a check without such a place' {
         InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Computer name' -Category 'System' } | Should -BeNullOrEmpty
     }
+
+    It 'picks the support page by the maker named in the value' {
+        $action = InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Category 'Specifications' -Value 'Dell Inc.: looked up with the serial number' }
+        $action.Label | Should -Be 'Open the support page'
+        $action.Target | Should -Be 'https://www.dell.com/support/home'
+
+        (InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Value 'LENOVO' }).Target | Should -Match '^https://pcsupport\.lenovo\.com/'
+        (InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Value 'HP' }).Target | Should -Match '^https://support\.hp\.com/'
+        (InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Value 'Hewlett-Packard' }).Target | Should -Match '^https://support\.hp\.com/'
+    }
+
+    It 'has no support page for a maker that is not listed, or without a value' {
+        InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Value 'Contoso Computers' } | Should -BeNullOrEmpty
+        InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' } | Should -BeNullOrEmpty
+        # "HP" inside another word is not Hewlett-Packard.
+        InModuleScope HelpdeskToolkit { Get-CheckAction -Check 'Warranty and support' -Value 'Alphpa Systems' } | Should -BeNullOrEmpty
+    }
 }
 
 Describe 'Config\Actions.psd1' {
@@ -176,16 +193,29 @@ Describe 'Config\Actions.psd1' {
         $actions = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Config\Actions.psd1')
     }
 
-    It 'gives every entry a label and a target' {
+    It 'gives every entry a label and a target, or a list of makers with their pages' {
         foreach ($key in $actions.Keys) {
             $actions[$key].Label | Should -Not -BeNullOrEmpty -Because "the entry '$key' needs a caption for its button"
-            $actions[$key].Target | Should -Not -BeNullOrEmpty -Because "the entry '$key' needs something to open"
+            if ($actions[$key].ContainsKey('Vendors')) {
+                $actions[$key].Vendors.Count | Should -BeGreaterThan 0 -Because "the entry '$key' needs at least one maker"
+            }
+            else {
+                $actions[$key].Target | Should -Not -BeNullOrEmpty -Because "the entry '$key' needs something to open"
+            }
         }
     }
 
     It 'only opens places of Windows: settings pages, consoles and system programs' {
-        foreach ($key in $actions.Keys) {
+        foreach ($key in ($actions.Keys | Where-Object { -not $actions[$_].ContainsKey('Vendors') })) {
             $actions[$key].Target | Should -Match '^(ms-settings:[a-z-]+|windowsdefender:(//[a-z]+)?|[A-Za-z0-9]+\.(msc|exe))$' -Because "the entry '$key' must not start an arbitrary command"
+        }
+    }
+
+    It 'opens the support pages of the makers over https only, without anything of the computer in the address' {
+        $vendors = $actions['Warranty and support'].Vendors
+        foreach ($maker in $vendors.Keys) {
+            { [regex]::new($maker) } | Should -Not -Throw -Because "'$maker' is used as a regular expression"
+            $vendors[$maker] | Should -Match '^https://[a-z0-9.-]+\.[a-z]{2,}/[A-Za-z0-9/_-]*$' -Because "the page of '$maker' must be a plain https address"
         }
     }
 
