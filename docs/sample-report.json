@@ -5,12 +5,12 @@
     "DurationSeconds":  18.6,
     "IsElevated":  false,
     "EventLogDays":  7,
-    "Score":  37,
+    "Score":  29,
     "Summary":  {
-                    "OK":  49,
-                    "Warning":  12,
+                    "OK":  54,
+                    "Warning":  14,
                     "Critical":  1,
-                    "Info":  60
+                    "Info":  70
                 },
     "Results":  [
                     {
@@ -213,8 +213,34 @@
                     },
                     {
                         "Category":  "System",
+                        "Check":  "System file check",
+                        "Description":  "The System File Checker (\"sfc /scannow\") compares the files of Windows with their originals and repairs damaged ones. Shown is the outcome of its last run that is still in the servicing log of Windows.",
+                        "Status":  "OK",
+                        "Value":  "No damaged files (checked 2026-08-14)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "System",
                         "Check":  "Last startup duration",
                         "Description":  "How long Windows needed to start the last time it measured it, from power-on until the desktop was usable. A slow startup is usually caused by too many startup programs or a slow disk.",
+                        "Status":  "Info",
+                        "Value":  "Requires admin",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Windows only shows this to administrators. Start the tool as administrator to include it: in the window use \"Restart as administrator\", in a console open PowerShell with \"Run as administrator\"."
+                    },
+                    {
+                        "Category":  "System",
+                        "Check":  "Startup delays",
+                        "Description":  "What Windows itself blamed for a slow startup: when it measures a startup and a program, a driver, a service or a device takes much longer than usual, it writes down which one and by how many seconds.",
                         "Status":  "Info",
                         "Value":  "Requires admin",
                         "Details":  [
@@ -412,6 +438,19 @@
                         "Description":  "The unique number the manufacturer gave this computer. It is used for warranty claims and asset tracking.",
                         "Status":  "Info",
                         "Value":  "CNT4012XYZ",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Specifications",
+                        "Check":  "Warranty and support",
+                        "Description":  "The support page of the manufacturer tells, for the serial number, how long the warranty runs and which drivers and BIOS versions are current. The button opens it and copies the serial number.",
+                        "Status":  "Info",
+                        "Value":  "No support page known for this manufacturer (a self-built computer has a warranty per component)",
                         "Details":  [
 
                                     ],
@@ -698,6 +737,19 @@
                         "Recommendation":  ""
                     },
                     {
+                        "Category":  "Hardware",
+                        "Check":  "Memory test",
+                        "Description":  "The result of the last run of Windows Memory Diagnostic, which tests the memory modules for faults during a restart. Faulty memory causes crashes that seem to have no pattern.",
+                        "Status":  "Info",
+                        "Value":  "No test on record",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
                         "Category":  "Software",
                         "Check":  "Installed programs",
                         "Description":  "The programs listed under Installed apps in Settings. Useful to see what is on the computer and which versions.",
@@ -725,6 +777,58 @@
                         "Allowed":  "",
                         "Typical":  "",
                         "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Unsupported programs",
+                        "Description":  "Installed programs whose maker has ended the support for that version. They no longer get security updates, so every weakness found from then on stays open.",
+                        "Status":  "Warning",
+                        "Value":  "2 programs without security updates: Old Media Player 7.7 (support ended 2016-04-14), Legacy Runtime 6.0.25 (support ended 2024-11-12)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings \u003e Apps \u003e Installed apps), above all the ones that open files or pages from the internet."
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Program updates",
+                        "Description":  "Programs for which the package manager of Windows (winget) knows a newer version than the installed one. Only programs from its catalog are compared.",
+                        "Status":  "Info",
+                        "Value":  "4 programs can be updated: 7-Zip 24.08 -\u003e 25.01, Chat Client 5.2 -\u003e 5.4, PDF Reader 2.1 -\u003e 2.3, Video Player 3.0 -\u003e 3.1",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 10",
+                        "Typical":  "0 - 5",
+                        "Recommendation":  "Newer versions exist. Update the programs from within each program, or all at once in a terminal with \"winget upgrade --all\"."
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Microsoft Office",
+                        "Description":  "The installed version of Microsoft Office or Microsoft 365 Apps, the update channel it follows (how soon it gets new versions) and whether it updates itself.",
+                        "Status":  "Info",
+                        "Value":  "Version 16.0.17928.20156 (64-bit), Monthly Enterprise Channel, automatic updates on",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Software",
+                        "Check":  "Outlook data files",
+                        "Description":  "The files in which Outlook keeps the mailboxes on this computer: .ost for an Exchange or Microsoft 365 account, .pst for archives and older account types.",
+                        "Status":  "Warning",
+                        "Value":  "2 files: m.horvat@contoso.example.ost (31.4 GB), archive.pst (6.2 GB)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "0 - 25 GB (critical above 45 GB)",
+                        "Typical":  "under 10 GB",
+                        "Recommendation":  "A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten \"Download email for the past\" (File \u003e Account Settings \u003e Account Settings \u003e Change)."
                     },
                     {
                         "Category":  "Software",
@@ -1084,6 +1188,58 @@
                     },
                     {
                         "Category":  "Security",
+                        "Check":  "SmartScreen",
+                        "Description":  "Microsoft Defender SmartScreen checks programs and files from the internet against a list of known malware and warns before an unknown program is started.",
+                        "Status":  "OK",
+                        "Value":  "Enabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Memory integrity",
+                        "Description":  "A part of \"Core isolation\" in Windows Security. It uses virtualization to check every driver before it is allowed into the core of Windows, which keeps malicious and vulnerable drivers out.",
+                        "Status":  "Info",
+                        "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  "Memory integrity stops malicious drivers from getting into the core of Windows. It can be turned on in Windows Security \u003e Device security \u003e Core isolation; a restart is needed, and very old drivers may have to be updated first."
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "LSA protection",
+                        "Description":  "The Local Security Authority is the process of Windows that checks passwords and keeps the sign-in data in memory. With the protection on, other programs cannot read that memory.",
+                        "Status":  "OK",
+                        "Value":  "Enabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "SMB 1.0",
+                        "Description":  "The first version of the Windows file sharing protocol, from the 1990s. Current Windows uses versions 2 and 3; version 1 is only needed by very old devices and has known security holes.",
+                        "Status":  "OK",
+                        "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
                         "Check":  "Remote Desktop",
                         "Description":  "A Windows feature that lets someone sign in to this computer from another one. Handy for support, but an open door if it is not needed.",
                         "Status":  "OK",
@@ -1127,6 +1283,19 @@
                         "Description":  "A Windows setting that signs a user in at startup without asking for a password. Anyone who switches the computer on gets into that account.",
                         "Status":  "OK",
                         "Value":  "Disabled",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Screen lock",
+                        "Description":  "Whether Windows locks the screen by itself after a time without activity, so that the password is needed again. Windows key + L locks it at once.",
+                        "Status":  "OK",
+                        "Value":  "Locks after 10 minutes without activity",
                         "Details":  [
 
                                     ],
@@ -1192,6 +1361,58 @@
                         "Description":  "Network ports on which a program of this computer waits for connections from other computers. Ports that only accept connections from this computer itself are not counted.",
                         "Status":  "Info",
                         "Value":  "4 ports open to the network: spoolsv: 49668, svchost: 135, 5040, System: 445",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Camera use",
+                        "Description":  "Which programs used the camera lately, as Windows records it for the signed-in user. The same list is in Settings \u003e Privacy \u0026 security \u003e Camera.",
+                        "Status":  "Info",
+                        "Value":  "2 programs in the last 30 days: Teams.exe (2026-09-29), msedge.exe (2026-09-17)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Microphone use",
+                        "Description":  "Which programs used the microphone lately, as Windows records it for the signed-in user. The same list is in Settings \u003e Privacy \u0026 security \u003e Microphone.",
+                        "Status":  "Info",
+                        "Value":  "2 programs in the last 30 days: Teams.exe (2026-09-29), WebMeeting.exe (2026-09-24)",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "Location use",
+                        "Description":  "Which programs asked for the location of the computer lately, as Windows records it for the signed-in user. The same list is in Settings \u003e Privacy \u0026 security \u003e Location.",
+                        "Status":  "Info",
+                        "Value":  "Not used in the last 30 days",
+                        "Details":  [
+
+                                    ],
+                        "Allowed":  "",
+                        "Typical":  "",
+                        "Recommendation":  ""
+                    },
+                    {
+                        "Category":  "Security",
+                        "Check":  "USB storage devices",
+                        "Description":  "USB sticks and USB disks that have been connected to this computer at some time. Windows remembers each one so it does not have to install its driver again.",
+                        "Status":  "Info",
+                        "Value":  "2 devices connected so far: Contoso Stick Pro, Fabrikam Portable SSD",
                         "Details":  [
 
                                     ],
@@ -1615,5 +1836,119 @@
                         "Typical":  "",
                         "Recommendation":  ""
                     }
-                ]
+                ],
+    "Timeline":  [
+                     {
+                         "Time":  "2026-09-30 08:52",
+                         "Level":  "Problem",
+                         "Kind":  "Program crashed",
+                         "Title":  "EXCEL.EXE",
+                         "Count":  2
+                     },
+                     {
+                         "Time":  "2026-09-30 07:41",
+                         "Level":  "Change",
+                         "Kind":  "Update installed",
+                         "Title":  "Antivirus definitions",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-29 16:20",
+                         "Level":  "Problem",
+                         "Kind":  "Program stopped responding",
+                         "Title":  "msedge.exe",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-29 11:03",
+                         "Level":  "Problem",
+                         "Kind":  "Program crashed",
+                         "Title":  "EXCEL.EXE",
+                         "Count":  3
+                     },
+                     {
+                         "Time":  "2026-09-29 06:12",
+                         "Level":  "Change",
+                         "Kind":  "Update installed",
+                         "Title":  "Antivirus definitions",
+                         "Count":  2
+                     },
+                     {
+                         "Time":  "2026-09-28 18:47",
+                         "Level":  "Problem",
+                         "Kind":  "Unexpected shutdown",
+                         "Title":  "",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-27 15:12",
+                         "Level":  "Problem",
+                         "Kind":  "Program crashed",
+                         "Title":  "msedge.exe",
+                         "Count":  2
+                     },
+                     {
+                         "Time":  "2026-09-26 09:15",
+                         "Level":  "Problem",
+                         "Kind":  "Program crashed",
+                         "Title":  "EXCEL.EXE",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-25 16:02",
+                         "Level":  "Problem",
+                         "Kind":  "Program crashed",
+                         "Title":  "Teams.exe",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-25 14:30",
+                         "Level":  "Change",
+                         "Kind":  "Program installed",
+                         "Title":  "Contoso Reporting Add-in for Excel",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-24 08:02",
+                         "Level":  "Problem",
+                         "Kind":  "Unexpected shutdown",
+                         "Title":  "",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-24 02:10",
+                         "Level":  "Change",
+                         "Kind":  "Update installed",
+                         "Title":  "Microsoft Store apps",
+                         "Count":  7
+                     },
+                     {
+                         "Time":  "2026-09-22 10:05",
+                         "Level":  "Change",
+                         "Kind":  "Program installed",
+                         "Title":  "Screenshot Tool",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-18 03:14",
+                         "Level":  "Change",
+                         "Kind":  "Update installed",
+                         "Title":  "2026-09 Cumulative Update for Windows 11 (KB5000001)",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-15 13:40",
+                         "Level":  "Change",
+                         "Kind":  "Driver installed",
+                         "Title":  "Contoso Graphics 770",
+                         "Count":  1
+                     },
+                     {
+                         "Time":  "2026-09-12 09:30",
+                         "Level":  "Change",
+                         "Kind":  "Program installed",
+                         "Title":  "PDF Reader",
+                         "Count":  1
+                     }
+                 ]
 }

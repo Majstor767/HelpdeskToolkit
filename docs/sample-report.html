@@ -495,6 +495,66 @@ footer {
     }
 }
 
+/* Which categories cost how many points */
+.score-breakdown {
+    margin: -8px 0 20px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.score-breakdown span {
+    display: inline-block;
+    margin-left: 14px;
+    color: var(--text);
+}
+
+/* Time line of changes and failures */
+.timeline-hint {
+    margin: 0;
+    padding: 12px 18px 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+#timeline details {
+    padding: 8px 18px 14px;
+}
+
+table.timeline .col-time {
+    width: 150px;
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+table.timeline .col-kind {
+    width: 260px;
+}
+
+table.timeline .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+table.timeline .dot.critical {
+    background: var(--critical);
+}
+
+table.timeline .dot.info {
+    background: var(--info);
+}
+
+table.timeline tr.problem .col-kind {
+    color: var(--critical);
+    font-weight: 600;
+}
+
+table.timeline .times {
+    color: var(--muted);
+}
+
 </style>
 </head>
 <body>
@@ -509,17 +569,18 @@ footer {
 <div><dt>Duration</dt><dd>18.6 s</dd></div>
 <div><dt>Event log period</dt><dd>7 days</dd></div>
 <div><dt>Administrator rights</dt><dd>No</dd></div>
-<div><dt>Health score</dt><dd>37 of 100</dd></div>
+<div><dt>Health score</dt><dd>29 of 100</dd></div>
 </dl>
 </div></header>
 <main><div class="container">
-<p class="verdict critical"><strong>Action required.</strong> <span>1 critical problem and 12 warnings found.</span></p>
+<p class="verdict critical"><strong>Action required.</strong> <span>1 critical problem and 14 warnings found.</span></p>
 <section class="summary" aria-label="Summary">
 <div class="tile critical"><span class="count">1</span><span class="label">Critical</span></div>
-<div class="tile warning"><span class="count">12</span><span class="label">Warning</span></div>
-<div class="tile ok"><span class="count">49</span><span class="label">OK</span></div>
-<div class="tile info"><span class="count">60</span><span class="label">Info</span></div>
+<div class="tile warning"><span class="count">14</span><span class="label">Warning</span></div>
+<div class="tile ok"><span class="count">54</span><span class="label">OK</span></div>
+<div class="tile info"><span class="count">70</span><span class="label">Info</span></div>
 </section>
+<p class="score-breakdown">Health score 29 of 100. Points lost: <span><b>Hardware</b> &minus;27 (1 critical, 3 warnings)</span><span><b>Software</b> &minus;12 (3 warnings)</span><span><b>Event Log</b> &minus;12 (3 warnings)</span><span><b>System</b> &minus;8 (2 warnings)</span><span><b>Services</b> &minus;4 (1 warning)</span><span><b>Security</b> &minus;4 (1 warning)</span><span><b>Windows Update</b> &minus;4 (1 warning)</span></p>
 <nav class="toc" aria-label="Categories">
 <a href="#cat-system"><span class="dot warning"></span>System</a>
 <a href="#cat-specifications"><span class="dot info"></span>Specifications</a>
@@ -533,7 +594,7 @@ footer {
 <a href="#cat-services"><span class="dot warning"></span>Services</a>
 </nav>
 <section class="card" id="problems">
-<div class="card-header"><h2>Problems and recommendations</h2><span class="counts">13 to review</span></div>
+<div class="card-header"><h2>Problems and recommendations</h2><span class="counts">15 to review</span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -543,6 +604,8 @@ footer {
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Memory usage <span class="category-label">(Hardware)</span></div></td><td><div class="value">88 % (14 GB of 15.8 GB used)</div><div class="reference"><span><b>Allowed:</b> 0 - 85 % (critical above 95 %)</span><span><b>Typical:</b> 40 - 70 %</span></div><div class="risk">When the memory is full, Windows moves data to the much slower disk. Programs freeze for seconds, and in the end Windows closes them without warning, with the unsaved work lost.</div><div class="recommendation">Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Drive: Contoso HDD 500GB <span class="category-label">(Hardware)</span></div></td><td><div class="value">HDD, SATA, 465.8 GB, health: Warning</div><div class="risk">A drive that reports problems can fail completely at any time. Everything stored on it is then gone, unless there is a backup.</div><div class="recommendation">The drive reports a problem and may fail. Back up the data now and plan to replace the drive.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Temporary files <span class="category-label">(Hardware)</span></div></td><td><div class="value">6.8 GB</div><div class="reference"><span><b>Allowed:</b> 0 - 5 GB</span></div><div class="risk">These files only take up space. On a disk that is getting full they take away the room Windows needs for updates and for its own work.</div><div class="recommendation">Temporary files take up a lot of space. Remove them in Settings &gt; System &gt; Storage &gt; Temporary files.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Unsupported programs <span class="category-label">(Software)</span></div></td><td><div class="value">2 programs without security updates: Old Media Player 7.7 (support ended 2016-04-14), Legacy Runtime 6.0.25 (support ended 2024-11-12)</div><div class="risk">A program without support keeps every security hole that is found from now on. Attackers study the fixes of the newer versions to learn where the old ones are weak, and a prepared document or web page is then enough to take over the computer.</div><div class="recommendation">These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings &gt; Apps &gt; Installed apps), above all the ones that open files or pages from the internet.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Outlook data files <span class="category-label">(Software)</span></div></td><td><div class="value">2 files: m.horvat@contoso.example.ost (31.4 GB), archive.pst (6.2 GB)</div><div class="reference"><span><b>Allowed:</b> 0 - 25 GB (critical above 45 GB)</span><span><b>Typical:</b> under 10 GB</span></div><div class="risk">A mailbox file that keeps growing makes Outlook slower and slower, with pauses while typing and searching. At its size limit Outlook stores no new mail, and a very large file is more easily damaged, which can cost the whole mailbox.</div><div class="recommendation">A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten &quot;Download email for the past&quot; (File &gt; Account Settings &gt; Account Settings &gt; Change).</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Application crashes <span class="category-label">(Software)</span></div></td><td><div class="value">9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)</div><div class="reference"><span><b>Allowed:</b> 0 - 5</span><span><b>Typical:</b> 0 - 2 per week</span></div><div class="risk">Every crash can lose unsaved work and damage the file that was open. Crashes that keep coming back point to a faulty program, add-in or driver, and they rarely stop by themselves.</div><div class="recommendation">Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; Application, source &quot;Application Error&quot;.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Unexpected shutdowns <span class="category-label">(Event Log)</span></div></td><td><div class="value">2 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="risk">When the computer goes off without a proper shutdown, files that were being written can be damaged, including those of Windows itself. Repeated, it can end with a Windows that no longer starts.</div><div class="recommendation">The computer lost power or crashed without shutting down properly. Check the power cable or battery, overheating and recently installed drivers.</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Disk errors <span class="category-label">(Event Log)</span></div></td><td><div class="value">3 in the last 7 days</div><div class="reference"><span><b>Allowed:</b> 0</span><span><b>Typical:</b> 0</span></div><div class="risk">Disk errors in the log are often the first sign of a failing drive. Ignored, they lead to unreadable files and finally to a drive that no longer works.</div><div class="recommendation">The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run &quot;chkdsk /scan&quot; as administrator. Repeated errors usually mean the drive or its cable is failing.</div></td></tr>
@@ -553,7 +616,7 @@ footer {
 </tbody></table>
 </section>
 <section class="card" id="cat-system">
-<div class="card-header"><h2>System</h2><span class="counts"><span class="warning">2 Warning</span> &middot; <span class="ok">3 OK</span> &middot; <span class="info">12 Info</span></span></div>
+<div class="card-header"><h2>System</h2><span class="counts"><span class="warning">2 Warning</span> &middot; <span class="ok">4 OK</span> &middot; <span class="info">13 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -562,6 +625,7 @@ footer {
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Stability index</div><div class="description">The score Windows itself keeps in Reliability Monitor, from 1 (unstable) to 10 (stable). It drops after crashes, hangs and failed installations and recovers while the computer runs without problems.</div></td><td><div class="value">7.4 of 10</div><div class="reference"><span><b>Allowed:</b> 5 - 10 (critical below 3)</span><span><b>Typical:</b> 8 - 10</span></div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Windows activation</div><div class="description">Activation confirms that this copy of Windows has a valid license. Without it Windows shows reminders and locks the personalization settings.</div></td><td><div class="value">Activated</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Startup programs</div><div class="description">Programs that start automatically when the user signs in. Each one makes sign-in slower and keeps using memory in the background.</div></td><td><div class="value">12 programs: Chat Client, Cloud Backup, Contoso Updater, Contoso VPN, Mail Notifier, OneDrive, PDF Helper, Printer Assistant and 4 more</div><details><summary>Show 4 more</summary><ul><li>Screenshot Tool</li><li>SecurityHealth</li><li>Teams</li><li>Touchpad Driver</li></ul></details><div class="reference"><span><b>Allowed:</b> 0 - 15</span><span><b>Typical:</b> 5 - 10</span></div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">System file check</div><div class="description">The System File Checker (&quot;sfc /scannow&quot;) compares the files of Windows with their originals and repairs damaged ones. Shown is the outcome of its last run that is still in the servicing log of Windows.</div></td><td><div class="value">No damaged files (checked 2026-08-14)</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Computer name</div><div class="description">The name that identifies this computer on the network. Helpdesk uses it to find the right machine in the inventory and in remote support tools.</div></td><td><div class="value">FIN-LT-014</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Operating system</div><div class="description">The Windows edition, feature release and build. It decides which features and security updates the computer can receive.</div></td><td><div class="value">Microsoft Windows 11 Pro 24H2 (build 26100)</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Windows installed</div><div class="description">The date this Windows installation was set up. An old installation tends to collect leftover software and settings.</div></td><td><div class="value">2024-11-04</div></td></tr>
@@ -573,11 +637,12 @@ footer {
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Power plan</div><div class="description">The set of power settings in use. &quot;Power saver&quot; slows the processor down to save energy; &quot;High performance&quot; keeps it fast and uses more power.</div></td><td><div class="value">Balanced</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Fast Startup</div><div class="description">With Fast Startup, &quot;Shut down&quot; saves the core of Windows to disk so the next start is quicker. Windows is then not really restarted, which is why &quot;Restart&quot; is the cure for many problems and &quot;Shut down&quot; is not.</div></td><td><div class="value">Enabled</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Last startup duration</div><div class="description">How long Windows needed to start the last time it measured it, from power-on until the desktop was usable. A slow startup is usually caused by too many startup programs or a slow disk.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Windows only shows this to administrators. Start the tool as administrator to include it: in the window use &quot;Restart as administrator&quot;, in a console open PowerShell with &quot;Run as administrator&quot;.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Startup delays</div><div class="description">What Windows itself blamed for a slow startup: when it measures a startup and a program, a driver, a service or a device takes much longer than usual, it writes down which one and by how many seconds.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Windows only shows this to administrators. Start the tool as administrator to include it: in the window use &quot;Restart as administrator&quot;, in a console open PowerShell with &quot;Run as administrator&quot;.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">User profiles</div><div class="description">The folders under C:\Users where each user keeps documents, downloads and program settings, and how much space each one takes.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Windows only shows this to administrators. Start the tool as administrator to include it: in the window use &quot;Restart as administrator&quot;, in a console open PowerShell with &quot;Run as administrator&quot;.</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-specifications">
-<div class="card-header"><h2>Specifications</h2><span class="counts"><span class="info">14 Info</span></span></div>
+<div class="card-header"><h2>Specifications</h2><span class="counts"><span class="info">15 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -595,10 +660,11 @@ footer {
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Motherboard</div><div class="description">The main board that all other components plug into. Its model decides which processors, memory and expansion cards are supported.</div></td><td><div class="value">Contoso Ltd. 0A1B2C</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">BIOS</div><div class="description">The firmware that starts the hardware before Windows loads. An outdated version can cause compatibility and stability problems.</div></td><td><div class="value">Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Serial number</div><div class="description">The unique number the manufacturer gave this computer. It is used for warranty claims and asset tracking.</div></td><td><div class="value">CNT4012XYZ</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Warranty and support</div><div class="description">The support page of the manufacturer tells, for the serial number, how long the warranty runs and which drivers and BIOS versions are current. The button opens it and copies the serial number.</div></td><td><div class="value">No support page known for this manufacturer (a self-built computer has a warranty per component)</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-hardware">
-<div class="card-header"><h2>Hardware</h2><span class="counts"><span class="critical">1 Critical</span> &middot; <span class="warning">3 Warning</span> &middot; <span class="ok">9 OK</span> &middot; <span class="info">8 Info</span></span></div>
+<div class="card-header"><h2>Hardware</h2><span class="counts"><span class="critical">1 Critical</span> &middot; <span class="warning">3 Warning</span> &middot; <span class="ok">9 OK</span> &middot; <span class="info">9 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -623,16 +689,21 @@ footer {
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">File system</div><div class="description">Whether Windows has flagged a drive as possibly damaged and in need of a disk check. A drive is flagged after a crash or power loss while data was being written.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Windows only shows this to administrators. Start the tool as administrator to include it: in the window use &quot;Restart as administrator&quot;, in a console open PowerShell with &quot;Run as administrator&quot;.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">System temporary files</div><div class="description">Temporary files that Windows and installers leave in C:\Windows\Temp. They are safe to remove with Disk Cleanup.</div></td><td><div class="value">Requires admin</div><div class="recommendation">Windows only shows this to administrators. Start the tool as administrator to include it: in the window use &quot;Restart as administrator&quot;, in a console open PowerShell with &quot;Run as administrator&quot;.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Old drivers</div><div class="description">Drivers of graphics cards, network adapters, sound cards, printers and similar devices that have not been updated for years. Drivers that come with Windows are not listed.</div></td><td><div class="value">1 driver: Contoso Card Reader (2019-05-14)</div><div class="recommendation">These drivers are older than 5 years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Memory test</div><div class="description">The result of the last run of Windows Memory Diagnostic, which tests the memory modules for faults during a restart. Faulty memory causes crashes that seem to have no pattern.</div></td><td><div class="value">No test on record</div></td></tr>
 </tbody></table>
 </section>
 <section class="card" id="cat-software">
-<div class="card-header"><h2>Software</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="info">4 Info</span></span></div>
+<div class="card-header"><h2>Software</h2><span class="counts"><span class="warning">3 Warning</span> &middot; <span class="info">6 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Unsupported programs</div><div class="description">Installed programs whose maker has ended the support for that version. They no longer get security updates, so every weakness found from then on stays open.</div></td><td><div class="value">2 programs without security updates: Old Media Player 7.7 (support ended 2016-04-14), Legacy Runtime 6.0.25 (support ended 2024-11-12)</div><div class="risk">A program without support keeps every security hole that is found from now on. Attackers study the fixes of the newer versions to learn where the old ones are weak, and a prepared document or web page is then enough to take over the computer.</div><div class="recommendation">These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings &gt; Apps &gt; Installed apps), above all the ones that open files or pages from the internet.</div></td></tr>
+<tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Outlook data files</div><div class="description">The files in which Outlook keeps the mailboxes on this computer: .ost for an Exchange or Microsoft 365 account, .pst for archives and older account types.</div></td><td><div class="value">2 files: m.horvat@contoso.example.ost (31.4 GB), archive.pst (6.2 GB)</div><div class="reference"><span><b>Allowed:</b> 0 - 25 GB (critical above 45 GB)</span><span><b>Typical:</b> under 10 GB</span></div><div class="risk">A mailbox file that keeps growing makes Outlook slower and slower, with pauses while typing and searching. At its size limit Outlook stores no new mail, and a very large file is more easily damaged, which can cost the whole mailbox.</div><div class="recommendation">A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten &quot;Download email for the past&quot; (File &gt; Account Settings &gt; Account Settings &gt; Change).</div></td></tr>
 <tr><td class="col-status"><span class="badge warning">Warning</span></td><td class="col-check"><div class="check">Application crashes</div><div class="description">How often programs stopped working unexpectedly, and which ones. A program that crashes again and again needs an update or a reinstall.</div></td><td><div class="value">9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)</div><div class="reference"><span><b>Allowed:</b> 0 - 5</span><span><b>Typical:</b> 0 - 2 per week</span></div><div class="risk">Every crash can lose unsaved work and damage the file that was open. Crashes that keep coming back point to a faulty program, add-in or driver, and they rarely stop by themselves.</div><div class="recommendation">Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) &gt; Windows Logs &gt; Application, source &quot;Application Error&quot;.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Installed programs</div><div class="description">The programs listed under Installed apps in Settings. Useful to see what is on the computer and which versions.</div></td><td><div class="value">12 programs: 7-Zip 24.08, Chat Client 5.2, Contoso Office 16.0, Contoso VPN 3.1, Mail Client 12.4, PDF Reader 2025.1, Printer Assistant 2.0, Screenshot Tool 4.0 and 4 more</div><details><summary>Show 4 more</summary><ul><li>Teams 25.1</li><li>Touchpad Driver 19.5</li><li>Video Player 3.0</li><li>Web Meeting Client 6.2</li></ul></details></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Recently installed</div><div class="description">Programs installed in the last weeks. When a problem is new, something installed recently is a likely cause.</div></td><td><div class="value">2 in the last 30 days: Screenshot Tool (2026-09-22), PDF Reader (2026-09-11)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Program updates</div><div class="description">Programs for which the package manager of Windows (winget) knows a newer version than the installed one. Only programs from its catalog are compared.</div></td><td><div class="value">4 programs can be updated: 7-Zip 24.08 -&gt; 25.01, Chat Client 5.2 -&gt; 5.4, PDF Reader 2.1 -&gt; 2.3, Video Player 3.0 -&gt; 3.1</div><div class="reference"><span><b>Allowed:</b> 0 - 10</span><span><b>Typical:</b> 0 - 5</span></div><div class="recommendation">Newer versions exist. Update the programs from within each program, or all at once in a terminal with &quot;winget upgrade --all&quot;.</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Microsoft Office</div><div class="description">The installed version of Microsoft Office or Microsoft 365 Apps, the update channel it follows (how soon it gets new versions) and whether it updates itself.</div></td><td><div class="value">Version 16.0.17928.20156 (64-bit), Monthly Enterprise Channel, automatic updates on</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Browser extensions</div><div class="description">Add-ons installed in the browsers of the current user. An extension can read and change the pages that are opened, so unknown ones are a common cause of advertising, redirects and slow browsing.</div></td><td><div class="value">6 extensions: Chrome (2), Edge (4)</div><details><summary>Show 6 more</summary><ul><li>Chrome: Ad Blocker 1.60.0</li><li>Chrome: Password Manager 3.2.1</li><li>Edge: Ad Blocker 1.60.0</li><li>Edge: Contoso Web Meeting 6.2</li><li>Edge: PDF Tools 2.0</li><li>Edge: Shopping Helper 4.1.3</li></ul></details></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Default browser</div><div class="description">The browser that opens when a link is clicked in e-mail or another program.</div></td><td><div class="value">Microsoft Edge</div></td></tr>
 </tbody></table>
@@ -667,7 +738,7 @@ footer {
 </tbody></table>
 </section>
 <section class="card" id="cat-security">
-<div class="card-header"><h2>Security</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">15 OK</span> &middot; <span class="info">10 Info</span></span></div>
+<div class="card-header"><h2>Security</h2><span class="counts"><span class="warning">1 Warning</span> &middot; <span class="ok">19 OK</span> &middot; <span class="info">15 Info</span></span></div>
 <table>
 <thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>
 <tbody>
@@ -680,16 +751,25 @@ footer {
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Firewall - Domain profile</div><div class="description">The firewall rules used while the computer is connected to the company domain network. The firewall blocks unwanted incoming connections.</div></td><td><div class="value">Enabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Firewall - Private profile</div><div class="description">The firewall rules used on networks marked as private, such as a home or small office network.</div></td><td><div class="value">Enabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">User Account Control</div><div class="description">UAC asks for confirmation before a program can make changes to Windows. It stops programs from silently taking administrator rights.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">SmartScreen</div><div class="description">Microsoft Defender SmartScreen checks programs and files from the internet against a list of known malware and warns before an unknown program is started.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">LSA protection</div><div class="description">The Local Security Authority is the process of Windows that checks passwords and keeps the sign-in data in memory. With the protection on, other programs cannot read that memory.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">SMB 1.0</div><div class="description">The first version of the Windows file sharing protocol, from the 1990s. Current Windows uses versions 2 and 3; version 1 is only needed by very old devices and has known security holes.</div></td><td><div class="value">Disabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Remote Desktop</div><div class="description">A Windows feature that lets someone sign in to this computer from another one. Handy for support, but an open door if it is not needed.</div></td><td><div class="value">Disabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Account type</div><div class="description">Whether the signed-in user is a standard user or a local administrator. An administrator account can change anything on the computer.</div></td><td><div class="value">Standard user</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Automatic sign-in</div><div class="description">A Windows setting that signs a user in at startup without asking for a password. Anyone who switches the computer on gets into that account.</div></td><td><div class="value">Disabled</div></td></tr>
+<tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Screen lock</div><div class="description">Whether Windows locks the screen by itself after a time without activity, so that the password is needed again. Windows key + L locks it at once.</div></td><td><div class="value">Locks after 10 minutes without activity</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Guest account</div><div class="description">A built-in account without a password, meant for visitors. Left enabled, it lets anyone use the computer.</div></td><td><div class="value">Disabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Built-in Administrator account</div><div class="description">The administrator account every Windows installation has. It is disabled by default because it is a well-known target for attacks.</div></td><td><div class="value">Disabled</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Shared folders</div><div class="description">Folders on this computer that other computers on the network can open.</div></td><td><div class="value">None</div></td></tr>
 <tr><td class="col-status"><span class="badge ok">OK</span></td><td class="col-check"><div class="check">Secure Boot</div><div class="description">A UEFI feature that lets only trusted, signed software start the computer. It protects against malware that loads before Windows.</div></td><td><div class="value">Enabled</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Memory integrity</div><div class="description">A part of &quot;Core isolation&quot; in Windows Security. It uses virtualization to check every driver before it is allowed into the core of Windows, which keeps malicious and vulnerable drivers out.</div></td><td><div class="value">Disabled</div><div class="recommendation">Memory integrity stops malicious drivers from getting into the core of Windows. It can be turned on in Windows Security &gt; Device security &gt; Core isolation; a restart is needed, and very old drivers may have to be updated first.</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Administrators</div><div class="description">The accounts in the local Administrators group. Each of them has full control over the computer, so the list should be short.</div></td><td><div class="value">2 members: Domain Admins, support</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Local accounts</div><div class="description">The user accounts that exist on this computer itself (not in a company domain) and can sign in.</div></td><td><div class="value">1 enabled: support</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Listening ports</div><div class="description">Network ports on which a program of this computer waits for connections from other computers. Ports that only accept connections from this computer itself are not counted.</div></td><td><div class="value">4 ports open to the network: spoolsv: 49668, svchost: 135, 5040, System: 445</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Camera use</div><div class="description">Which programs used the camera lately, as Windows records it for the signed-in user. The same list is in Settings &gt; Privacy &amp; security &gt; Camera.</div></td><td><div class="value">2 programs in the last 30 days: Teams.exe (2026-09-29), msedge.exe (2026-09-17)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Microphone use</div><div class="description">Which programs used the microphone lately, as Windows records it for the signed-in user. The same list is in Settings &gt; Privacy &amp; security &gt; Microphone.</div></td><td><div class="value">2 programs in the last 30 days: Teams.exe (2026-09-29), WebMeeting.exe (2026-09-24)</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Location use</div><div class="description">Which programs asked for the location of the computer lately, as Windows records it for the signed-in user. The same list is in Settings &gt; Privacy &amp; security &gt; Location.</div></td><td><div class="value">Not used in the last 30 days</div></td></tr>
+<tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">USB storage devices</div><div class="description">USB sticks and USB disks that have been connected to this computer at some time. Windows remembers each one so it does not have to install its driver again.</div></td><td><div class="value">2 devices connected so far: Contoso Stick Pro, Fabrikam Portable SSD</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">File History</div><div class="description">The backup of personal files that is built into Windows. It copies documents, pictures and the desktop to another drive at regular intervals.</div></td><td><div class="value">Not set up</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">OneDrive</div><div class="description">The cloud storage of Microsoft. Files in the OneDrive folder are also stored online, so they survive a broken disk.</div></td><td><div class="value">Signed in and running</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">System Restore</div><div class="description">Lets Windows return to an earlier state of its system files, drivers and settings. Personal files are not touched, so it is no replacement for a backup.</div></td><td><div class="value">On (the restore points are only shown to administrators)</div></td></tr>
@@ -743,6 +823,32 @@ footer {
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Background Intelligent Transfer Service (BITS)</div><div class="description">Background Intelligent Transfer Service downloads updates in the background using idle bandwidth. It only runs when needed.</div></td><td><div class="value">Stopped (start mode: Manual)</div></td></tr>
 <tr><td class="col-status"><span class="badge info">Info</span></td><td class="col-check"><div class="check">Third-party services</div><div class="description">Services that start together with Windows and were installed by other programs. Each one runs in the background all the time and uses some memory.</div></td><td><div class="value">3 services: Cloud Backup Service, Contoso Updater Service, Contoso VPN Service</div></td></tr>
 </tbody></table>
+</section>
+<section class="card" id="timeline">
+<div class="card-header"><h2>Timeline</h2><span class="counts">8 problems &middot; 8 changes</span></div>
+<p class="timeline-hint">What happened on this computer lately, as Windows recorded it for Reliability Monitor. Look for a change (an installation, an update, a driver) shortly before the first failure.</p>
+<details><summary>Show the 16 entries</summary>
+<table class="timeline">
+<thead><tr><th class="col-time">Time</th><th class="col-kind">What</th><th>Program or update</th></tr></thead>
+<tbody>
+<tr class="problem"><td class="col-time">2026-09-30 08:52</td><td class="col-kind"><span class="dot critical"></span>Program crashed</td><td>EXCEL.EXE <span class="times">&times; 2</span></td></tr>
+<tr class="change"><td class="col-time">2026-09-30 07:41</td><td class="col-kind"><span class="dot info"></span>Update installed</td><td>Antivirus definitions</td></tr>
+<tr class="problem"><td class="col-time">2026-09-29 16:20</td><td class="col-kind"><span class="dot critical"></span>Program stopped responding</td><td>msedge.exe</td></tr>
+<tr class="problem"><td class="col-time">2026-09-29 11:03</td><td class="col-kind"><span class="dot critical"></span>Program crashed</td><td>EXCEL.EXE <span class="times">&times; 3</span></td></tr>
+<tr class="change"><td class="col-time">2026-09-29 06:12</td><td class="col-kind"><span class="dot info"></span>Update installed</td><td>Antivirus definitions <span class="times">&times; 2</span></td></tr>
+<tr class="problem"><td class="col-time">2026-09-28 18:47</td><td class="col-kind"><span class="dot critical"></span>Unexpected shutdown</td><td></td></tr>
+<tr class="problem"><td class="col-time">2026-09-27 15:12</td><td class="col-kind"><span class="dot critical"></span>Program crashed</td><td>msedge.exe <span class="times">&times; 2</span></td></tr>
+<tr class="problem"><td class="col-time">2026-09-26 09:15</td><td class="col-kind"><span class="dot critical"></span>Program crashed</td><td>EXCEL.EXE</td></tr>
+<tr class="problem"><td class="col-time">2026-09-25 16:02</td><td class="col-kind"><span class="dot critical"></span>Program crashed</td><td>Teams.exe</td></tr>
+<tr class="change"><td class="col-time">2026-09-25 14:30</td><td class="col-kind"><span class="dot info"></span>Program installed</td><td>Contoso Reporting Add-in for Excel</td></tr>
+<tr class="problem"><td class="col-time">2026-09-24 08:02</td><td class="col-kind"><span class="dot critical"></span>Unexpected shutdown</td><td></td></tr>
+<tr class="change"><td class="col-time">2026-09-24 02:10</td><td class="col-kind"><span class="dot info"></span>Update installed</td><td>Microsoft Store apps <span class="times">&times; 7</span></td></tr>
+<tr class="change"><td class="col-time">2026-09-22 10:05</td><td class="col-kind"><span class="dot info"></span>Program installed</td><td>Screenshot Tool</td></tr>
+<tr class="change"><td class="col-time">2026-09-18 03:14</td><td class="col-kind"><span class="dot info"></span>Update installed</td><td>2026-09 Cumulative Update for Windows 11 (KB5000001)</td></tr>
+<tr class="change"><td class="col-time">2026-09-15 13:40</td><td class="col-kind"><span class="dot info"></span>Driver installed</td><td>Contoso Graphics 770</td></tr>
+<tr class="change"><td class="col-time">2026-09-12 09:30</td><td class="col-kind"><span class="dot info"></span>Program installed</td><td>PDF Reader</td></tr>
+</tbody></table>
+</details>
 </section>
 </div></main>
 <footer><div class="container">Generated by HelpdeskToolkit 0.1.0. The tool only reads information; nothing on the computer was changed. The status of a measurement is decided by its allowed range. Typical values are rules of thumb for a healthy office PC and are shown for comparison only. Checks marked &quot;Requires admin&quot; were skipped because the tool ran without administrator rights.</div></footer>

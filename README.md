@@ -20,13 +20,13 @@ problems it found and what to do about them.
 
 | Category | Checks |
 |---|---|
-| System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs, scheduled tasks that are not part of Windows, power plan, Fast Startup, last startup duration\*, size of the user profiles\* |
-| Specifications | Processor with cache sizes and virtualization state, memory layout and free slots, every memory module (slot, speed, manufacturer, part number), graphics adapters with memory and driver date, displays, physical drives with firmware version, optical drives, audio devices, keyboards and pointing devices, motherboard, BIOS/UEFI, serial number |
-| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, the largest folders of a disk that is running full, space that can be freed (temporary files, Downloads, Recycle Bin), hibernation file, page file, devices without a working driver, unsigned drivers, old drivers, battery charge and battery health (capacity left compared to a new battery), drive details (temperature, wear, power-on hours, uncorrected errors)\*, drives flagged for a disk check\*, temporary files of Windows\* |
-| Software | Installed programs with versions, recently installed programs, application crashes per program, browser extensions, default browser |
+| System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs, scheduled tasks that are not part of Windows, power plan, Fast Startup, last startup duration\*, size of the user profiles\*, Windows 11 readiness (on Windows 10, with every requirement), the last System File Checker result, what Windows blamed for a slow startup\* |
+| Specifications | Processor with cache sizes and virtualization state, memory layout and free slots, every memory module (slot, speed, manufacturer, part number), graphics adapters with memory and driver date, displays, physical drives with firmware version, optical drives, audio devices, keyboards and pointing devices, motherboard, BIOS/UEFI, serial number, advice for an old BIOS, where the warranty is looked up |
+| Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk, the largest folders of a disk that is running full, space that can be freed (temporary files, Downloads, Recycle Bin), hibernation file, page file, devices without a working driver, unsigned drivers, old drivers, battery charge and battery health (capacity left compared to a new battery), drive details (temperature, wear, power-on hours, uncorrected errors)\*, drives flagged for a disk check\*, temporary files of Windows\*, result of the last memory test |
+| Software | Installed programs with versions, recently installed programs, application crashes per program, browser extensions, default browser, programs that no longer get security updates, programs with a newer version (asked from winget), Microsoft Office with its update channel, size of the Outlook mailbox files |
 | Event Log | Unexpected shutdowns, blue screens, disk errors, hardware errors (WHEA), critical events and errors in the System and Application logs for the last N days, top sources |
 | Windows Update | Last installed update, updates waiting to be installed, updates that failed to install, pending restart, paused updates |
-| Security | Microsoft Defender real-time protection, definition age, tamper protection, last scan and threat history, firewall profiles, User Account Control, Remote Desktop, account type, members of the Administrators group, automatic sign-in, local accounts and the Guest account, shared folders, ports open to the network and the programs behind them, backup (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker on every drive\*, failed sign-ins\*, account lockouts\*, restore points\* |
+| Security | Microsoft Defender real-time protection, definition age, tamper protection, last scan and threat history, firewall profiles, User Account Control, Remote Desktop, account type, members of the Administrators group, automatic sign-in, local accounts and the Guest account, shared folders, ports open to the network and the programs behind them, backup (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker on every drive\*, failed sign-ins\*, account lockouts\*, restore points\*, SmartScreen, memory integrity (Core isolation), LSA protection, SMB 1.0, automatic screen lock, programs that used the camera, the microphone and the location, USB storage devices that have been connected |
 | Network | Adapters (IPv4, gateway, DNS, DHCP, MAC, link speed), Wi-Fi signal, band, standard and security, network profile, proxy, hosts file, mapped network drives, ping to the gateway and to the internet, DNS resolution, HTTPS access, clock accuracy |
 | Printers | Default printer, installed printers and offline ones, documents stuck in the print queue |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler, and the services that are not part of Windows |
@@ -38,6 +38,34 @@ explanation of what the checked thing is. A result with the status Warning or Cr
 also says **why it is a problem**, that is what it leads to when it is left as it is,
 and has a recommended fix. Measurements also show the allowed range and a typical
 value for comparison.
+
+### Compared with other health tools
+
+The checks were compared with what other tools show: Microsoft PC Health Check, Windows
+Security, the support tools of the computer makers (Dell SupportAssist, Lenovo Vantage,
+HP Support Assistant), CCleaner Health Check, Microsoft PC Manager, CrystalDiskInfo,
+HWiNFO, Belarc Advisor and Reliability Monitor. What helps to find the cause of a
+problem was taken over, each time with the reason and the fix next to it:
+
+| Seen in | Taken over as |
+|---|---|
+| PC Health Check | Windows 11 readiness with every requirement named, not only "yes" or "no"; what delayed the startup, not only how long it took |
+| Windows Security | SmartScreen, memory integrity and LSA protection as checks, with a button that opens that page |
+| Support tools of the makers | A button that opens the support page of the maker and copies the serial number; advice for an old BIOS; the results of the memory test and of the System File Checker |
+| CCleaner, PC Manager | Programs with a newer version and programs without support, as a list; nothing is updated or removed by the tool |
+| Belarc Advisor | USB storage devices that have been connected; which programs used the camera and the microphone |
+| Reliability Monitor | The [Timeline](#the-window) page: changes and failures on one time line |
+| HWiNFO | Recording of the Live monitor to a CSV file, now with the answer time of the network |
+
+Left out on purpose:
+
+- **Registry cleaners, "memory boosters" and a "fix everything" button.** They change the
+  system, their benefit is doubtful, and the tool is read-only.
+- **Fan speeds, voltages and the processor temperature.** They need a kernel driver of
+  the tool's own, which is a security risk and needs administrator rights.
+- **Updating itself, advertising and sending data anywhere.** The only things that go
+  over the network are the connectivity tests and the question to winget, and both
+  are switched off with "Skip network tests".
 
 ## The window
 
@@ -64,10 +92,17 @@ it again at any time.
   **Open Task Manager**, **Open Windows Update**, ...). The button only opens that page;
   the change itself is always made by the person in front of the computer.
 - **Health score** from 0 to 100 sums the check up in one number: every Critical
-  result takes 15 points off, every Warning 4.
+  result takes 15 points off, every Warning 4. The line below the tiles says where the
+  points went ("Points lost: Security -19, Software -8"), so the number can be read.
 - **Since the last check** shows what is new, worse, better or resolved compared with
   the previous check of the same computer. The application keeps the last 30 reports
   for this.
+- **Timeline** shows what happened on the computer in the last weeks, grouped by day:
+  programs that were installed, updated or removed, updates, drivers, and next to them
+  the crashes, failed updates, blue screens and unexpected shutdowns. "It worked last
+  week" is where most troubleshooting starts; the change that came just before the
+  first failure is usually the cause. A filter leaves only the problems or only the
+  changes.
 - **Categories** on the left (System, Hardware, Network, ...) show everything that was
   checked; the dot and the number next to each one show where the problems are.
 - **Four columns:** the page of a category shows its results side by side, one column
@@ -98,6 +133,8 @@ dismissed or when the problem is gone.
 
 ![The page of a category, reached through a notice](docs/screenshot-category.png)
 
+![The Timeline page](docs/screenshot-timeline.png)
+
 Keyboard shortcuts:
 
 | Key | Action |
@@ -109,14 +146,16 @@ Keyboard shortcuts:
 | `Ctrl+Shift+C` | Copy the summary |
 | `Ctrl+M` | Live monitor |
 | `Ctrl+,` | Settings |
+| `Ctrl+T` | Switch between the light and the dark theme |
 
 ### Language and theme
 
-The **Settings** page, opened with the gear button below the page list, switches the
-window between English and Croatian and between a light and a dark theme (or the one
-Windows uses). The reports and the commands stay in
-English, so a report reads the same whoever created it. The application also remembers
-the size and position of its window.
+The **switch in the header** (a sun or a moon, `Ctrl+T`) turns the window from the
+light to the dark theme and back, at once and without a restart. The **Settings** page,
+opened with the gear button below the page list, also offers "Same as Windows" and
+switches the window between English and Croatian; a new language is applied at the
+next start. The reports and the commands stay in English, so a report reads the same
+whoever created it. The application also remembers the size and position of its window.
 
 ![The dark theme with the Croatian translation](docs/screenshot-dark-hr.png)
 
@@ -155,8 +194,12 @@ computer is doing right now:
   installed programs and folders. A click on a program opens the *Installed apps* page
   of Windows, where it is uninstalled, and copies its name for the search field there;
   a button opens the page where files are cleaned up
-- **Network:** download and upload rate with a history graph, and the link speed of
-  every adapter
+- **Network:** download and upload rate with a history graph, the link speed of every
+  adapter, and how quickly the router and the internet answer a ping. The **Internet**
+  tile at the top shows the answer time, its average and the share of lost answers,
+  with a dot of its own. A slow or silent router points to the local network (Wi-Fi,
+  cable); a router that answers while the internet does not points to the provider.
+  Nothing is pinged while "Skip network tests" is ticked.
 - **Sensors:** temperature, fan speed and power draw of NVIDIA graphics cards; thermal
   zones and battery where the computer has them; temperature, wear and power-on hours of
   the drives\*
@@ -171,7 +214,9 @@ Tools at the top of the page:
 - **Pause** freezes the picture, and the refresh rate can be set to 2, 5, 10 or 30 seconds.
 - **Record to file** writes every measurement to a CSV file in `Documents\HelpdeskToolkit`
   for 1, 5, 15 or 60 minutes. That is the answer to "it is slow sometimes": record
-  while the user works, then look at the file in a spreadsheet program.
+  while the user works, then look at the file in a spreadsheet program. The file also
+  holds the answer times of the router and of the internet, which shows whether a
+  call broke up because of the computer or because of the connection.
 - **Alerts** appear when the processor, the memory or a disk stays above 90 % for
   several measurements in a row, or a graphics card gets hotter than 85 °C. A single
   peak is normal and raises no alert.
@@ -218,7 +263,9 @@ administrator on the computer of a standard user), the checks that describe a us
 
 The HTML report is a single self-contained file (no scripts, nothing loaded from the
 internet), so it can be e-mailed or attached to a ticket. It follows the light or dark
-theme of the system and has a print layout.
+theme of the system and has a print layout. Below the count per status it says which
+category cost how many points of the score, and it ends with the timeline of changes
+and failures.
 
 ![The HTML report](docs/screenshot-report.png)
 
@@ -295,7 +342,7 @@ Invoke-PCHealthCheck -NoOpen -SkipNetwork -PassThru |
 | `-OutputPath` | Folder for the report. Default: `Documents\HelpdeskToolkit`. |
 | `-Days` | Days of event log and crash history to analyze. Default: 7. |
 | `-Format` | `Html` (default), `Json`, `Csv`, `Pdf`, `Both` (HTML and JSON) or `All`. |
-| `-SkipNetwork` | Skip ping, DNS and HTTPS tests. The adapter configuration is still reported. |
+| `-SkipNetwork` | Skip everything that asks the internet: the ping, DNS and HTTPS tests and the search for newer versions of the installed programs. The adapter configuration is still reported. |
 | `-ComputerName` | Check another computer, see [Another computer](#another-computer). |
 | `-Credential` | Account to use on the other computer. |
 | `-NoOpen` | Do not open the HTML report in the browser. |
@@ -320,13 +367,17 @@ $report.Results | Where-Object Status -eq 'Critical'
 $now = Get-PerformanceSnapshot
 $now.Cpu.Processors | Format-Table Name, Percent, FrequencyMHz
 $now.Processes
+
+# What went wrong in the last week, and what changed before it
+Get-ChangeTimeline -Days 7 | Format-Table Time, Level, Kind, Title, Count -AutoSize
 ```
 
 Available commands: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Compare-PCHealthReport`, `Get-SystemHealth`, `Get-ComputerSpecification`,
 `Get-HardwareHealth`, `Get-SoftwareHealth`, `Get-EventLogHealth`,
 `Get-WindowsUpdateHealth`, `Get-SecurityHealth`, `Get-NetworkHealth`,
-`Get-PrinterHealth`, `Get-ServiceHealth`, `Get-PerformanceSnapshot`. Each has full help:
+`Get-PrinterHealth`, `Get-ServiceHealth`, `Get-PerformanceSnapshot`,
+`Get-ChangeTimeline`. Each has full help:
 `Get-Help <command> -Full`.
 
 Every check result is an object with the same properties:
@@ -389,7 +440,7 @@ real connection between two computers.
 
 ## Configuration
 
-Four data files control the behaviour; no code has to be changed:
+Five data files control the behaviour; no code has to be changed:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   the limits for Warning and Critical (for example free disk space below 15 % and 5 %),
@@ -402,7 +453,12 @@ Four data files control the behaviour; no code has to be changed:
 - [`HelpdeskToolkit/Config/Risks.psd1`](HelpdeskToolkit/Config/Risks.psd1):
   why a problem matters, shown next to every Warning and Critical result.
 - [`HelpdeskToolkit/Config/Actions.psd1`](HelpdeskToolkit/Config/Actions.psd1):
-  which page of Windows the button next to a recommended fix opens.
+  which page of Windows the button next to a recommended fix opens, and the support
+  pages of the computer makers.
+- [`HelpdeskToolkit/Config/EndOfLife.psd1`](HelpdeskToolkit/Config/EndOfLife.psd1):
+  the programs whose maker no longer releases security updates, with the date their
+  support ended (taken from the lifecycle pages of the makers; add a line when another
+  version runs out).
 
 The "Typical" values are rules of thumb for a healthy office PC. They are shown for
 comparison only and never affect the status.

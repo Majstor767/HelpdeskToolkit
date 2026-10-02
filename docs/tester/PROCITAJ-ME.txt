@@ -7,7 +7,8 @@ to problem i kako se rješava.
 
 Alat SAMO ČITA podatke. Ništa ne mijenja na računalu, ništa ne briše i nikamo ne
 šalje podatke. Jedino što ide na internet su mrežni testovi (ping, DNS i HTTPS prema
-adresama 1.1.1.1 i microsoft.com); mogu se isključiti kvačicom "Skip network tests".
+adresama 1.1.1.1 i microsoft.com) i upit Windowsovom wingetu postoje li novije verzije
+instaliranih programa; sve se to isključuje kvačicom "Skip network tests".
 
 Treba: Windows 10 (verzija 1809 ili novija) ili Windows 11. Ništa drugo.
 
@@ -43,6 +44,7 @@ B) Bez instalacije
 2. Provjera traje oko pola minute.
 3. Hrvatski jezik: zupčanik "Settings" dolje lijevo > Language > Hrvatski >
    "Restart now".
+4. Tamna tema: prekidač sa suncem/mjesecom gore desno (ili Ctrl+T). Mijenja se odmah.
 
 
 ŠTO VRIJEDI ISPROBATI
@@ -52,12 +54,17 @@ B) Bez instalacije
   otvara mjesto u Windowsu gdje se to rješava.
 - Sekcije lijevo (System, Hardware, Security ...): rezultati u četiri stupca.
   Klik na karticu otvara detalje.
+- Timeline: što se na računalu događalo zadnjih tjedana (instalacije, ažuriranja,
+  rušenja), po danima. Crvena točka je kvar, plava promjena.
+- Software: programi za koje postoji novija verzija i programi bez podrške.
+- Security: SmartScreen, Memory integrity, tko je koristio kameru i mikrofon.
 - Live monitor: što računalo radi upravo sada. Klik na pločicu Processor, Memory ili
-  Graphics otvara stranicu sa svime o toj komponenti.
+  Graphics otvara stranicu sa svime o toj komponenti. Pločica Internet pokazuje koliko
+  brzo internet odgovara.
 - Live monitor > Disks > "What takes up the space on C:": najveći programi i mape.
 - Tražilica gore desno i filtar po statusu.
 - "Open HTML report" i "Save as..." (HTML, PDF, CSV, JSON).
-- Tamna tema: Settings > Theme.
+- Tamna tema: prekidač gore desno.
 - Ostavi aplikaciju otvorenu nekoliko minuta: provjeru ponavlja sama i javi ako se
   pojavi novi problem.
 

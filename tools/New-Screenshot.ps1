@@ -10,6 +10,7 @@
     - screenshot-window.png:          the Overview page of the application window
     - screenshot-category.png:        the page of one category, reached through the notice
                                       of an automatic check
+    - screenshot-timeline.png:        the Timeline page: what happened on the computer lately
     - screenshot-monitor.png:         the Live monitor page with an invented measurement
                                       and the advice for a value above its limit
     - screenshot-monitor-disks.png:   what takes up the space of a drive
@@ -91,6 +92,7 @@ $pictures = @{
     Start          = Join-Path -Path $outputFolder -ChildPath 'screenshot-start.png'
     Window         = Join-Path -Path $outputFolder -ChildPath 'screenshot-window.png'
     Category       = Join-Path -Path $outputFolder -ChildPath 'screenshot-category.png'
+    Timeline       = Join-Path -Path $outputFolder -ChildPath 'screenshot-timeline.png'
     Monitor        = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor.png'
     MonitorDisks   = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor-disks.png'
     Component      = Join-Path -Path $outputFolder -ChildPath 'screenshot-component.png'
@@ -198,6 +200,7 @@ $pictures = @{
         )
         DriveHealth     = [PSCustomObject]@{ State = 'RequiresAdmin'; Message = ''; Drives = @() }
         Network         = @([PSCustomObject]@{ Name = 'Contoso Wi-Fi 6 AX200 160MHz'; ReceivedBytesPerSecond = 1.55MB; SentBytesPerSecond = 96KB; LinkBitsPerSecond = 867000000 })
+        Latency         = [PSCustomObject]@{ Gateway = '10.20.30.1'; GatewayMs = 3; Internet = '1.1.1.1'; InternetMs = 18 }
         Thermal         = @([PSCustomObject]@{ Name = 'TZ00'; TemperatureC = 58 })
         Battery         = [PSCustomObject]@{ Percent = 64; PluggedIn = $true; MinutesRemaining = $null }
         Processes       = @(
@@ -231,6 +234,8 @@ $pictures = @{
         Disk        = 4, 6, 3, 12, 48, 71, 66, 52, 30, 14, 9, 7, 22, 41, 38, 27, 18, 11, 8, 15, 29, 44, 40, 33, 30
         NetworkDown = @(0.3MB, 0.4MB, 0.2MB, 1.1MB, 2.4MB, 3.9MB, 4.2MB, 3.1MB, 2.2MB, 1.4MB, 0.8MB, 0.6MB, 0.9MB, 1.7MB, 2.6MB, 2.1MB, 1.5MB, 1.2MB, 0.9MB, 1.1MB, 1.6MB, 2MB, 1.8MB, 1.6MB, 1.5MB)
         NetworkUp   = @(40KB, 60KB, 50KB, 90KB, 150KB, 420KB, 610KB, 380KB, 200KB, 120KB, 90KB, 70KB, 80KB, 110KB, 160KB, 140KB, 100KB, 90KB, 80KB, 85KB, 95KB, 120KB, 110KB, 100KB, 98KB)
+        # Answer time of the internet in milliseconds
+        Latency     = 17, 19, 18, 21, 18, 17, 24, 19, 18, 17, 20, 18, 19, 17, 18, 22, 19, 18, 17, 18, 19, 21, 18, 17, 18
     }
 
     $collapsed = [System.Windows.Visibility]::Collapsed
@@ -273,12 +278,17 @@ $pictures = @{
         $controls.SearchBox.Text = ''
         Show-WindowNotice -Gui $gui -Clear
 
+        # The Timeline page: what happened on the computer lately, grouped by day.
+        $controls.CategoryList.SelectedIndex = 2
+        Show-WindowPage -Gui $gui -Name 'Timeline'
+        & $savePicture $gui.Window $Pictures.Timeline
+
         # The Live monitor page. Opening it through Show-WindowPage would start measuring
         # this computer, so the page is switched by hand and filled with the invented data.
         $controls.CategoryList.SelectedIndex = 1
         $gui.Page = 'Live monitor'
         $controls.PageTitle.Text = 'Live monitor'
-        foreach ($name in 'OverviewPanel', 'ResultScroll', 'EmptyText', 'FilterPanel', 'SettingsPanel') {
+        foreach ($name in 'OverviewPanel', 'ResultScroll', 'EmptyText', 'FilterPanel', 'SettingsPanel', 'TimelinePanel', 'ColumnsPanel') {
             $controls[$name].Visibility = $collapsed
         }
         $controls.MonitorPanel.Visibility = $visible
@@ -451,7 +461,7 @@ $pictures = @{
     }
 } $sampleJson $pictures
 
-foreach ($name in 'Start', 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Component', 'MonitorDetails', 'Dark') {
+foreach ($name in 'Start', 'Window', 'Category', 'Timeline', 'Monitor', 'MonitorDisks', 'Component', 'MonitorDetails', 'Dark') {
     Write-Output $pictures[$name]
 }
 
@@ -460,7 +470,7 @@ foreach ($name in 'Start', 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Com
 # but not the two things that make it an animation: how long each picture is shown and
 # that it starts over at the end. Both are added to the file afterwards.
 
-$frames = $pictures.Start, $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.Component, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
+$frames = $pictures.Start, $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Timeline, $pictures.Monitor, $pictures.Component, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
 $encoder = New-Object -TypeName System.Windows.Media.Imaging.GifBitmapEncoder
 foreach ($frame in $frames) {
     $bitmap = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage

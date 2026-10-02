@@ -57,7 +57,9 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('System', 'Scheduled tasks', 'Info', '4 tasks: Cloud Backup Sync, Contoso Updater, PDF Helper Update, Printer Assistant Check', '')
         , @('System', 'Power plan', 'Info', 'Balanced', '')
         , @('System', 'Fast Startup', 'Info', 'Enabled', '')
+        , @('System', 'System file check', 'OK', 'No damaged files (checked 2026-08-14)', '')
         , @('System', 'Last startup duration', 'Info', 'Requires admin', $adminOnly)
+        , @('System', 'Startup delays', 'Info', 'Requires admin', $adminOnly)
         , @('System', 'User profiles', 'Info', 'Requires admin', $adminOnly)
 
         , @('Specifications', 'Processor', 'Info', 'Contoso Core 8 2.40GHz, 8 cores / 16 threads, 2.4 GHz', '')
@@ -74,6 +76,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Specifications', 'Motherboard', 'Info', 'Contoso Ltd. 0A1B2C', '')
         , @('Specifications', 'BIOS', 'Info', 'Contoso Ltd. 1.14.2 (2025-03-18), UEFI mode', '')
         , @('Specifications', 'Serial number', 'Info', 'CNT4012XYZ', '')
+        , @('Specifications', 'Warranty and support', 'Info', 'No support page known for this manufacturer (a self-built computer has a warranty per component)', '')
 
         , @('Hardware', 'CPU load', 'OK', '23 % (Contoso Core 8 2.40GHz)', '')
         , @('Hardware', 'Memory usage', 'Warning', '88 % (14 GB of 15.8 GB used)', 'Memory is almost full. Close unused applications and browser tabs; if this happens regularly, the computer needs more RAM.')
@@ -96,9 +99,14 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Old drivers', 'Info', '1 driver: Contoso Card Reader (2019-05-14)', 'These drivers are older than 5 years. An old driver that works needs no attention; when the device misbehaves, installing the current driver from the maker is the first thing to try.')
         , @('Hardware', 'Battery', 'OK', '64 % (plugged in)', '')
         , @('Hardware', 'Battery health', 'OK', '86 % of the original capacity (43000 of 50000 mWh), 214 charge cycles', '')
+        , @('Hardware', 'Memory test', 'Info', 'No test on record', '')
 
         , @('Software', 'Installed programs', 'Info', '12 programs: 7-Zip 24.08, Chat Client 5.2, Contoso Office 16.0, Contoso VPN 3.1, Mail Client 12.4, PDF Reader 2025.1, Printer Assistant 2.0, Screenshot Tool 4.0 and 4 more', '')
         , @('Software', 'Recently installed', 'Info', '2 in the last 30 days: Screenshot Tool (2026-09-22), PDF Reader (2026-09-11)', '')
+        , @('Software', 'Unsupported programs', 'Warning', '2 programs without security updates: Old Media Player 7.7 (support ended 2016-04-14), Legacy Runtime 6.0.25 (support ended 2024-11-12)', 'These programs no longer get security updates from their maker. Replace them with a supported version or remove them (Settings > Apps > Installed apps), above all the ones that open files or pages from the internet.')
+        , @('Software', 'Program updates', 'Info', '4 programs can be updated: 7-Zip 24.08 -> 25.01, Chat Client 5.2 -> 5.4, PDF Reader 2.1 -> 2.3, Video Player 3.0 -> 3.1', 'Newer versions exist. Update the programs from within each program, or all at once in a terminal with "winget upgrade --all".')
+        , @('Software', 'Microsoft Office', 'Info', 'Version 16.0.17928.20156 (64-bit), Monthly Enterprise Channel, automatic updates on', '')
+        , @('Software', 'Outlook data files', 'Warning', '2 files: m.horvat@contoso.example.ost (31.4 GB), archive.pst (6.2 GB)', 'A mailbox file this large makes Outlook slow and prone to errors. Archive or delete old mail, empty Deleted Items, and for an Exchange account shorten "Download email for the past" (File > Account Settings > Account Settings > Change).')
         , @('Software', 'Application crashes', 'Warning', '9 in the last 7 days: EXCEL.EXE (6), msedge.exe (2), Teams.exe (1)', 'Programs crash more often than usual. Update or reinstall the program at the top of the list; the details of each crash are in Event Viewer (eventvwr.msc) > Windows Logs > Application, source "Application Error".')
         , @('Software', 'Browser extensions', 'Info', '6 extensions: Chrome (2), Edge (4)', '')
         , @('Software', 'Default browser', 'Info', 'Microsoft Edge', '')
@@ -129,15 +137,24 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Security', 'Firewall - Private profile', 'OK', 'Enabled', '')
         , @('Security', 'Firewall - Public profile', 'Warning', 'Disabled', 'Turn on Windows Defender Firewall for this profile (Windows Security > Firewall & network protection), unless a third-party firewall is installed.')
         , @('Security', 'User Account Control', 'OK', 'Enabled', '')
+        , @('Security', 'SmartScreen', 'OK', 'Enabled', '')
+        , @('Security', 'Memory integrity', 'Info', 'Disabled', 'Memory integrity stops malicious drivers from getting into the core of Windows. It can be turned on in Windows Security > Device security > Core isolation; a restart is needed, and very old drivers may have to be updated first.')
+        , @('Security', 'LSA protection', 'OK', 'Enabled', '')
+        , @('Security', 'SMB 1.0', 'OK', 'Disabled', '')
         , @('Security', 'Remote Desktop', 'OK', 'Disabled', '')
         , @('Security', 'Account type', 'OK', 'Standard user', '')
         , @('Security', 'Administrators', 'Info', '2 members: Domain Admins, support', '')
         , @('Security', 'Automatic sign-in', 'OK', 'Disabled', '')
+        , @('Security', 'Screen lock', 'OK', 'Locks after 10 minutes without activity', '')
         , @('Security', 'Local accounts', 'Info', '1 enabled: support', '')
         , @('Security', 'Guest account', 'OK', 'Disabled', '')
         , @('Security', 'Built-in Administrator account', 'OK', 'Disabled', '')
         , @('Security', 'Shared folders', 'OK', 'None', '')
         , @('Security', 'Listening ports', 'Info', '4 ports open to the network: spoolsv: 49668, svchost: 135, 5040, System: 445', '')
+        , @('Security', 'Camera use', 'Info', '2 programs in the last 30 days: Teams.exe (2026-09-29), msedge.exe (2026-09-17)', '')
+        , @('Security', 'Microphone use', 'Info', '2 programs in the last 30 days: Teams.exe (2026-09-29), WebMeeting.exe (2026-09-24)', '')
+        , @('Security', 'Location use', 'Info', 'Not used in the last 30 days', '')
+        , @('Security', 'USB storage devices', 'Info', '2 devices connected so far: Contoso Stick Pro, Fabrikam Portable SSD', '')
         , @('Security', 'File History', 'Info', 'Not set up', '')
         , @('Security', 'OneDrive', 'Info', 'Signed in and running', '')
         , @('Security', 'System Restore', 'Info', 'On (the restore points are only shown to administrators)', '')
@@ -207,6 +224,8 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         'Clock accuracy'                    = @((Format-AllowedRange -Warning $limits.Network.ClockWarningSeconds -Unit 'seconds'), $limits.Network.TypicalClock)
         'Disk errors'                       = @((Format-AllowedRange -Warning $limits.EventLog.DiskErrorWarningAbove), '0')
         'Hardware errors'                   = @((Format-AllowedRange -Warning $limits.EventLog.HardwareErrorWarningAbove), '0')
+        'Program updates'                   = @((Format-AllowedRange -Warning $limits.Software.UpdateWarningAbove), $limits.Software.TypicalUpdates)
+        'Outlook data files'                = @((Format-AllowedRange -Warning $limits.Outlook.WarningGb -Critical $limits.Outlook.CriticalGb -Unit 'GB'), $limits.Outlook.Typical)
     }
 
     # Items behind the "Show N more" section, by check name.
@@ -239,6 +258,27 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         }
     )
 
+    # What happened on the computer lately: Time, Level, Kind, Title, Count. The story
+    # it tells: an add-in for Excel was installed, and Excel has been crashing since.
+    $timeline = @(
+        , @('2026-09-30 08:52', 'Problem', 'Program crashed', 'EXCEL.EXE', 2)
+        , @('2026-09-30 07:41', 'Change', 'Update installed', 'Antivirus definitions', 1)
+        , @('2026-09-29 16:20', 'Problem', 'Program stopped responding', 'msedge.exe', 1)
+        , @('2026-09-29 11:03', 'Problem', 'Program crashed', 'EXCEL.EXE', 3)
+        , @('2026-09-29 06:12', 'Change', 'Update installed', 'Antivirus definitions', 2)
+        , @('2026-09-28 18:47', 'Problem', 'Unexpected shutdown', '', 1)
+        , @('2026-09-27 15:12', 'Problem', 'Program crashed', 'msedge.exe', 2)
+        , @('2026-09-26 09:15', 'Problem', 'Program crashed', 'EXCEL.EXE', 1)
+        , @('2026-09-25 16:02', 'Problem', 'Program crashed', 'Teams.exe', 1)
+        , @('2026-09-25 14:30', 'Change', 'Program installed', 'Contoso Reporting Add-in for Excel', 1)
+        , @('2026-09-24 08:02', 'Problem', 'Unexpected shutdown', '', 1)
+        , @('2026-09-24 02:10', 'Change', 'Update installed', 'Microsoft Store apps', 7)
+        , @('2026-09-22 10:05', 'Change', 'Program installed', 'Screenshot Tool', 1)
+        , @('2026-09-18 03:14', 'Change', 'Update installed', '2026-09 Cumulative Update for Windows 11 (KB5000001)', 1)
+        , @('2026-09-15 13:40', 'Change', 'Driver installed', 'Contoso Graphics 770', 1)
+        , @('2026-09-12 09:30', 'Change', 'Program installed', 'PDF Reader', 1)
+    ) | ForEach-Object { [PSCustomObject]@{ Time = $_[0]; Level = $_[1]; Kind = $_[2]; Title = $_[3]; Count = $_[4] } }
+
     $summary = Get-HealthSummary -Result $results
     $report = [PSCustomObject]@{
         ToolVersion     = Get-ToolVersion
@@ -250,6 +290,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         Score           = Get-HealthScore -Summary $summary
         Summary         = $summary
         Results         = $results
+        Timeline        = $timeline
     }
 
     Export-HealthReportHtml -Report $report -Path (Join-Path -Path $Folder -ChildPath 'sample-report.html')

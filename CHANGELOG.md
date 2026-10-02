@@ -30,6 +30,20 @@ The first public version. It will be released as 1.0.0.
 - Network: adapters, Wi-Fi signal and security, proxy, hosts file, connectivity tests.
 - What starts with the computer besides Windows itself: startup programs, scheduled
   tasks, services and browser extensions.
+- Taken over after a comparison with other health tools (PC Health Check, Windows
+  Security, the support tools of the computer makers, CCleaner, Belarc Advisor):
+  - Security: SmartScreen, memory integrity, LSA protection, SMB 1.0, whether the
+    screen locks by itself, which programs used the camera, the microphone and the
+    location, and the USB storage devices that have been connected.
+  - System: Windows 11 readiness on Windows 10 with every requirement, the last
+    System File Checker result, and what Windows blamed for a slow startup.
+  - Hardware: the result of the last memory test.
+  - Software: programs that no longer get security updates, programs for which
+    winget knows a newer version, Microsoft Office with its update channel, and the
+    size of the Outlook mailbox files.
+  - Specifications: advice for an old BIOS, and where the warranty is looked up.
+- `Get-ChangeTimeline`: the installations, updates, crashes and failures of the last
+  weeks on one time line, from what Windows records for Reliability Monitor.
 
 ### The window
 
@@ -42,10 +56,17 @@ The first public version. It will be released as 1.0.0.
   Warning, OK, Info); a click on a card opens its details. Search over all results
   and a filter by status. In every list, and in the report, the most severe results
   come first.
+- A Timeline page with the changes and failures of the last weeks, grouped by day,
+  to find the change that came just before the first failure.
+- Below the score: which category cost how many points.
+- For the result "Warranty and support", a button that opens the support page of the
+  maker and copies the serial number.
 - "Copy summary" for tickets, export as HTML, PDF, CSV or JSON.
 - After the first check the application repeats it in the background and replaces the
   results without interrupting. A problem that is new is announced at the top of the
   window and with a Windows notification; a click leads to the result.
+- A switch in the header (Ctrl+T) turns the light theme into the dark one and back,
+  at once and without a restart.
 - Settings: English or Croatian, light or dark theme, the interval of the automatic
   check, remembered window size.
 - Keyboard shortcuts for the common actions.
@@ -54,6 +75,8 @@ The first public version. It will be released as 1.0.0.
 
 - Load of the processor (in total and per logical processor), memory, graphics, disks
   and network, with history graphs.
+- How quickly the router and the internet answer, with an Internet tile that shows
+  the answer time, its average and the lost answers.
 - Sensors: NVIDIA graphics cards, thermal zones, battery and, with administrator
   rights, the drives.
 - The programs that use the most processor time, memory and data, with details on click.

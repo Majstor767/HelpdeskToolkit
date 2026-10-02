@@ -23,13 +23,13 @@ engleskom, pa su i nazivi u ovom dokumentu navedeni onako kako pišu na englesko
 
 | Kategorija | Provjere |
 |---|---|
-| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, zakazani zadaci koji nisu dio Windowsa, plan napajanja, Fast Startup, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\* |
-| Specifications | Procesor s veličinom cache memorije i stanjem virtualizacije, raspored memorije i slobodni utori, svaki memorijski modul (utor, brzina, proizvođač, kataloški broj), grafičke kartice s memorijom i datumom drivera, monitori, fizički diskovi s verzijom firmwarea, optički pogoni, audio uređaji, tipkovnice i pokazivački uređaji, matična ploča, BIOS/UEFI, serijski broj |
-| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, najveće mape na disku koji se puni, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), datoteka hibernacije, page file, uređaji bez ispravnog drivera, nepotpisani driveri, stari driveri, napunjenost i zdravlje baterije (preostali kapacitet u odnosu na novu bateriju), detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\* |
-| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, proširenja preglednika, zadani preglednik |
+| System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, zakazani zadaci koji nisu dio Windowsa, plan napajanja, Fast Startup, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\*, spremnost za Windows 11 (na Windowsu 10, sa svakim zahtjevom posebno), zadnji rezultat System File Checkera, što je Windows okrivio za sporo pokretanje\* |
+| Specifications | Procesor s veličinom cache memorije i stanjem virtualizacije, raspored memorije i slobodni utori, svaki memorijski modul (utor, brzina, proizvođač, kataloški broj), grafičke kartice s memorijom i datumom drivera, monitori, fizički diskovi s verzijom firmwarea, optički pogoni, audio uređaji, tipkovnice i pokazivački uređaji, matična ploča, BIOS/UEFI, serijski broj, savjet za stari BIOS, gdje se provjerava jamstvo |
+| Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku, najveće mape na disku koji se puni, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), datoteka hibernacije, page file, uređaji bez ispravnog drivera, nepotpisani driveri, stari driveri, napunjenost i zdravlje baterije (preostali kapacitet u odnosu na novu bateriju), detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\*, rezultat zadnjeg testa memorije |
+| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, proširenja preglednika, zadani preglednik, programi koji više ne dobivaju sigurnosna ažuriranja, programi za koje postoji novija verzija (pita se winget), Microsoft Office s kanalom ažuriranja, veličina Outlook datoteka s poštom |
 | Event Log | Neočekivana gašenja, plavi ekrani, greške diska, greške hardvera (WHEA), kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
 | Windows Update | Zadnje instalirano ažuriranje, ažuriranja koja čekaju instalaciju, ažuriranja koja se nisu uspjela instalirati, čeka li se restart, jesu li ažuriranja pauzirana |
-| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, portovi otvoreni prema mreži i programi koji na njima slušaju, sigurnosne kopije (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\*, točke vraćanja\* |
+| Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, portovi otvoreni prema mreži i programi koji na njima slušaju, sigurnosne kopije (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\*, točke vraćanja\*, SmartScreen, integritet memorije (Core isolation), LSA zaštita, SMB 1.0, automatsko zaključavanje zaslona, programi koji su koristili kameru, mikrofon i lokaciju, USB memorije koje su bile spojene |
 | Network | Adapteri (IPv4, gateway, DNS, DHCP, MAC, brzina veze), jačina signala, pojas, standard i zaštita Wi-Fi mreže, mrežni profil, proxy, hosts datoteka, mapirani mrežni diskovi, ping gatewaya i interneta, DNS razlučivanje, HTTPS pristup, točnost sata |
 | Printers | Zadani pisač, instalirani pisači i oni koji su offline, dokumenti zaglavljeni u redu za ispis |
 | Services | DHCP Client, DNS Client, Windows Event Log, Workstation, Windows Defender Firewall, Microsoft Defender Antivirus, Windows Update, BITS, Print Spooler te servisi koji nisu dio Windowsa |
@@ -41,6 +41,33 @@ objašnjenje što je to što se provjerava. Rezultat sa statusom Warning ili Cri
 dodatno kaže **zašto je to problem**, odnosno do čega dovodi ako se ostavi kako jest,
 i ima preporučeno rješenje. Uz mjerenja se prikazuju i dopušteni raspon te tipična
 vrijednost za usporedbu.
+
+### Usporedba s drugim alatima
+
+Provjere su uspoređene s onim što prikazuju drugi alati: Microsoft PC Health Check,
+Windows Security, alati proizvođača računala (Dell SupportAssist, Lenovo Vantage, HP
+Support Assistant), CCleaner Health Check, Microsoft PC Manager, CrystalDiskInfo, HWiNFO,
+Belarc Advisor i Reliability Monitor. Preuzeto je ono što pomaže pronaći uzrok
+problema, svaki put s razlogom i rješenjem uz rezultat:
+
+| Viđeno u | Preuzeto kao |
+|---|---|
+| PC Health Check | Spremnost za Windows 11 sa svakim zahtjevom po imenu, a ne samo "da" ili "ne"; što je usporilo pokretanje, a ne samo koliko je trajalo |
+| Windows Security | SmartScreen, integritet memorije i LSA zaštita kao provjere, s gumbom koji otvara tu stranicu |
+| Alati proizvođača | Gumb koji otvara stranicu podrške proizvođača i kopira serijski broj; savjet za stari BIOS; rezultati testa memorije i System File Checkera |
+| CCleaner, PC Manager | Programi s novijom verzijom i programi bez podrške, kao popis; alat ništa ne ažurira i ne uklanja |
+| Belarc Advisor | USB memorije koje su bile spojene; koji su programi koristili kameru i mikrofon |
+| Reliability Monitor | Stranica **Timeline**: promjene i kvarovi na jednoj vremenskoj crti |
+| HWiNFO | Snimanje Live monitora u CSV datoteku, sada i s vremenom odgovora mreže |
+
+Namjerno izostavljeno:
+
+- **Čistači registryja, "RAM boosteri" i gumb "popravi sve".** Mijenjaju sustav, korist
+  im je upitna, a alat samo čita.
+- **Brzine ventilatora, naponi i temperatura procesora.** Traže vlastiti kernel driver,
+  što je sigurnosni rizik i ne ide bez administratorskih prava.
+- **Samostalno ažuriranje, reklame i slanje podataka.** Na mrežu idu jedino mrežni
+  testovi i upit wingetu, a oboje se isključuje kvačicom "Skip network tests".
 
 ## Prozor
 
@@ -62,14 +89,21 @@ ponovno u bilo kojem trenutku.
 
 ![Pitanje pri pokretanju](docs/screenshot-start.png)
 
+
 - **Overview** prikazuje sve probleme s preporučenim rješenjem. Uz rješenje stoji gumb
   koji otvara mjesto u Windowsu gdje se ono provodi (**Open Storage settings**,
   **Open Task Manager**, **Open Windows Update**, ...). Gumb samo otvara tu stranicu;
   samu promjenu uvijek radi osoba za računalom.
 - **Health score** od 0 do 100 sažima provjeru u jedan broj: svaki rezultat Critical
-  oduzima 15 bodova, a svaki Warning 4.
+  oduzima 15 bodova, a svaki Warning 4. Redak ispod pločica kaže kamo su bodovi otišli
+  ("Points lost: Security -19, Software -8"), pa se broj može pročitati.
 - **Since the last check** pokazuje što je novo, gore, bolje ili riješeno u odnosu na
   prethodnu provjeru istog računala. Aplikacija za to čuva zadnjih 30 izvještaja.
+- **Timeline** prikazuje što se na računalu događalo zadnjih tjedana, grupirano po
+  danima: instalirani, ažurirani i uklonjeni programi, ažuriranja, driveri, a uz njih
+  rušenja, neuspjela ažuriranja, plavi ekrani i neočekivana gašenja. Većina traženja
+  kvara počinje s "prošli tjedan je radilo"; promjena koja je došla neposredno prije
+  prvog kvara obično je uzrok. Filtar ostavlja samo probleme ili samo promjene.
 - **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
   provjereno; točka i broj uz svaku pokazuju gdje su problemi.
 - **Četiri stupca:** stranica kategorije prikazuje rezultate jedan do drugoga, po
@@ -98,6 +132,8 @@ je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
 
 ![Stranica kategorije do koje je dovela obavijest](docs/screenshot-category.png)
 
+![Stranica Timeline](docs/screenshot-timeline.png)
+
 Tipkovni prečaci:
 
 | Tipka | Radnja |
@@ -109,14 +145,16 @@ Tipkovni prečaci:
 | `Ctrl+Shift+C` | Kopiraj sažetak |
 | `Ctrl+M` | Live monitor |
 | `Ctrl+,` | Settings |
+| `Ctrl+T` | Prebacivanje između svijetle i tamne teme |
 
 ### Jezik i tema
 
-Na stranici **Settings**, koja se otvara gumbom sa zupčanikom ispod popisa stranica,
-prozor se prebacuje između engleskog i hrvatskog te između svijetle i tamne teme (ili
-one koju koristi Windows). Izvještaji i naredbe ostaju na
-engleskom, pa izvještaj izgleda jednako tko god ga napravio. Aplikacija pamti i
-veličinu i položaj prozora.
+**Prekidač u zaglavlju** (sunce ili mjesec, `Ctrl+T`) prebacuje prozor iz svijetle u
+tamnu temu i natrag, odmah i bez ponovnog pokretanja. Stranica **Settings**, koja se
+otvara gumbom sa zupčanikom ispod popisa stranica, nudi još i "Same as Windows" te
+prebacuje prozor između engleskog i hrvatskog; novi jezik primjenjuje se pri sljedećem
+pokretanju. Izvještaji i naredbe ostaju na engleskom, pa izvještaj izgleda jednako tko
+god ga napravio. Aplikacija pamti i veličinu i položaj prozora.
 
 ![Tamna tema s hrvatskim prijevodom](docs/screenshot-dark-hr.png)
 
@@ -155,7 +193,12 @@ ovom trenutku:
   instalirani programi i mape. Klik na program otvara Windowsovu stranicu *Installed
   apps*, na kojoj se deinstalira, i kopira njegov naziv za polje pretrage na toj
   stranici; gumb otvara stranicu na kojoj se čiste datoteke
-- **Mreža:** brzina preuzimanja i slanja s grafom povijesti te brzina veze svakog adaptera
+- **Mreža:** brzina preuzimanja i slanja s grafom povijesti, brzina veze svakog adaptera
+  te koliko brzo router i internet odgovaraju na ping. Pločica **Internet** na vrhu
+  prikazuje vrijeme odgovora, prosjek i udio izgubljenih odgovora, s vlastitom
+  točkicom. Spor ili nijem router upućuje na lokalnu mrežu (Wi-Fi, kabel); router koji
+  odgovara dok internet ne odgovara upućuje na pružatelja usluge. Dok je označeno
+  "Skip network tests", ništa se ne pinga.
 - **Senzori:** temperatura, brzina ventilatora i potrošnja NVIDIA grafičkih kartica;
   termalne zone i baterija na računalima koja ih imaju; temperatura, istrošenost i sati
   rada diskova\*
@@ -170,7 +213,9 @@ Alati na vrhu stranice:
 - **Pause** zamrzava prikaz, a osvježavanje se može postaviti na 2, 5, 10 ili 30 sekundi.
 - **Record to file** zapisuje svako mjerenje u CSV datoteku u `Documents\HelpdeskToolkit`
   tijekom 1, 5, 15 ili 60 minuta. To je odgovor na "ponekad je sporo": snimaj dok
-  korisnik radi, pa datoteku pogledaj u programu za tablice.
+  korisnik radi, pa datoteku pogledaj u programu za tablice. U datoteci su i vremena
+  odgovora routera i interneta, pa se vidi je li poziv pucao zbog računala ili zbog
+  veze.
 - **Upozorenja** se pojave kad procesor, memorija ili disk ostanu iznad 90 % nekoliko
   mjerenja zaredom, ili kad se grafička kartica zagrije iznad 85 °C. Jedan kratki skok
   je normalan i ne izaziva upozorenje.
@@ -216,7 +261,9 @@ diskovi, privremene datoteke) opisuju taj račun.
 
 HTML izvještaj je jedna samostalna datoteka (bez skripti, ništa se ne učitava s
 interneta), pa se može poslati e-mailom ili priložiti uz ticket. Prati svijetlu ili
-tamnu temu sustava i ima izgled prilagođen ispisu.
+tamnu temu sustava i ima izgled prilagođen ispisu. Ispod broja rezultata po statusu
+piše koja je kategorija odnijela koliko bodova ocjene, a na kraju je vremenska crta
+promjena i kvarova.
 
 ![HTML izvještaj](docs/screenshot-report.png)
 
@@ -293,7 +340,7 @@ Invoke-PCHealthCheck -NoOpen -SkipNetwork -PassThru |
 | `-OutputPath` | Mapa za izvještaj. Zadano: `Documents\HelpdeskToolkit`. |
 | `-Days` | Koliko dana Event Loga i rušenja aplikacija se analizira. Zadano: 7. |
 | `-Format` | `Html` (zadano), `Json`, `Csv`, `Pdf`, `Both` (HTML i JSON) ili `All`. |
-| `-SkipNetwork` | Preskače ping, DNS i HTTPS testove. Konfiguracija adaptera se i dalje ispisuje. |
+| `-SkipNetwork` | Preskače sve što pita internet: ping, DNS i HTTPS testove te traženje novijih verzija instaliranih programa. Konfiguracija adaptera se i dalje ispisuje. |
 | `-ComputerName` | Provjerava drugo računalo, vidi [Drugo računalo](#drugo-računalo). |
 | `-Credential` | Račun koji se koristi na drugom računalu. |
 | `-NoOpen` | Ne otvara HTML izvještaj u pregledniku. |
@@ -318,13 +365,17 @@ $report.Results | Where-Object Status -eq 'Critical'
 $now = Get-PerformanceSnapshot
 $now.Cpu.Processors | Format-Table Name, Percent, FrequencyMHz
 $now.Processes
+
+# Što je pošlo po zlu u zadnjih tjedan dana i što se prije toga promijenilo
+Get-ChangeTimeline -Days 7 | Format-Table Time, Level, Kind, Title, Count -AutoSize
 ```
 
 Dostupne naredbe: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Compare-PCHealthReport`, `Get-SystemHealth`, `Get-ComputerSpecification`,
 `Get-HardwareHealth`, `Get-SoftwareHealth`, `Get-EventLogHealth`,
 `Get-WindowsUpdateHealth`, `Get-SecurityHealth`, `Get-NetworkHealth`,
-`Get-PrinterHealth`, `Get-ServiceHealth`, `Get-PerformanceSnapshot`. Svaka ima potpunu
+`Get-PrinterHealth`, `Get-ServiceHealth`, `Get-PerformanceSnapshot`,
+`Get-ChangeTimeline`. Svaka ima potpunu
 pomoć: `Get-Help <naredba> -Full`.
 
 Svaki rezultat provjere je objekt s istim svojstvima:
@@ -386,7 +437,7 @@ preko stvarne veze između dva računala.
 
 ## Konfiguracija
 
-Ponašanje određuju četiri podatkovne datoteke; kod se ne mora mijenjati:
+Ponašanje određuje pet podatkovnih datoteka; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
@@ -399,7 +450,12 @@ Ponašanje određuju četiri podatkovne datoteke; kod se ne mora mijenjati:
 - [`HelpdeskToolkit/Config/Risks.psd1`](HelpdeskToolkit/Config/Risks.psd1):
   zašto je problem važan; prikazuje se uz svaki rezultat Warning i Critical.
 - [`HelpdeskToolkit/Config/Actions.psd1`](HelpdeskToolkit/Config/Actions.psd1):
-  koju stranicu Windowsa otvara gumb uz preporučeno rješenje.
+  koju stranicu Windowsa otvara gumb uz preporučeno rješenje te stranice podrške
+  proizvođača računala.
+- [`HelpdeskToolkit/Config/EndOfLife.psd1`](HelpdeskToolkit/Config/EndOfLife.psd1):
+  programi za koje proizvođač više ne izdaje sigurnosna ažuriranja, s datumom kraja
+  podrške (preuzeto sa stranica proizvođača o životnom ciklusu; kad istekne još jedna
+  verzija, dodaje se jedan redak).
 
 Vrijednosti "Typical" su iskustvene, okvirne vrijednosti za zdravo uredsko računalo.
 Služe samo za usporedbu i nikad ne utječu na status.
