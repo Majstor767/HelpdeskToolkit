@@ -7,9 +7,12 @@
     - screenshot-report.png:          the top of docs\sample-report.html, rendered by
                                       Microsoft Edge in headless mode
     - screenshot-window.png:          the Overview page of the application window
-    - screenshot-category.png:        the page of one category
+    - screenshot-category.png:        the page of one category, reached through the notice
+                                      of an automatic check
     - screenshot-monitor.png:         the Live monitor page with an invented measurement
-    - screenshot-monitor-details.png: the lower half of the same page
+                                      and the advice for a value above its limit
+    - screenshot-monitor-disks.png:   what takes up the space of a drive
+    - screenshot-monitor-details.png: the lower end of the same page
     - screenshot-dark-hr.png:         the Overview in the dark theme and in Croatian
     - demo.gif:                       an animation that shows the pages one after the other
 
@@ -86,6 +89,7 @@ $pictures = @{
     Window         = Join-Path -Path $outputFolder -ChildPath 'screenshot-window.png'
     Category       = Join-Path -Path $outputFolder -ChildPath 'screenshot-category.png'
     Monitor        = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor.png'
+    MonitorDisks   = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor-disks.png'
     MonitorDetails = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor-details.png'
     Dark           = Join-Path -Path $outputFolder -ChildPath 'screenshot-dark-hr.png'
     Search         = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('HelpdeskToolkit-frame-{0}.png' -f [guid]::NewGuid())
@@ -237,9 +241,16 @@ $pictures = @{
         Show-WindowReport -Gui $gui -Report $report -Previous $previous
         & $savePicture $gui.Window $Pictures.Window
 
-        # One category
-        $controls.CategoryList.SelectedIndex = 4
-        Show-WindowPage -Gui $gui -Name 'Hardware'
+        # One category, reached through a notice: an automatic check has found that the
+        # memory is fuller than before, and a click on the notice has led to the result.
+        $newProblem = @(Compare-PCHealthReport -Reference $previous -Difference $report | Where-Object { $_.Check -eq 'Memory usage' })
+        [void](Add-WindowNotice -Gui $gui -Change $newProblem)
+        # The notice says when the problem was found; a fixed time keeps the picture the same.
+        foreach ($notice in $gui.Notices.Values) {
+            $notice.FoundAt = [datetime]'2026-09-30 09:14:52'
+        }
+        Show-WindowNotice -Gui $gui
+        [void](Show-WindowResult -Gui $gui -Category 'Hardware' -Check 'Memory usage')
         & $savePicture $gui.Window $Pictures.Category
 
         # A search over all results
@@ -247,10 +258,12 @@ $pictures = @{
         Show-WindowPage -Gui $gui -Name 'Hardware'
         & $savePicture $gui.Window $Pictures.Search
         $controls.SearchBox.Text = ''
+        Show-WindowNotice -Gui $gui -Clear
 
         # The Live monitor page. Opening it through Show-WindowPage would start measuring
         # this computer, so the page is switched by hand and filled with the invented data.
         $controls.CategoryList.SelectedIndex = 1
+        $gui.Page = 'Live monitor'
         $controls.PageTitle.Text = 'Live monitor'
         foreach ($name in 'OverviewPanel', 'ResultScroll', 'EmptyText', 'FilterPanel', 'SettingsPanel') {
             $controls[$name].Visibility = $collapsed
@@ -269,11 +282,59 @@ $pictures = @{
             $gui.MonitorHistory[$name].RemoveAt($gui.MonitorHistory[$name].Count - 1)
         }
         Show-WindowMonitor -Gui $gui -Snapshot $snapshot
+        # The memory is above its limit, so its tile has a red dot and a triangle; the
+        # triangle is "clicked" to show the advice.
+        Switch-WindowAdvice -Gui $gui -Name 'Memory'
         & $savePicture $gui.Window $Pictures.Monitor
 
-        # The lower half of the page: disks, network, sensors and programs.
+        # The lower end of the page: network, sensors and programs.
         $controls.MonitorPanel.ScrollToEnd()
         & $savePicture $gui.Window $Pictures.MonitorDetails
+
+        # What takes up the space of drive C:, with an invented measurement that matches
+        # the "Largest folders" of the sample report.
+        $entry = { param($Name, $Bytes, $Complete = $true) [PSCustomObject]@{ Name = $Name; Bytes = $Bytes; Complete = $Complete } }
+        $gui.DiskUsage['C:'] = @{
+            Expanded = $true
+            State    = 'Done'
+            Error    = ''
+            Worker   = $null
+            Handle   = $null
+            Detail   = [PSCustomObject]@{
+                Drive        = 'C:'
+                Programs     = @(
+                    & $entry 'Contoso Office 16.0' 4.6GB
+                    & $entry 'Contoso Design Suite 12.4' 3.8GB
+                    & $entry 'Teams 25.1' 1.9GB
+                    & $entry 'Web Browser 128.0' 1.1GB
+                    & $entry 'Development Tools 17.9' 980MB $false
+                    & $entry 'PDF Tools 2.0' 640MB
+                    & $entry 'Video Player 3.0' 310MB
+                    & $entry 'Web Meeting Client 6.2' 280MB
+                    & $entry 'Cloud Backup 4.2' 240MB
+                    & $entry 'Contoso VPN 5.1' 150MB
+                )
+                ProgramCount = 46
+                ProgramBytes = 15.3GB
+                UnknownCount = 7
+                Folders      = @(
+                    & $entry 'Users\m.horvat\AppData' 71.2GB $false
+                    & $entry 'Windows' 28.4GB $false
+                    & $entry 'Program Files' 19.6GB
+                    & $entry 'Users\m.horvat\Downloads' 11.2GB
+                    & $entry 'Users\m.horvat\Videos' 9.7GB
+                    & $entry 'hiberfil.sys' 6.3GB
+                    & $entry 'ProgramData' 5.1GB
+                    & $entry 'pagefile.sys' 4.7GB
+                )
+                IsElevated   = $false
+                MeasuredAt   = [datetime]'2026-09-30 09:15:00'
+            }
+        }
+        Show-WindowVolume -Gui $gui
+        $gui.Window.Dispatcher.Invoke([action] { }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
+        $controls.MonitorVolumes.BringIntoView()
+        & $savePicture $gui.Window $Pictures.MonitorDisks
     }
     finally {
         $gui.Window.Close()
@@ -298,7 +359,7 @@ $pictures = @{
     }
 } $sampleJson $pictures
 
-foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDetails', 'Dark') {
+foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'MonitorDetails', 'Dark') {
     Write-Output $pictures[$name]
 }
 
@@ -307,7 +368,7 @@ foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDetails', 'Dark') {
 # but not the two things that make it an animation: how long each picture is shown and
 # that it starts over at the end. Both are added to the file afterwards.
 
-$frames = $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.MonitorDetails, $pictures.Dark
+$frames = $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
 $encoder = New-Object -TypeName System.Windows.Media.Imaging.GifBitmapEncoder
 foreach ($frame in $frames) {
     $bitmap = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage
