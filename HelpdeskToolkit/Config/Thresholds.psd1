@@ -96,13 +96,15 @@
         TimeoutMs           = 3000
         # User profiles are large, so they get more time each.
         ProfileTimeoutMs    = 5000
-        # "Largest folders" of a disk that is running full: time per folder and for
-        # the whole disk.
-        LargestFolderTimeoutMs = 3000
+        # "Largest folders" of a disk that is running full: the time for the whole
+        # disk. Its folders are measured together by several threads; what is not
+        # finished by then is reported as "or more".
         LargestFolderBudgetMs  = 15000
+        # A check the application repeats by itself uses the folder sizes measured in
+        # the last so many minutes instead of walking through the drive again.
+        LargestFolderCacheMinutes = 30
         # "What takes up the space" in the Live monitor. A program that does not say how
-        # large it is gets its folder measured: time per program and for all of them.
-        ProgramSizeTimeoutMs   = 1500
+        # large it is gets its folder measured: the time for all of them together.
         ProgramSizeBudgetMs    = 10000
         # How many programs and folders that list shows.
         UsageProgramCount      = 15

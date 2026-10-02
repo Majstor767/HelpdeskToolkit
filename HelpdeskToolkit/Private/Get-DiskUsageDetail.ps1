@@ -30,12 +30,12 @@ function Get-DiskUsageDetail {
 
     $limits = (Get-HealthThreshold).Cleanup
 
-    $programs = @(Get-ProgramDiskUsage -Drive $Drive -TimeoutMs $limits.ProgramSizeTimeoutMs -BudgetMs $limits.ProgramSizeBudgetMs)
+    $programs = @(Get-ProgramDiskUsage -Drive $Drive -BudgetMs $limits.ProgramSizeBudgetMs)
     $known = @($programs | Where-Object { $_.Bytes -gt 0 })
     $programBytes = if ($known.Count -gt 0) { [long]($known | Measure-Object -Property Bytes -Sum).Sum } else { [long]0 }
 
     $folders = @(
-        Get-LargestFolder -Path ('{0}\' -f $Drive) -TimeoutMs $limits.LargestFolderTimeoutMs -BudgetMs $limits.LargestFolderBudgetMs |
+        Get-LargestFolder -Path ('{0}\' -f $Drive) -BudgetMs $limits.LargestFolderBudgetMs |
             Select-Object -First ([int]$limits.UsageFolderCount)
     )
 

@@ -5,6 +5,10 @@ function Import-TestModule {
     .SYNOPSIS
         Imports a fresh copy of the module under test.
     #>
+    # The functions are loaded file by file, so a failing test names the file and the
+    # line, and the code coverage can be measured. (The application loads them as one
+    # block, which is faster; Module.Tests.ps1 checks that both ways give the same.)
+    $env:HELPDESKTOOLKIT_LOAD_FILES = '1'
     $manifest = Join-Path -Path $PSScriptRoot -ChildPath '..\HelpdeskToolkit\HelpdeskToolkit.psd1'
     Import-Module -Name $manifest -Force
 
@@ -12,7 +16,12 @@ function Import-TestModule {
     # The tests must never read or write the real one, so it is replaced with a folder
     # that Pester removes after the test file has run.
     $folder = Join-Path -Path $TestDrive -ChildPath 'AppData'
-    InModuleScope HelpdeskToolkit -Parameters @{ Folder = $folder } { $script:AppDataRoot = $Folder }
+    InModuleScope HelpdeskToolkit -Parameters @{ Folder = $folder } {
+        $script:AppDataRoot = $Folder
+        # The categories of a check run one after the other in the session of the test:
+        # run side by side in runspaces of their own, they would not see the mocks.
+        $script:CheckThrottleLimit = 1
+    }
 }
 
 function Set-TestThreshold {
@@ -45,7 +54,7 @@ function Set-TestThreshold {
                 WarningDaysBeforeEnd = 90
             }
             Stability     = @{ WarningIndex = 5; CriticalIndex = 3; Typical = 'typical stability' }
-            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderTimeoutMs = 1000; LargestFolderBudgetMs = 3000; ProgramSizeTimeoutMs = 500; ProgramSizeBudgetMs = 2000; UsageProgramCount = 3; UsageFolderCount = 2 }
+            Cleanup       = @{ TempWarningGb = 5; RecycleBinWarningGb = 10; SystemTempWarningGb = 5; TimeoutMs = 3000; ProfileTimeoutMs = 5000; LargestFolderBudgetMs = 3000; LargestFolderCacheMinutes = 30; ProgramSizeBudgetMs = 2000; UsageProgramCount = 3; UsageFolderCount = 2 }
             Boot          = @{ WarningSeconds = 120; Typical = 'typical boot'; StaleDays = 30; DelayWarningSeconds = 10 }
             DriveDetail   = @{ TemperatureWarning = 60; TemperatureCritical = 70; TypicalTemperature = '30 - 50'; WearWarningPercent = 80; WearCriticalPercent = 95 }
             SignIn        = @{ FailedWarningAbove = 20; TypicalFailed = 'typical failed sign-ins' }

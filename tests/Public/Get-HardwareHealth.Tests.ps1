@@ -492,7 +492,7 @@ Describe 'Get-HardwareHealth' {
 
         It 'measures the root of the disk within the configured time' {
             Should -Invoke -ModuleName HelpdeskToolkit Get-LargestFolder -Times 1 -Exactly -Scope Context -ParameterFilter {
-                $Path -eq 'C:\' -and $TimeoutMs -eq 1000 -and $BudgetMs -eq 3000
+                $Path -eq 'C:\' -and $BudgetMs -eq 3000
             }
         }
 

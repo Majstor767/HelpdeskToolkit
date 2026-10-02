@@ -28,8 +28,6 @@ function Get-ProgramDiskUsage {
         [ValidatePattern('^[A-Za-z]:$')]
         [string]$Drive,
 
-        [int]$TimeoutMs = 1500,
-
         [int]$BudgetMs = 10000
     )
 
@@ -50,27 +48,38 @@ function Get-ProgramDiskUsage {
             continue
         }
 
-        $bytes = $program.SizeBytes
-        $complete = $true
-
-        if (-not $bytes -and $location -match '^[A-Za-z]:\\.+' -and $shared -notcontains $location) {
-            $remaining = $BudgetMs - $stopwatch.ElapsedMilliseconds
-            if ($remaining -gt 0 -and (Test-Path -LiteralPath $location -PathType Container)) {
-                $size = Get-FolderSize -Path $location -TimeoutMs ([math]::Min($TimeoutMs, $remaining))
-                if ($size.Bytes -gt 0) {
-                    $bytes = [long]$size.Bytes
-                    $complete = $size.Complete
-                }
-            }
-        }
+        # A program that does not say how large it is gets its folder measured, unless
+        # the folder is one that several programs share.
+        $measure = -not $program.SizeBytes -and $location -match '^[A-Za-z]:\\.+' -and $shared -notcontains $location -and
+            (Test-Path -LiteralPath $location -PathType Container)
 
         [PSCustomObject]@{
             Name     = $program.Name
             Version  = $program.Version
-            Bytes    = $bytes
-            Complete = $complete
+            Bytes    = $program.SizeBytes
+            Complete = $true
+            Folder   = if ($measure) { $location } else { '' }
         }
     }
+    $programs = @($programs)
+
+    # The folders are measured several at a time (see Get-FolderSizeBatch).
+    $folders = @($programs | Where-Object { $_.Folder } | ForEach-Object { $_.Folder } | Select-Object -Unique)
+    $remaining = $BudgetMs - $stopwatch.ElapsedMilliseconds
+    if ($folders.Count -gt 0 -and $remaining -gt 0) {
+        $sizes = @{}
+        foreach ($size in Get-FolderSizeBatch -Path $folders -BudgetMs $remaining) {
+            $sizes[$size.Path] = $size
+        }
+        foreach ($program in $programs) {
+            $size = if ($program.Folder) { $sizes[$program.Folder] } else { $null }
+            if ($size -and $size.Bytes -gt 0) {
+                $program.Bytes = [long]$size.Bytes
+                $program.Complete = $size.Complete
+            }
+        }
+    }
+    $programs = $programs | Select-Object -Property Name, Version, Bytes, Complete
 
     $programs | Sort-Object -Property @{ Expression = { [long]$_.Bytes }; Descending = $true }, Name
 }

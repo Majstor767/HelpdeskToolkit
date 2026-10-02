@@ -25,6 +25,17 @@ function Get-HardwareHealth {
         - battery charge, when the computer has a battery
 
         The limits for Warning and Critical come from Config\Thresholds.psd1.
+    .PARAMETER LoadSample
+        Processor load, memory and running programs as they were measured a moment
+        ago. Get-PCHealthReport hands this in when it runs the categories side by
+        side: measured during that time, the load would be the one of the check
+        itself. Without it the values are measured by this command.
+    .PARAMETER AllowCached
+        Use what was measured earlier in this process for the things that take long
+        and change slowly: the largest folders of a drive that is running full, when
+        they were measured within the time set in Config\Thresholds.psd1. The window
+        uses this for the checks it repeats by itself. Without the switch everything
+        is measured anew.
     .EXAMPLE
         Get-HardwareHealth
 
@@ -39,15 +50,27 @@ function Get-HardwareHealth {
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.CheckResult')]
-    param()
+    param(
+        [PSCustomObject]$LoadSample,
+
+        [switch]$AllowCached
+    )
 
     $category = 'Hardware'
     $thresholds = Get-HealthThreshold
 
+    # What was measured earlier, when it was handed in; otherwise it is measured here.
+    $sampledProcessors = @(if ($LoadSample) { $LoadSample.Processors })
+    $sampledSystem = if ($LoadSample) { $LoadSample.OperatingSystem }
+    $sampledProcesses = @(if ($LoadSample) { $LoadSample.Processes })
+
     # CPU. Win32_Processor is used instead of performance counters because counter
     # names are translated on non-English Windows and would break the query.
     try {
-        $processors = @(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop)
+        $processors = @($sampledProcessors | Where-Object { $_ })
+        if ($processors.Count -eq 0) {
+            $processors = @(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop)
+        }
         $loads = @($processors | Where-Object { $null -ne $_.LoadPercentage } | ForEach-Object { $_.LoadPercentage })
 
         if ($loads.Count -eq 0) {
@@ -74,7 +97,10 @@ function Get-HardwareHealth {
 
     # Memory. Both values are reported by WMI in kilobytes.
     try {
-        $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        $os = $sampledSystem
+        if (-not $os) {
+            $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        }
         $totalBytes = [double]$os.TotalVisibleMemorySize * 1KB
         $usedBytes = $totalBytes - ([double]$os.FreePhysicalMemory * 1KB)
         $usedPercent = [int][math]::Round($usedBytes / $totalBytes * 100)
@@ -99,8 +125,12 @@ function Get-HardwareHealth {
     # Which programs hold the memory. Processes are grouped by name because browsers
     # and similar applications run as many processes.
     try {
+        $processes = @($sampledProcesses | Where-Object { $_ })
+        if ($processes.Count -eq 0) {
+            $processes = @(Get-Process -ErrorAction Stop)
+        }
         $consumers = @(
-            Get-Process -ErrorAction Stop |
+            $processes |
                 Group-Object -Property ProcessName |
                 ForEach-Object {
                     [PSCustomObject]@{
@@ -215,10 +245,24 @@ function Get-HardwareHealth {
     # What takes up the space, for every disk that is running full. Measuring takes a
     # while, so it is only done where the answer is needed.
     $cleanup = $thresholds.Cleanup
+
     foreach ($letter in $lowDisks) {
         $check = 'Largest folders ({0})' -f $letter
         try {
-            $largest = @(Get-LargestFolder -Path ('{0}\' -f $letter) -TimeoutMs $cleanup.LargestFolderTimeoutMs -BudgetMs $cleanup.LargestFolderBudgetMs |
+            # Walking through a whole drive takes seconds and its result changes slowly.
+            # A check that is repeated by itself may use what was measured a while ago
+            # in this process (see Get-ProcessCache); a check somebody asked for measures.
+            $cacheKey = 'LargestFolders:{0}' -f $letter
+            $folders = $null
+            $cached = if ($AllowCached) { Get-ProcessCache -Key $cacheKey -MaxAgeMinutes $cleanup.LargestFolderCacheMinutes }
+            if ($cached) {
+                $folders = @($cached.Value)
+            }
+            else {
+                $folders = @(Get-LargestFolder -Path ('{0}\' -f $letter) -BudgetMs $cleanup.LargestFolderBudgetMs)
+                Set-ProcessCache -Key $cacheKey -Value $folders
+            }
+            $largest = @($folders |
                     Select-Object -First 15 |
                     ForEach-Object { '{0} {1}{2}' -f $_.Name, (Format-Gigabyte -Bytes $_.Bytes), $(if (-not $_.Complete) { ' or more' }) })
 

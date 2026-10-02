@@ -9,9 +9,14 @@ function Get-LargestFolder {
         (Documents, Downloads, AppData, ...) are measured one by one instead of the
         "Users" folder as a whole, because that is where a user can actually clean up.
 
-        Measuring is limited twice, so a huge drive cannot hold up the health check:
-        -TimeoutMs per folder (the size is then a lower bound, Complete is $false) and
-        -BudgetMs for the whole drive (folders that were not reached are left out).
+        -BudgetMs limits the measuring, so a huge drive cannot hold up the health
+        check: a folder that was not walked through to the end by then has a size that
+        is a lower bound, and Complete is $false.
+
+        The folders are measured together, by several threads that share the work. A
+        drive that took a quarter of a minute folder by folder is done in a few
+        seconds that way, and large folders are measured to the end instead of being
+        cut off.
 
         Folders that the current user may not read are counted as far as possible.
         Only sizes are read; nothing is opened or changed.
@@ -25,9 +30,7 @@ function Get-LargestFolder {
         [Parameter(Mandatory)]
         [string]$Path,
 
-        [int]$TimeoutMs = 4000,
-
-        [int]$BudgetMs = 25000,
+        [int]$BudgetMs = 15000,
 
         # Files in the root of the drive are only listed from this size on.
         [long]$MinimumFileBytes = 1GB
@@ -70,16 +73,20 @@ function Get-LargestFolder {
         Write-Verbose "Could not list ${Path}: $($_.Exception.Message)"
     }
 
-    foreach ($candidate in $candidates) {
-        $remaining = $BudgetMs - $stopwatch.ElapsedMilliseconds
-        if ($remaining -le 0) {
-            break
+    # All folders are measured together, by a few threads that share the work (see
+    # Get-FolderSizeBatch).
+    $remaining = $BudgetMs - $stopwatch.ElapsedMilliseconds
+    if ($candidates.Count -gt 0 -and $remaining -gt 0) {
+        $sizes = @{}
+        foreach ($size in Get-FolderSizeBatch -Path @($candidates | ForEach-Object { $_.Path }) -BudgetMs $remaining) {
+            $sizes[$size.Path] = $size
         }
-        $size = Get-FolderSize -Path $candidate.Path -TimeoutMs ([math]::Min($TimeoutMs, $remaining))
-        if ($size.Bytes -gt 0) {
-            $results.Add([PSCustomObject]@{ Name = $candidate.Name; Bytes = [long]$size.Bytes; Complete = $size.Complete })
+        foreach ($candidate in $candidates) {
+            $size = $sizes[$candidate.Path]
+            if ($size -and $size.Bytes -gt 0) {
+                $results.Add([PSCustomObject]@{ Name = $candidate.Name; Bytes = [long]$size.Bytes; Complete = $size.Complete })
+            }
         }
     }
-
     $results | Sort-Object -Property Bytes -Descending
 }

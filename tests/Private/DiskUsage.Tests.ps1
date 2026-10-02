@@ -66,7 +66,11 @@ Describe 'Get-ProgramDiskUsage' {
             New-TestProgram -Name 'Elsewhere' -SizeBytes 9GB -Location 'Q:\Games\Elsewhere'
         }
         Mock -ModuleName HelpdeskToolkit Test-Path { $true } -ParameterFilter { $LiteralPath -like '*\Apps\NoSize' }
-        Mock -ModuleName HelpdeskToolkit Get-FolderSize { [PSCustomObject]@{ Bytes = 500MB; FileCount = 10; Complete = $false } }
+        # The folders are measured together; every one of them comes back with 500 MB,
+        # not measured to its end.
+        Mock -ModuleName HelpdeskToolkit Get-FolderSizeBatch {
+            $Path | ForEach-Object { [PSCustomObject]@{ Path = $_; Bytes = 500MB; FileCount = 10; Complete = $false } }
+        }
 
         $programs = @(InModuleScope HelpdeskToolkit -Parameters @{ Drive = $systemDrive } { Get-ProgramDiskUsage -Drive $Drive })
     }
@@ -89,12 +93,12 @@ Describe 'Get-ProgramDiskUsage' {
         $program = $programs | Where-Object Name -eq 'No Size Here'
         $program.Bytes | Should -Be 500MB
         $program.Complete | Should -BeFalse
-        Should -Invoke -ModuleName HelpdeskToolkit Get-FolderSize -Times 1 -Exactly -Scope Describe -ParameterFilter { $Path -like '*\Apps\NoSize' -and $TimeoutMs -le 1500 }
+        Should -Invoke -ModuleName HelpdeskToolkit Get-FolderSizeBatch -Times 1 -Exactly -Scope Describe -ParameterFilter { @($Path).Count -eq 1 -and $Path[0] -like '*\Apps\NoSize' -and $BudgetMs -le 10000 }
     }
 
     It 'never measures a folder that many programs share as the size of one program' {
         ($programs | Where-Object Name -eq 'Shared Folder').Bytes | Should -BeNullOrEmpty
-        Should -Invoke -ModuleName HelpdeskToolkit Get-FolderSize -Times 0 -Exactly -Scope Describe -ParameterFilter { $Path -eq $env:ProgramFiles }
+        Should -Invoke -ModuleName HelpdeskToolkit Get-FolderSizeBatch -Times 0 -Exactly -Scope Describe -ParameterFilter { $Path -contains $env:ProgramFiles }
     }
 
     It 'returns a program whose size cannot be found out without a size' {
@@ -110,6 +114,10 @@ Describe 'Get-ProgramDiskUsage' {
     It 'measures no folder once the time for all programs is used up' {
         $none = @(InModuleScope HelpdeskToolkit -Parameters @{ Drive = $systemDrive } { Get-ProgramDiskUsage -Drive $Drive -BudgetMs 0 })
         ($none | Where-Object Name -eq 'No Size Here').Bytes | Should -BeNullOrEmpty
+    }
+
+    It 'returns only what a program is: name, version, size and whether the size is complete' {
+        $programs[0].PSObject.Properties.Name | Should -Be @('Name', 'Version', 'Bytes', 'Complete')
     }
 
     It 'accepts a drive letter with a colon only' {
@@ -151,7 +159,7 @@ Describe 'Get-DiskUsageDetail' {
 
     It 'lists the largest folders of the drive, as many as the configuration says' {
         $detail.Folders.Name | Should -Be @('Users', 'Windows')
-        Should -Invoke -ModuleName HelpdeskToolkit Get-LargestFolder -Times 1 -Exactly -Scope Describe -ParameterFilter { $Path -eq 'C:\' -and $TimeoutMs -eq 1000 -and $BudgetMs -eq 3000 }
+        Should -Invoke -ModuleName HelpdeskToolkit Get-LargestFolder -Times 1 -Exactly -Scope Describe -ParameterFilter { $Path -eq 'C:\' -and $BudgetMs -eq 3000 }
     }
 
     It 'says for which drive, when and with which rights it was measured' {
