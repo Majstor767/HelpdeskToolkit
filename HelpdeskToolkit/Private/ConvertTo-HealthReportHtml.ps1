@@ -28,6 +28,12 @@ function ConvertTo-HealthReportHtml {
     $summary = $Report.Summary
     $computerName = ConvertTo-HtmlEncodedText -Text $Report.ComputerName
 
+    # What happened on the computer lately. Reports of older versions have no time line.
+    $timeline = @()
+    if ($Report.PSObject.Properties['Timeline']) {
+        $timeline = @($Report.Timeline | Where-Object { $_ })
+    }
+
     # Builds one table row; shared by the problem list and the category cards.
     $newRow = {
         param($Result, [switch]$ShowCategory)
@@ -179,6 +185,9 @@ function ConvertTo-HealthReportHtml {
     foreach ($info in $categoryInfo) {
         $html.Add(('<a href="#{0}"><span class="dot {1}"></span>{2}</a>' -f $info.Id, $info.Worst.ToLower(), (ConvertTo-HtmlEncodedText -Text $info.Name)))
     }
+    if ($timeline.Count -gt 0) {
+        $html.Add('<a href="#timeline"><span class="dot info"></span>Timeline</a>')
+    }
     $html.Add('</nav>')
 
     # Problems first: this is the part a technician acts on.
@@ -217,12 +226,7 @@ function ConvertTo-HealthReportHtml {
         $html.Add('</section>')
     }
 
-    # Time line: what happened on the computer lately, newest first. Reports of
-    # older versions have none.
-    $timeline = @()
-    if ($Report.PSObject.Properties['Timeline']) {
-        $timeline = @($Report.Timeline | Where-Object { $_ })
-    }
+    # Time line: what happened on the computer lately, newest first.
     if ($timeline.Count -gt 0) {
         $problemCount = @($timeline | Where-Object { $_.Level -eq 'Problem' }).Count
         $html.Add('<section class="card" id="timeline">')

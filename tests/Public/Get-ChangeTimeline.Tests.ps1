@@ -202,6 +202,8 @@ Describe 'The timeline and the score in the HTML report' {
 
     It 'has a timeline section with the number of problems and changes' {
         $html | Should -Match '<section class="card" id="timeline">'
+        # ... and a link to it among the categories at the top
+        $html | Should -Match '<a href="#timeline"><span class="dot info"></span>Timeline</a>'
         $html | Should -Match '1 problems &middot; 1 changes'
         $html | Should -Match 'Show the 2 entries'
     }
@@ -221,6 +223,7 @@ Describe 'The timeline and the score in the HTML report' {
         $healthy = New-TestReport -Result @(New-TestResult -Status OK)
         $plain = InModuleScope HelpdeskToolkit -Parameters @{ Report = $healthy } { ConvertTo-HealthReportHtml -Report $Report }
         $plain | Should -Not -Match 'id="timeline"'
+        $plain | Should -Not -Match 'href="#timeline"'
         $plain | Should -Not -Match 'Points lost'
     }
 }
