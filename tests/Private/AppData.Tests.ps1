@@ -346,3 +346,54 @@ Describe 'Get-LauncherArgument' {
         InModuleScope HelpdeskToolkit { Get-LauncherArgument } | Should -Match 'Import-Module ''.+HelpdeskToolkit\.psd1''; Show-PCHealthCheck'
     }
 }
+
+Describe 'Lock-AppFile' {
+    BeforeAll {
+        $file = Join-Path -Path $TestDrive -ChildPath 'application.ico'
+        Set-Content -LiteralPath $file -Value 'icon'
+    }
+
+    It 'keeps the file open, so nobody can replace or delete it' {
+        $lock = InModuleScope HelpdeskToolkit -Parameters @{ Path = $file } { Lock-AppFile -Path $Path }
+        try {
+            $lock | Should -BeOfType [System.IO.FileStream]
+            # What the installer tries before an update: the file for itself alone.
+            { [System.IO.File]::Open($file, 'Open', 'ReadWrite', 'None').Dispose() } | Should -Throw
+            { Remove-Item -LiteralPath $file -Force -ErrorAction Stop } | Should -Throw
+        }
+        finally {
+            $lock.Dispose()
+        }
+    }
+
+    It 'lets other programs read the file meanwhile' {
+        $lock = InModuleScope HelpdeskToolkit -Parameters @{ Path = $file } { Lock-AppFile -Path $Path }
+        try {
+            [System.IO.File]::Open($file, 'Open', 'Read', 'Read').Dispose()
+            Get-Content -LiteralPath $file | Should -Be 'icon'
+        }
+        finally {
+            $lock.Dispose()
+        }
+    }
+
+    It 'gives the file free again when it is closed' {
+        $lock = InModuleScope HelpdeskToolkit -Parameters @{ Path = $file } { Lock-AppFile -Path $Path }
+        $lock.Dispose()
+        { [System.IO.File]::Open($file, 'Open', 'ReadWrite', 'None').Dispose() } | Should -Not -Throw
+    }
+
+    It 'keeps the icon of the application open by default' {
+        $lock = InModuleScope HelpdeskToolkit { Lock-AppFile }
+        try {
+            $lock.Name | Should -BeLike '*\Assets\HelpdeskToolkit.ico'
+        }
+        finally {
+            $lock.Dispose()
+        }
+    }
+
+    It 'returns nothing for a file that does not exist, instead of stopping the window' {
+        InModuleScope HelpdeskToolkit { Lock-AppFile -Path 'Q:\no-such-folder\missing.ico' } | Should -BeNullOrEmpty
+    }
+}

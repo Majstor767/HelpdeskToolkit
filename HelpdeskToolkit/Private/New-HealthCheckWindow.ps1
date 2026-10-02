@@ -12,6 +12,8 @@ function New-HealthCheckWindow {
         - ManifestPath: where the module is, for the background runspaces
         - Settings, Theme: the settings of the window and the theme it was built with
         - Page:         name of the page that is shown
+        - AppLock:      the file that tells the installer the application is running
+                        (see Lock-AppFile)
         - Report, PreviousReport, Worker, Handle, Timer: state of the health check
         - Background, LastCheckAt, AutoTimer, Notices, HighlightCheck, TrayIcon:
                         state of the automatic check and of what it announces
@@ -115,6 +117,7 @@ function New-HealthCheckWindow {
         Settings          = $Setting
         Theme             = $Theme
         Page              = 'Overview'
+        AppLock           = $null
         Report            = $null
         PreviousReport    = $null
         Worker            = $null

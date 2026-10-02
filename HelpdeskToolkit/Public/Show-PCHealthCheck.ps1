@@ -366,10 +366,16 @@ function Show-PCHealthCheck {
             }
         })
 
+    # While the window exists, the installer must not replace the files of the application.
+    $gui.AppLock = Lock-AppFile
+
     try {
         [void]$window.ShowDialog()
     }
     finally {
+        if ($gui.AppLock) {
+            $gui.AppLock.Dispose()
+        }
         $script:HealthCheckWindow = $null
     }
 }

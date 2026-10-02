@@ -87,6 +87,17 @@ Describe 'Installer script' {
         $iss | Should -Match '(?m)^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: "\{app\}\\HelpdeskToolkit"'
     }
 
+    # Regression: an update that ran while the window was open could not replace the
+    # files in use, stopped halfway and left an installation behind that did not start.
+    It 'stops before it changes anything while the application is running' {
+        $iss | Should -Match '(?m)^function PrepareToInstall\('
+        $iss | Should -Match 'fmOpenReadWrite or fmShareExclusive'
+        $iss | Should -Match '(?m)^function InitializeUninstall\('
+        # The file it tries to open is the one the running application keeps open.
+        $iss | Should -Match "ExpandConstant\('\{app\}\\\{#AppIcon\}'\)"
+        Join-Path -Path $root -ChildPath 'HelpdeskToolkit\Assets\HelpdeskToolkit.ico' | Should -Exist
+    }
+
     It 'starts the application through the launcher script that is shipped' {
         $iss | Should -Match 'Start-HelpdeskToolkit\.ps1'
         Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.ps1' | Should -Exist

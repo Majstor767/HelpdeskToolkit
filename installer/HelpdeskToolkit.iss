@@ -75,5 +75,49 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 Name: "{autoprograms}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"
 Name: "{autodesktop}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; Tasks: desktopicon
 
+; Setup must not replace the files of an application that is running: it could not
+; replace the files that are in use, would stop halfway and leave a copy behind that no
+; longer starts. The running application keeps its icon file open (see
+; Private\Lock-AppFile.ps1), also when it runs with administrator rights and Setup does
+; not. Setup therefore tries to open that file for itself alone before it changes
+; anything, and stops with a message when it cannot.
+[Code]
+function IsApplicationRunning(): Boolean;
+var
+  IconFile: String;
+  Stream: TFileStream;
+begin
+  Result := False;
+  IconFile := ExpandConstant('{app}\{#AppIcon}');
+  if FileExists(IconFile) then
+  begin
+    try
+      Stream := TFileStream.Create(IconFile, fmOpenReadWrite or fmShareExclusive);
+      Stream.Free;
+    except
+      Result := True;
+    end;
+  end;
+end;
+
+// Called after the questions of the wizard and before the first file is touched.
+// A text as the result stops the installation and is shown to the user.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if IsApplicationRunning() then
+    Result := '{#AppName} is running. Close its window, then run Setup again.';
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  if IsApplicationRunning() then
+  begin
+    MsgBox('{#AppName} is running. Close its window, then uninstall it again.', mbError, MB_OK);
+    Result := False;
+  end;
+end;
+
 [Run]
 Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent
