@@ -109,7 +109,7 @@ number of days of history) are remembered for the next start as well.
 - **Categories** on the left (System, Hardware, Network, ...) show everything that was
   checked; the dot and the number next to each one show where the problems are.
 - **Four columns:** the page of a category shows its results side by side, one column
-  per status: Critical, Warning, OK, Info. Each kind stands by itself, so a problem
+  per status: Info, OK, Warning, Critical. Each kind stands by itself, so a problem
   cannot be overlooked among the rest. A card shows the name of the check and its
   value; a click opens the explanation, the allowed range and the fix. The problems
   are open from the start.

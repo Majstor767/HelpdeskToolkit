@@ -18,7 +18,7 @@ function Show-WindowPage {
           the application keeps its files. It is opened with the button below the page
           list, so no entry of the list is selected while it is shown.
         - A category (System, Network, ...): every check of that category, side by
-          side in four columns, one per status: Critical, Warning, OK, Info. Each kind
+          side in four columns, one per status: Info, OK, Warning, Critical. Each kind
           of result stands by itself, so a problem cannot be overlooked among the rest.
           The cards of the columns are compact: the name of the check and its value. A
           click opens the explanation, the allowed range and the recommendation. The

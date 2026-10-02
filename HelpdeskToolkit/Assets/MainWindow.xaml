@@ -1158,36 +1158,22 @@
                     </ScrollViewer>
 
                     <!-- The page of a category: its results side by side, one column per status,
-                         the most severe on the left. Every column scrolls on its own, so its
+                         from Info on the left to Critical on the right. Every column scrolls on its own, so its
                          head stays in view. A column that a status filter excludes is hidden
                          and the others share its room. -->
                     <UniformGrid x:Name="ColumnsPanel" Rows="1" Margin="0,0,-10,0" Visibility="Collapsed">
-                        <DockPanel x:Name="ColumnCritical" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource CriticalBrush}">
+                        <DockPanel x:Name="ColumnInfo" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource InfoBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnCriticalCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource CriticalBrush}"/>
-                                    <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}" Foreground="{DynamicResource CriticalBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnInfoCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource InfoBrush}"/>
+                                    <TextBlock Text="INFO" Style="{StaticResource TileLabel}" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
-                                <ScrollViewer x:Name="ColumnCriticalScroll" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="ColumnCriticalItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                <ScrollViewer x:Name="ColumnInfoScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnInfoItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnCriticalEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
-                            </Grid>
-                        </DockPanel>
-                        <DockPanel x:Name="ColumnWarning" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource WarningBrush}">
-                                <DockPanel>
-                                    <TextBlock x:Name="ColumnWarningCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
-                                    <TextBlock Text="WARNING" Style="{StaticResource TileLabel}" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
-                                </DockPanel>
-                            </Border>
-                            <Grid>
-                                <ScrollViewer x:Name="ColumnWarningScroll" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="ColumnWarningItems" ItemTemplate="{StaticResource CompactCard}"/>
-                                </ScrollViewer>
-                                <TextBlock x:Name="ColumnWarningEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnInfoEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                         <DockPanel x:Name="ColumnOK" Margin="0,0,10,0">
@@ -1204,18 +1190,32 @@
                                 <TextBlock x:Name="ColumnOKEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
-                        <DockPanel x:Name="ColumnInfo" Margin="0,0,10,0">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource InfoBrush}">
+                        <DockPanel x:Name="ColumnWarning" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource WarningBrush}">
                                 <DockPanel>
-                                    <TextBlock x:Name="ColumnInfoCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource InfoBrush}"/>
-                                    <TextBlock Text="INFO" Style="{StaticResource TileLabel}" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ColumnWarningCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
+                                    <TextBlock Text="WARNING" Style="{StaticResource TileLabel}" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Grid>
-                                <ScrollViewer x:Name="ColumnInfoScroll" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="ColumnInfoItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                <ScrollViewer x:Name="ColumnWarningScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnWarningItems" ItemTemplate="{StaticResource CompactCard}"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ColumnInfoEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                                <TextBlock x:Name="ColumnWarningEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </DockPanel>
+                        <DockPanel x:Name="ColumnCritical" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{DynamicResource CriticalBrush}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ColumnCriticalCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource CriticalBrush}"/>
+                                    <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}" Foreground="{DynamicResource CriticalBrush}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <Grid>
+                                <ScrollViewer x:Name="ColumnCriticalScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnCriticalItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ColumnCriticalEmpty" Text="Nothing here." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
                             </Grid>
                         </DockPanel>
                     </UniformGrid>

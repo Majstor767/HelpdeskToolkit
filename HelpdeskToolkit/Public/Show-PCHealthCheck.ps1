@@ -14,7 +14,7 @@ function Show-PCHealthCheck {
           button that opens the place in Windows where it is fixed, and what changed
           since the last check of this computer.
         - A page per category (System, Hardware, Network and so on) with all of its
-          checks in four columns, one per status (Critical, Warning, OK, Info). A
+          checks in four columns, one per status (Info, OK, Warning, Critical). A
           click on a card shows the explanation, the allowed range, the typical value
           and the recommendation.
         - Live monitor: what the computer is doing right now (processor, memory,

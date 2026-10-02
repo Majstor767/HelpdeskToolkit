@@ -110,7 +110,7 @@ povijesti) također se pamte do sljedećeg pokretanja.
 - **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
   provjereno; točka i broj uz svaku pokazuju gdje su problemi.
 - **Četiri stupca:** stranica kategorije prikazuje rezultate jedan do drugoga, po
-  jedan stupac za svaki status: Critical, Warning, OK, Info. Svaka vrsta stoji za sebe,
+  jedan stupac za svaki status: Info, OK, Warning, Critical. Svaka vrsta stoji za sebe,
   pa se problem ne može previdjeti među ostalim. Kartica prikazuje naziv provjere i
   vrijednost; klik otvara objašnjenje, dopušteni raspon i rješenje. Problemi su
   otvoreni od početka.

@@ -69,9 +69,9 @@ Describe 'The columns of a category page' -Skip:(-not $isSta) {
             $gui.Controls[$_] | Should -Not -BeNullOrEmpty
         }
 
-        It 'puts the columns side by side, the most severe status on the left' {
+        It 'puts the columns side by side, from Info on the left to Critical on the right' {
             $gui.Controls.ColumnsPanel.Rows | Should -Be 1
-            @($gui.Controls.ColumnsPanel.Children).Name | Should -Be @('ColumnCritical', 'ColumnWarning', 'ColumnOK', 'ColumnInfo')
+            @($gui.Controls.ColumnsPanel.Children).Name | Should -Be @('ColumnInfo', 'ColumnOK', 'ColumnWarning', 'ColumnCritical')
         }
 
         It 'starts with the columns hidden: there is nothing to show before the first check' {

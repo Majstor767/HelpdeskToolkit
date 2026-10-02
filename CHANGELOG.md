@@ -55,8 +55,8 @@ The first public version. It will be released as 1.0.0.
 - Overview with the problems and their fixes, a health score from 0 to 100 and the
   changes since the previous check of the same computer.
 - A button next to a fix opens the page of Windows where the fix is made.
-- One page per category with its results in four columns, one per status (Critical,
-  Warning, OK, Info); a click on a card opens its details. Search over all results
+- One page per category with its results in four columns, one per status (Info, OK,
+  Warning, Critical); a click on a card opens its details. Search over all results
   and a filter by status. In every list, and in the report, the most severe results
   come first.
 - A Timeline page with the changes and failures of the last weeks, grouped by day,
