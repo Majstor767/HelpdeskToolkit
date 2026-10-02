@@ -43,6 +43,7 @@ comparison.
 ![The Overview page](docs/screenshot-window.png)
 
 Click **Run check**; a progress bar shows which category is being checked.
+After that first check the application keeps the results up to date by itself.
 
 - **Overview** lists every problem with its recommended fix. Next to a fix there is a
   button that opens the place in Windows where it is done (**Open Storage settings**,
@@ -62,7 +63,19 @@ Click **Run check**; a progress bar shows which category is being checked.
 - **Open HTML report** saves the report and opens it in the browser; **Save as...**
   saves it as HTML, PDF, CSV or JSON wherever you choose.
 
-![The page of one category](docs/screenshot-category.png)
+### Automatic check and notices
+
+The check is repeated in the background every five minutes (the interval can be changed
+or turned off in the settings). The new results replace the old ones without
+interrupting: the open page, the search and the place you have scrolled to stay as they
+are.
+
+A problem that was not there before is announced in a bar at the top of the window, and
+with a Windows notification while the window is not in front. A click leads straight to
+the result, which is framed so it is easy to find. A notice disappears when it is
+dismissed or when the problem is gone.
+
+![A result reached through a notice](docs/screenshot-category.png)
 
 Keyboard shortcuts:
 
@@ -74,11 +87,13 @@ Keyboard shortcuts:
 | `Ctrl+S` | Save as... |
 | `Ctrl+Shift+C` | Copy the summary |
 | `Ctrl+M` | Live monitor |
+| `Ctrl+,` | Settings |
 
 ### Language and theme
 
-The **Settings** page switches the window between English and Croatian and between a
-light and a dark theme (or the one Windows uses). The reports and the commands stay in
+The **Settings** page, opened with the gear button below the page list, switches the
+window between English and Croatian and between a light and a dark theme (or the one
+Windows uses). The reports and the commands stay in
 English, so a report reads the same whoever created it. The application also remembers
 the size and position of its window.
 
@@ -93,6 +108,11 @@ application.
 The **Live monitor** page of the window needs no health check. It shows what the
 computer is doing right now:
 
+- **Status dots:** the tiles of processor, memory and graphics carry a dot. It is green
+  while the value is fine, orange when it gets close to its limit or keeps rising
+  towards it, and red when it is above the limit. A red dot comes with a warning
+  triangle; a click on it opens advice on how to bring the value down, naming the
+  program that causes the most load at that moment.
 - **Processor:** total load with a history graph, the speed it really runs at (turbo
   included), load of every logical processor, number of processes, threads and handles,
   time since Windows started
@@ -103,6 +123,9 @@ computer is doing right now:
 - **Disks:** activity with a history graph, read rate, write rate and queue length of
   every physical disk, and the used space of every drive letter (the meter turns orange
   and red by the same limits as the disk space check)
+- **What takes up the space:** every drive letter can be opened to see its largest
+  installed programs and folders, with buttons that open the pages of Windows where a
+  program is uninstalled and where files are cleaned up
 - **Network:** download and upload rate with a history graph, and the link speed of
   every adapter
 - **Sensors:** temperature, fan speed and power draw of NVIDIA graphics cards; thermal
@@ -124,11 +147,14 @@ Tools at the top of the page:
   several measurements in a row, or a graphics card gets hotter than 85 °C. A single
   peak is normal and raises no alert.
 
-There is deliberately no button that ends a program: the tool only reads.
+There is deliberately no button that ends or uninstalls a program: the tool only reads.
+It shows what to remove and opens the place in Windows where that is done.
 
-![The Live monitor page](docs/screenshot-monitor.png)
+![The Live monitor page with the advice for a full memory](docs/screenshot-monitor.png)
 
-![The lower half of the Live monitor page](docs/screenshot-monitor-details.png)
+![What takes up the space of a drive](docs/screenshot-monitor-disks.png)
+
+![The lower end of the Live monitor page](docs/screenshot-monitor-details.png)
 
 The same data is available in scripts through `Get-PerformanceSnapshot`.
 
@@ -335,7 +361,7 @@ Three data files control the behaviour; no code has to be changed:
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   the limits for Warning and Critical (for example free disk space below 15 % and 5 %),
   the targets of the connectivity tests, the list of monitored services, the limits of
-  the alerts in the Live monitor, the points of the health score and the end-of-support
+  the alerts and status dots in the Live monitor, the points of the health score and the end-of-support
   dates of the Windows versions (taken from the Microsoft lifecycle pages; add a line
   when a new feature release appears).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):

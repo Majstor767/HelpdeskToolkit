@@ -46,6 +46,7 @@ usporedbu.
 ![Stranica Overview](docs/screenshot-window.png)
 
 Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjerava.
+Nakon te prve provjere aplikacija sama održava rezultate ažurnima.
 
 - **Overview** prikazuje sve probleme s preporučenim rješenjem. Uz rješenje stoji gumb
   koji otvara mjesto u Windowsu gdje se ono provodi (**Open Storage settings**,
@@ -64,7 +65,17 @@ Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjera
 - **Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
   sprema kao HTML, PDF, CSV ili JSON na mjesto koje odabereš.
 
-![Stranica jedne kategorije](docs/screenshot-category.png)
+### Automatska provjera i obavijesti
+
+Provjera se ponavlja u pozadini svakih pet minuta (razmak se u postavkama može
+promijeniti ili isključiti). Novi rezultati zamjenjuju stare bez prekidanja: otvorena
+stranica, pretraga i mjesto do kojeg si listao ostaju kakvi jesu.
+
+Problem kojeg prije nije bilo najavljuje se u traci na vrhu prozora, a dok prozor nije
+u prvom planu i Windows obavijesti. Klik vodi ravno na rezultat, koji je uokviren da ga
+je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
+
+![Rezultat do kojeg je dovela obavijest](docs/screenshot-category.png)
 
 Tipkovni prečaci:
 
@@ -76,11 +87,13 @@ Tipkovni prečaci:
 | `Ctrl+S` | Save as... |
 | `Ctrl+Shift+C` | Kopiraj sažetak |
 | `Ctrl+M` | Live monitor |
+| `Ctrl+,` | Settings |
 
 ### Jezik i tema
 
-Na stranici **Settings** prozor se prebacuje između engleskog i hrvatskog te između
-svijetle i tamne teme (ili one koju koristi Windows). Izvještaji i naredbe ostaju na
+Na stranici **Settings**, koja se otvara gumbom sa zupčanikom ispod popisa stranica,
+prozor se prebacuje između engleskog i hrvatskog te između svijetle i tamne teme (ili
+one koju koristi Windows). Izvještaji i naredbe ostaju na
 engleskom, pa izvještaj izgleda jednako tko god ga napravio. Aplikacija pamti i
 veličinu i položaj prozora.
 
@@ -95,6 +108,11 @@ početno stanje.
 Stranica **Live monitor** u prozoru ne traži provjeru. Prikazuje što računalo radi u
 ovom trenutku:
 
+- **Statusne točkice:** pločice procesora, memorije i grafike imaju točkicu. Zelena je
+  dok je vrijednost u redu, narančasta kad se približi granici ili stalno raste prema
+  njoj, a crvena kad je iznad granice. Uz crvenu točkicu pojavi se trokut upozorenja;
+  klik na njega otvara savjete kako vrijednost smanjiti, s imenom programa koji u tom
+  trenutku najviše opterećuje.
 - **Procesor:** ukupno opterećenje s grafom povijesti, takt na kojem stvarno radi
   (uključujući turbo), opterećenje svakog logičkog procesora, broj procesa, niti i
   handleova, vrijeme od pokretanja Windowsa
@@ -105,6 +123,9 @@ ovom trenutku:
 - **Diskovi:** aktivnost s grafom povijesti, brzina čitanja i pisanja te red čekanja
   svakog fizičkog diska, i zauzeti prostor svakog slova diska (mjerač postaje narančast
   i crven prema istim pragovima kao provjera prostora na disku)
+- **Što zauzima prostor:** svako slovo diska može se otvoriti da se vide njegovi najveći
+  instalirani programi i mape, s gumbima koji otvaraju stranice Windowsa na kojima se
+  program deinstalira i na kojima se čiste datoteke
 - **Mreža:** brzina preuzimanja i slanja s grafom povijesti te brzina veze svakog adaptera
 - **Senzori:** temperatura, brzina ventilatora i potrošnja NVIDIA grafičkih kartica;
   termalne zone i baterija na računalima koja ih imaju; temperatura, istrošenost i sati
@@ -125,11 +146,14 @@ Alati na vrhu stranice:
   mjerenja zaredom, ili kad se grafička kartica zagrije iznad 85 °C. Jedan kratki skok
   je normalan i ne izaziva upozorenje.
 
-Gumba koji gasi program namjerno nema: alat samo čita.
+Gumba koji gasi ili deinstalira program namjerno nema: alat samo čita. Pokaže što
+ukloniti i otvori mjesto u Windowsu gdje se to radi.
 
-![Stranica Live monitor](docs/screenshot-monitor.png)
+![Stranica Live monitor sa savjetima za punu memoriju](docs/screenshot-monitor.png)
 
-![Donja polovica stranice Live monitor](docs/screenshot-monitor-details.png)
+![Što zauzima prostor na disku](docs/screenshot-monitor-disks.png)
+
+![Donji kraj stranice Live monitor](docs/screenshot-monitor-details.png)
 
 Isti podaci dostupni su u skriptama kroz `Get-PerformanceSnapshot`.
 
@@ -333,8 +357,8 @@ Ponašanje određuju tri podatkovne datoteke; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
-  odredišta mrežnih testova, popis praćenih servisa, pragovi upozorenja u Live
-  monitoru, bodovi za Health score i datumi kraja podrške za verzije Windowsa (preuzeti
+  odredišta mrežnih testova, popis praćenih servisa, pragovi upozorenja i statusnih
+  točkica u Live monitoru, bodovi za Health score i datumi kraja podrške za verzije Windowsa (preuzeti
   s Microsoftovih stranica o životnom ciklusu; kad izađe nova verzija, dodaje se jedan
   redak).
 - [`HelpdeskToolkit/Config/Descriptions.psd1`](HelpdeskToolkit/Config/Descriptions.psd1):

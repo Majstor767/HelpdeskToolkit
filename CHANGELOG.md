@@ -37,7 +37,11 @@ The first public version. It will be released as 1.0.0.
 - A button next to a fix opens the page of Windows where the fix is made.
 - One page per category, search over all results and a filter by status.
 - "Copy summary" for tickets, export as HTML, PDF, CSV or JSON.
-- Settings: English or Croatian, light or dark theme, remembered window size.
+- After the first check the application repeats it in the background and replaces the
+  results without interrupting. A problem that is new is announced at the top of the
+  window and with a Windows notification; a click leads to the result.
+- Settings: English or Croatian, light or dark theme, the interval of the automatic
+  check, remembered window size.
 - Keyboard shortcuts for the common actions.
 
 ### Live monitor
@@ -49,6 +53,11 @@ The first public version. It will be released as 1.0.0.
 - The programs that use the most processor time, memory and data, with details on click.
 - Pause, selectable refresh rate, recording to a CSV file and alerts for values that
   stay high.
+- A status dot on the tiles of processor, memory and graphics: green, orange when the
+  value approaches its limit or keeps rising, red above the limit, with advice on how
+  to bring it down.
+- What takes up the space of a drive: its largest installed programs and folders, with
+  buttons that open the pages of Windows where they are removed.
 
 ### Command line and automation
 
