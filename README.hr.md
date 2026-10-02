@@ -58,6 +58,8 @@ Nakon te prve provjere aplikacija sama održava rezultate ažurnima.
   prethodnu provjeru istog računala. Aplikacija za to čuva zadnjih 30 izvještaja.
 - **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
   provjereno; točka i broj uz svaku pokazuju gdje su problemi.
+- **Najteže prvo:** na svakoj stranici, i u izvještaju, rezultati su poredani kao
+  Critical, Warning, OK, Info, pa problem nikad nije skriven negdje niže.
 - **Pretraga** traži po svim rezultatima odjednom, a filtar statusa sužava popis, na
   primjer samo na probleme.
 - **Copy summary** stavlja kratak tekstualni sažetak u međuspremnik, spreman za
@@ -113,6 +115,13 @@ ovom trenutku:
   njoj, a crvena kad je iznad granice. Uz crvenu točkicu pojavi se trokut upozorenja;
   klik na njega otvara savjete kako vrijednost smanjiti, s imenom programa koji u tom
   trenutku najviše opterećuje.
+- **Sve o komponenti:** klik na pločicu Processor, Memory ili Graphics otvara stranicu
+  koja ispuni prozor svime što se o toj komponenti može pročitati. Za procesor su to,
+  među ostalim, predmemorije, mogućnosti, na što mu odlazi vrijeme i opterećenje svakog
+  logičkog procesora; za memoriju svaki modul s kataloškim brojem, utori i page file;
+  za grafičku karticu driver, taktovi, programi koji je koriste i spojeni monitori.
+  Stranica završava svakim svojstvom koje Windows javlja, pod nazivom koji mu Windows
+  daje. `Esc` vraća natrag.
 - **Procesor:** ukupno opterećenje s grafom povijesti, takt na kojem stvarno radi
   (uključujući turbo), opterećenje svakog logičkog procesora, broj procesa, niti i
   handleova, vrijeme od pokretanja Windowsa
@@ -124,8 +133,9 @@ ovom trenutku:
   svakog fizičkog diska, i zauzeti prostor svakog slova diska (mjerač postaje narančast
   i crven prema istim pragovima kao provjera prostora na disku)
 - **Što zauzima prostor:** svako slovo diska može se otvoriti da se vide njegovi najveći
-  instalirani programi i mape, s gumbima koji otvaraju stranice Windowsa na kojima se
-  program deinstalira i na kojima se čiste datoteke
+  instalirani programi i mape. Klik na program otvara Windowsovu stranicu *Installed
+  apps*, na kojoj se deinstalira, i kopira njegov naziv za polje pretrage na toj
+  stranici; gumb otvara stranicu na kojoj se čiste datoteke
 - **Mreža:** brzina preuzimanja i slanja s grafom povijesti te brzina veze svakog adaptera
 - **Senzori:** temperatura, brzina ventilatora i potrošnja NVIDIA grafičkih kartica;
   termalne zone i baterija na računalima koja ih imaju; temperatura, istrošenost i sati
@@ -150,6 +160,8 @@ Gumba koji gasi ili deinstalira program namjerno nema: alat samo čita. Pokaže 
 ukloniti i otvori mjesto u Windowsu gdje se to radi.
 
 ![Stranica Live monitor sa savjetima za punu memoriju](docs/screenshot-monitor.png)
+
+![Sve o procesoru](docs/screenshot-component.png)
 
 ![Što zauzima prostor na disku](docs/screenshot-monitor-disks.png)
 

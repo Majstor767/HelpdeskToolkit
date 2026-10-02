@@ -12,6 +12,7 @@
     - screenshot-monitor.png:         the Live monitor page with an invented measurement
                                       and the advice for a value above its limit
     - screenshot-monitor-disks.png:   what takes up the space of a drive
+    - screenshot-component.png:       the detail page of the processor
     - screenshot-monitor-details.png: the lower end of the same page
     - screenshot-dark-hr.png:         the Overview in the dark theme and in Croatian
     - demo.gif:                       an animation that shows the pages one after the other
@@ -90,6 +91,7 @@ $pictures = @{
     Category       = Join-Path -Path $outputFolder -ChildPath 'screenshot-category.png'
     Monitor        = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor.png'
     MonitorDisks   = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor-disks.png'
+    Component      = Join-Path -Path $outputFolder -ChildPath 'screenshot-component.png'
     MonitorDetails = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor-details.png'
     Dark           = Join-Path -Path $outputFolder -ChildPath 'screenshot-dark-hr.png'
     Search         = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('HelpdeskToolkit-frame-{0}.png' -f [guid]::NewGuid())
@@ -335,6 +337,85 @@ $pictures = @{
         $gui.Window.Dispatcher.Invoke([action] { }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
         $controls.MonitorVolumes.BringIntoView()
         & $savePicture $gui.Window $Pictures.MonitorDisks
+
+        # The detail page of the processor, as a click on its tile opens it. What the
+        # background would read about the processor is invented here, so nothing of
+        # this computer gets into the picture.
+        $line = { param($Name, $Text) [PSCustomObject]@{ Name = $Name; Text = $Text } }
+        $part = { param($Title, $Rows, [switch]$Raw, [switch]$KeepNames) [PSCustomObject]@{ Title = $Title; Raw = [bool]$Raw; KeepNames = [bool]$KeepNames; Rows = @($Rows) } }
+        $gui.ComponentDetail['Cpu'] = @{
+            State      = 'Done'
+            Error      = ''
+            Worker     = $null
+            Handle     = $null
+            FinishedAt = Get-Date
+            Detail     = [PSCustomObject]@{
+                Name     = 'Cpu'
+                ReadAt   = [datetime]'2026-09-30 09:15:21'
+                Sections = @(
+                    & $part 'Processor' @(
+                        & $line 'Name' 'Contoso Core 8 2.40GHz'
+                        & $line 'Maker' 'Contoso'
+                        & $line 'Description' 'x64 Family 6 Model 10 Stepping 2'
+                        & $line 'Architecture' 'x64 (64 bit)'
+                        & $line 'Socket' 'U3E1'
+                        & $line 'Cores' '8'
+                        & $line 'Cores in use' '8'
+                        & $line 'Logical processors' '16'
+                        & $line 'Base speed' '2400 MHz'
+                        & $line 'Speed of the bus' '100 MHz'
+                        & $line 'L2 cache' '4 MB'
+                        & $line 'L3 cache' '16 MB'
+                        & $line 'Virtualization turned on in the firmware' 'Yes'
+                        & $line 'Extensions for virtual machines' 'Yes'
+                        & $line 'Second level address translation' 'Yes'
+                        & $line 'Address width' '64 bit'
+                        & $line 'Data width' '64 bit'
+                        & $line 'Processor ID' 'BFEBFBFF000A0652'
+                        & $line 'Status' 'OK'
+                    )
+                    & $part 'Cache' -KeepNames @(
+                        & $line 'L1 Cache' '640 KB'
+                        & $line 'L2 Cache' '4 MB'
+                        & $line 'L3 Cache' '16 MB'
+                    )
+                    & $part 'Activity right now' @(
+                        & $line 'Time spent in programs' '21 %'
+                        & $line 'Time spent in Windows itself' '6 %'
+                        & $line 'Time spent on signals from hardware' '0 %'
+                        & $line 'Time spent on postponed work of drivers' '0 %'
+                        & $line 'Idle' '73 %'
+                        & $line 'Signals from hardware per second' '5139'
+                        & $line 'Switches between programs per second' '7197'
+                        & $line 'Requests to Windows per second' '37102'
+                        & $line 'Threads waiting for a free processor' '0'
+                    )
+                    & $part 'Computer' @(
+                        & $line 'Processor sockets in use' '1'
+                        & $line 'Logical processors in total' '16'
+                        & $line 'Runs under a hypervisor' 'No'
+                        & $line 'Power plan' 'Balanced'
+                    )
+                    & $part 'Win32_Processor' -Raw @(
+                        & $line 'AddressWidth' '64'
+                        & $line 'Architecture' '9'
+                        & $line 'Caption' 'x64 Family 6 Model 10 Stepping 2'
+                        & $line 'CurrentClockSpeed' '2400'
+                        & $line 'DataWidth' '64'
+                        & $line 'L2CacheSize' '4096'
+                        & $line 'L3CacheSize' '16384'
+                        & $line 'MaxClockSpeed' '2400'
+                        & $line 'NumberOfCores' '8'
+                        & $line 'NumberOfLogicalProcessors' '16'
+                    )
+                )
+            }
+        }
+        Open-WindowComponent -Gui $gui -Name 'Cpu'
+        # Once more after the layout, so the large graph is drawn at its real size.
+        $gui.Window.Dispatcher.Invoke([action] { }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
+        Show-WindowComponent -Gui $gui
+        & $savePicture $gui.Window $Pictures.Component
     }
     finally {
         $gui.Window.Close()
@@ -359,7 +440,7 @@ $pictures = @{
     }
 } $sampleJson $pictures
 
-foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'MonitorDetails', 'Dark') {
+foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Component', 'MonitorDetails', 'Dark') {
     Write-Output $pictures[$name]
 }
 
@@ -368,7 +449,7 @@ foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'MonitorDetai
 # but not the two things that make it an animation: how long each picture is shown and
 # that it starts over at the end. Both are added to the file afterwards.
 
-$frames = $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
+$frames = $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.Component, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
 $encoder = New-Object -TypeName System.Windows.Media.Imaging.GifBitmapEncoder
 foreach ($frame in $frames) {
     $bitmap = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage

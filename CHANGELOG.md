@@ -35,7 +35,8 @@ The first public version. It will be released as 1.0.0.
 - Overview with the problems and their fixes, a health score from 0 to 100 and the
   changes since the previous check of the same computer.
 - A button next to a fix opens the page of Windows where the fix is made.
-- One page per category, search over all results and a filter by status.
+- One page per category, search over all results and a filter by status. On every
+  page, and in the report, the most severe results come first.
 - "Copy summary" for tickets, export as HTML, PDF, CSV or JSON.
 - After the first check the application repeats it in the background and replaces the
   results without interrupting. A problem that is new is announced at the top of the
@@ -56,8 +57,10 @@ The first public version. It will be released as 1.0.0.
 - A status dot on the tiles of processor, memory and graphics: green, orange when the
   value approaches its limit or keeps rising, red above the limit, with advice on how
   to bring it down.
-- What takes up the space of a drive: its largest installed programs and folders, with
-  buttons that open the pages of Windows where they are removed.
+- A click on the processor, memory or graphics tile opens a page with everything that
+  can be read about that component, down to every property Windows reports.
+- What takes up the space of a drive: its largest installed programs and folders. A
+  click on a program opens the page of Windows where it is uninstalled.
 
 ### Command line and automation
 

@@ -56,6 +56,8 @@ After that first check the application keeps the results up to date by itself.
   for this.
 - **Categories** on the left (System, Hardware, Network, ...) show everything that was
   checked; the dot and the number next to each one show where the problems are.
+- **Most severe first:** on every page, and in the report, the results are listed as
+  Critical, Warning, OK, Info, so a problem is never hidden further down.
 - **Search** looks through all results at once, and the status filter narrows the
   list down, for example to the problems only.
 - **Copy summary** puts a short text version of the result on the clipboard, ready to
@@ -113,6 +115,13 @@ computer is doing right now:
   towards it, and red when it is above the limit. A red dot comes with a warning
   triangle; a click on it opens advice on how to bring the value down, naming the
   program that causes the most load at that moment.
+- **Everything about a component:** a click on the Processor, Memory or Graphics tile
+  opens a page that fills the window with all that can be read about it. For the
+  processor that is, among other things, caches, features, where its time goes and the
+  load of every logical processor; for the memory every module with its part number,
+  the slots and the page file; for the graphics card the driver, clock speeds, the
+  programs that use it and the connected displays. The page ends with every property
+  Windows reports, under the name Windows gives it. `Esc` leads back.
 - **Processor:** total load with a history graph, the speed it really runs at (turbo
   included), load of every logical processor, number of processes, threads and handles,
   time since Windows started
@@ -124,8 +133,9 @@ computer is doing right now:
   every physical disk, and the used space of every drive letter (the meter turns orange
   and red by the same limits as the disk space check)
 - **What takes up the space:** every drive letter can be opened to see its largest
-  installed programs and folders, with buttons that open the pages of Windows where a
-  program is uninstalled and where files are cleaned up
+  installed programs and folders. A click on a program opens the *Installed apps* page
+  of Windows, where it is uninstalled, and copies its name for the search field there;
+  a button opens the page where files are cleaned up
 - **Network:** download and upload rate with a history graph, and the link speed of
   every adapter
 - **Sensors:** temperature, fan speed and power draw of NVIDIA graphics cards; thermal
@@ -151,6 +161,8 @@ There is deliberately no button that ends or uninstalls a program: the tool only
 It shows what to remove and opens the place in Windows where that is done.
 
 ![The Live monitor page with the advice for a full memory](docs/screenshot-monitor.png)
+
+![Everything about the processor](docs/screenshot-component.png)
 
 ![What takes up the space of a drive](docs/screenshot-monitor-disks.png)
 
