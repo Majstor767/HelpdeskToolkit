@@ -69,8 +69,13 @@ it again at any time.
   for this.
 - **Categories** on the left (System, Hardware, Network, ...) show everything that was
   checked; the dot and the number next to each one show where the problems are.
-- **Most severe first:** on every page, and in the report, the results are listed as
-  Critical, Warning, OK, Info, so a problem is never hidden further down.
+- **Four columns:** the page of a category shows its results side by side, one column
+  per status: Critical, Warning, OK, Info. Each kind stands by itself, so a problem
+  cannot be overlooked among the rest. A card shows the name of the check and its
+  value; a click opens the explanation, the allowed range and the fix. The problems
+  are open from the start.
+- **Most severe first:** wherever results are listed below each other (Overview,
+  search, the report), they come as Critical, Warning, OK, Info.
 - **Search** looks through all results at once, and the status filter narrows the
   list down, for example to the problems only.
 - **Copy summary** puts a short text version of the result on the clipboard, ready to
@@ -90,7 +95,7 @@ with a Windows notification while the window is not in front. A click leads stra
 the result, which is framed so it is easy to find. A notice disappears when it is
 dismissed or when the problem is gone.
 
-![A result reached through a notice](docs/screenshot-category.png)
+![The page of a category, reached through a notice](docs/screenshot-category.png)
 
 Keyboard shortcuts:
 

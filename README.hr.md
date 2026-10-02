@@ -71,8 +71,13 @@ ponovno u bilo kojem trenutku.
   prethodnu provjeru istog računala. Aplikacija za to čuva zadnjih 30 izvještaja.
 - **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
   provjereno; točka i broj uz svaku pokazuju gdje su problemi.
-- **Najteže prvo:** na svakoj stranici, i u izvještaju, rezultati su poredani kao
-  Critical, Warning, OK, Info, pa problem nikad nije skriven negdje niže.
+- **Četiri stupca:** stranica kategorije prikazuje rezultate jedan do drugoga, po
+  jedan stupac za svaki status: Critical, Warning, OK, Info. Svaka vrsta stoji za sebe,
+  pa se problem ne može previdjeti među ostalim. Kartica prikazuje naziv provjere i
+  vrijednost; klik otvara objašnjenje, dopušteni raspon i rješenje. Problemi su
+  otvoreni od početka.
+- **Najteže prvo:** gdje god su rezultati poredani jedan ispod drugoga (Overview,
+  pretraga, izvještaj), idu redom Critical, Warning, OK, Info.
 - **Pretraga** traži po svim rezultatima odjednom, a filtar statusa sužava popis, na
   primjer samo na probleme.
 - **Copy summary** stavlja kratak tekstualni sažetak u međuspremnik, spreman za
@@ -90,7 +95,7 @@ Problem kojeg prije nije bilo najavljuje se u traci na vrhu prozora, a dok prozo
 u prvom planu i Windows obavijesti. Klik vodi ravno na rezultat, koji je uokviren da ga
 je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
 
-![Rezultat do kojeg je dovela obavijest](docs/screenshot-category.png)
+![Stranica kategorije do koje je dovela obavijest](docs/screenshot-category.png)
 
 Tipkovni prečaci:
 
