@@ -5,8 +5,9 @@ function Receive-WindowCheck {
     .DESCRIPTION
         Called by a timer on the window thread a few times per second. While the
         background runspace is still working, the latest Write-Progress record it
-        produced is shown in the progress panel. Once it has finished, the report is
-        collected and displayed, and the runspace is released.
+        produced is shown in the progress panel: which categories are still being
+        checked and how many are done. Once it has finished, the report is collected
+        and displayed, and the runspace is released.
 
         A finished report is also added to the history of the application (see
         Save-HealthReportHistory), after the report of the previous check was looked
@@ -22,6 +23,10 @@ function Receive-WindowCheck {
           is not in front, with a Windows notification (Show-WindowToast).
 
         A check the user starts is a fresh look at everything, so it removes the notices.
+
+        The first check after the start replaces the report of the last start, which
+        was shown in the meantime (see Show-WindowLastReport), without leaving the
+        page that is open.
     #>
     [CmdletBinding()]
     param(
@@ -46,8 +51,20 @@ function Receive-WindowCheck {
             Where-Object { $_.Activity -eq $script:ProgressActivity -and $_.PercentComplete -ge 0 } |
             Select-Object -Last 1
 
-        if ($latest -and $controls.RunPercent.Text -ne ('{0} %' -f $latest.PercentComplete)) {
-            $controls.RunTitle.Text = (Get-LocalizedText 'Checking: {0}') -f (Get-LocalizedText $latest.StatusDescription)
+        # The categories run side by side: the record names the ones that are still
+        # running ("Hardware, Windows Update") and how many are done. A long list
+        # says little, so it is only written out once a few are left.
+        $open = @(if ($latest) { ([string]$latest.StatusDescription) -split ', ' | Where-Object { $_ } })
+        $step = if ($latest) { '{0}|{1}' -f $latest.PercentComplete, $open.Count } else { '' }
+
+        if ($latest -and $Gui.RunStep -ne $step) {
+            $Gui.RunStep = $step
+            $controls.RunTitle.Text = if ($open.Count -le 3) {
+                (Get-LocalizedText 'Checking: {0}') -f (($open | ForEach-Object { Get-LocalizedText $_ }) -join ', ')
+            }
+            else {
+                (Get-LocalizedText 'Checking {0} categories at the same time ...') -f $open.Count
+            }
             $controls.RunStep.Text = Get-LocalizedText ([string]$latest.CurrentOperation)
             $controls.RunPercent.Text = '{0} %' -f $latest.PercentComplete
 
@@ -104,12 +121,17 @@ function Receive-WindowCheck {
             $previous = Get-PreviousHealthReport -Report $report
             [void](Save-HealthReportHistory -Report $report)
 
+            # While the first check of this start ran, the report of the last start was
+            # on the screen. Somebody may be reading it, so the page that is open stays.
+            $parameters = @{ Gui = $Gui; Report = $report }
             if ($previous) {
-                Show-WindowReport -Gui $Gui -Report $report -Previous $previous
+                $parameters.Previous = $previous
             }
-            else {
-                Show-WindowReport -Gui $Gui -Report $report
+            if ($Gui.StaleReport) {
+                $parameters.KeepPage = $true
+                $parameters.Requested = $true
             }
+            Show-WindowReport @parameters
             Show-WindowNotice -Gui $Gui -Clear
         }
     }

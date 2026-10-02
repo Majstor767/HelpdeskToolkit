@@ -35,6 +35,8 @@ $script:Thresholds = $null
 $script:Descriptions = $null
 $script:HealthCheckWindow = $null
 $script:VideoMemoryCache = $null
+# The runspaces that read several WMI classes at the same time (see Get-CimInstanceBatch).
+$script:CimPool = $null
 $script:DriveHealthCache = $null
 # Only set when the functions were sent to another computer, where there is no manifest
 # to read the version from (see Get-ToolVersion).
@@ -50,6 +52,9 @@ $script:Language = 'en'
 $script:Translations = $null
 # Replaces the folder for the files of the application itself; used by the tests.
 $script:AppDataRoot = $null
+# Replaces the number of check categories that run at the same time (see
+# Get-PCHealthReport); used by the tests, whose mocks only exist in their own session.
+$script:CheckThrottleLimit = $null
 
 # Name of the progress bar of a run. The window uses it to tell the progress of the
 # health check apart from progress written by Windows cmdlets.
@@ -59,8 +64,33 @@ $script:ProgressActivity = 'PC Health Check'
 $public = @(Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Public') -Filter '*.ps1')
 $private = @(Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Private') -Filter '*.ps1')
 
-foreach ($file in ($private + $public)) {
-    . $file.FullName
+# Loading the files one at a time takes about a second: PowerShell checks and compiles
+# every file by itself. Read into one text and loaded as one block, the same functions
+# are there in a fifth of that time, which every start of the application and every
+# background runspace feels.
+#
+# The price is that an error then names a line of that block instead of a file. With
+# the environment variable HELPDESKTOOLKIT_LOAD_FILES set to 1 the files are loaded one
+# by one again; the tests do that, and it is the thing to set while debugging.
+if ($env:HELPDESKTOOLKIT_LOAD_FILES -eq '1') {
+    foreach ($file in ($private + $public)) {
+        . $file.FullName
+    }
+}
+else {
+    $source = New-Object -TypeName System.Text.StringBuilder
+    foreach ($file in ($private + $public)) {
+        [void]$source.AppendLine([System.IO.File]::ReadAllText($file.FullName))
+    }
+    . ([scriptblock]::Create($source.ToString()))
 }
 
 Export-ModuleMember -Function $public.BaseName
+
+# The runspaces of Get-CimInstanceBatch are given back when the module is removed.
+$ExecutionContext.SessionState.Module.OnRemove = {
+    if ($script:CimPool) {
+        $script:CimPool.Dispose()
+        $script:CimPool = $null
+    }
+}

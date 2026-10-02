@@ -52,16 +52,19 @@ function Invoke-WindowCheck {
 
     # The background runspace knows nothing about this session, so it imports the
     # module itself and then calls the same public command as the console version.
+    # A check the application repeats by itself may reuse the measurements that take
+    # long and change slowly; a check the user asked for measures everything anew.
     $work = {
-        param($ManifestPath, $Days, $SkipNetwork)
+        param($ManifestPath, $Days, $SkipNetwork, $AllowCached)
         Import-Module -Name $ManifestPath
-        Get-PCHealthReport -Days $Days -SkipNetwork:$SkipNetwork
+        Get-PCHealthReport -Days $Days -SkipNetwork:$SkipNetwork -AllowCached:$AllowCached
     }
 
     $worker = [powershell]::Create()
-    [void]$worker.AddScript($work.ToString()).AddArgument($Gui.ManifestPath).AddArgument($days).AddArgument($skipNetwork)
+    [void]$worker.AddScript($work.ToString()).AddArgument($Gui.ManifestPath).AddArgument($days).AddArgument($skipNetwork).AddArgument([bool]$Background)
 
     $Gui.Background = [bool]$Background
+    $Gui.RunStep = ''
     $Gui.Worker = $worker
     $Gui.Handle = $worker.BeginInvoke()
     $Gui.Timer.Start()
