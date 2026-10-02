@@ -340,6 +340,12 @@ function Show-WindowMonitor {
     # --- Status dots of the tiles ------------------------------------------------
     Show-WindowAdvice -Gui $Gui -Status @(Get-MonitorStatus -History $Gui.MonitorHistory -Snapshot $Snapshot)
 
+    # --- Detail page of a component, when one is open ------------------------------
+    $Gui.MonitorSnapshot = $Snapshot
+    if ($Gui.MonitorComponent) {
+        Show-WindowComponent -Gui $Gui
+    }
+
     $interval = if ($Gui.Monitor) { [int]$Gui.Monitor.Shared.IntervalSeconds } else { [int]$Gui.Settings.MonitorIntervalSeconds }
     $controls.PageSubtitle.Text = (Get-LocalizedText 'What the computer is doing right now. Updated {0:HH:mm:ss}; refreshes about every {1} seconds.') -f $Snapshot.TakenAt, $interval
 }

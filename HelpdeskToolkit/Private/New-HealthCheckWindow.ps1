@@ -23,6 +23,9 @@ function New-HealthCheckWindow {
                         that is open
         - MonitorVolumes, VolumeSignature, DiskUsage: the drives and what takes up
                         their space
+        - MonitorSnapshot, MonitorComponent, ComponentDetail: the newest measurement,
+                        the component whose detail page is open ("Cpu", "Memory",
+                        "Gpu" or nothing) and what was read about each component
 
         Before the XAML becomes a window, two things are changed in it:
 
@@ -158,6 +161,11 @@ function New-HealthCheckWindow {
         MonitorVolumes    = @()
         VolumeSignature   = ''
         DiskUsage         = @{}
+        # The newest measurement, kept for the detail page of a component; the component
+        # whose page is open; and per component what was read about it in the background.
+        MonitorSnapshot   = $null
+        MonitorComponent  = ''
+        ComponentDetail   = @{}
         # Set while the code itself changes a selection, so the event handlers do not react.
         Loading           = $false
     }

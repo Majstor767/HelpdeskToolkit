@@ -7,7 +7,8 @@ function Invoke-WindowShortcut {
 
         F5            run the check
         Ctrl+F        go to the search field (on the Overview when the open page has none)
-        Esc           clear the search
+        Esc           clear the search; on the detail page of a component, go back to
+                      the Live monitor
         Ctrl+S        save the report ("Save as...")
         Ctrl+O        open the HTML report in the browser
         Ctrl+Shift+C  copy the summary
@@ -65,6 +66,10 @@ function Invoke-WindowShortcut {
             'Escape' {
                 if ($controls.SearchBox.Text) {
                     $controls.SearchBox.Text = ''
+                    return $true
+                }
+                if ($Gui.MonitorComponent) {
+                    Close-WindowComponent -Gui $Gui
                     return $true
                 }
             }

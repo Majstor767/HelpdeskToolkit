@@ -377,6 +377,17 @@
             <Setter Property="Margin" Value="0,0,10,0"/>
         </Style>
 
+        <!-- A tile that opens the detail page of its component when it is clicked -->
+        <Style x:Key="MonitorTileLink" TargetType="Border" BasedOn="{StaticResource MonitorTile}">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                    <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="MonitorTileValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -442,6 +453,42 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- One section of a detail page of the Live monitor: a title and lines of a name
+             and a value. A line can carry a meter in front of its value. -->
+        <DataTemplate x:Key="DetailSection">
+            <Border Style="{StaticResource SectionCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource SectionTitle}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <ItemsControl ItemsSource="{Binding Rows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="300"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,12,0"/>
+                                    <ProgressBar Grid.Column="1" Value="{Binding Percent, Mode=OneWay}" Width="170" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <ProgressBar.Style>
+                                            <Style TargetType="ProgressBar" BasedOn="{StaticResource MeterBar}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Meter}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ProgressBar.Style>
+                                    </ProgressBar>
+                                    <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
 
     <Window.Background>
@@ -922,7 +969,7 @@
 
                             <!-- The most important numbers at a glance -->
                             <UniformGrid Columns="4" Margin="0,0,-10,10">
-                                <Border Style="{StaticResource MonitorTile}">
+                                <Border x:Name="MonitorCpuTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the processor">
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorCpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
@@ -933,7 +980,7 @@
                                         <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
-                                <Border Style="{StaticResource MonitorTile}">
+                                <Border x:Name="MonitorMemoryTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the memory">
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorMemoryAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
@@ -944,7 +991,7 @@
                                         <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
-                                <Border Style="{StaticResource MonitorTile}">
+                                <Border x:Name="MonitorGpuTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the graphics card">
                                     <StackPanel>
                                         <DockPanel>
                                             <ToggleButton x:Name="MonitorGpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
@@ -1173,7 +1220,7 @@
                                                                     <ItemsControl ItemsSource="{Binding Programs}">
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
-                                                                                <DockPanel Margin="0,0,0,3">
+                                                                                <DockPanel Style="{StaticResource ClickableRow}" ToolTip="{Binding Tip}" Margin="0,0,0,3">
                                                                                     <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
                                                                                     <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
                                                                                 </DockPanel>
@@ -1349,6 +1396,63 @@
                                     <TextBlock x:Name="MonitorProgramHint" Text="Click a program to see its details." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Detail page of one component of the Live monitor (processor, memory or
+                         graphics card). A click on the tile of the component opens it in place
+                         of the monitor; it lists everything that can be read about the component. -->
+                    <ScrollViewer x:Name="ComponentPanel" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                        <StackPanel Margin="0,0,6,0">
+                            <DockPanel Margin="0,0,0,10">
+                                <Button x:Name="ComponentBackButton" DockPanel.Dock="Left" Content="Back to the Live monitor" Tag="&#xE72B;" ToolTip="Back to the Live monitor (Esc)" Style="{StaticResource SmallButton}"/>
+                                <Button x:Name="ComponentRefreshButton" DockPanel.Dock="Right" Content="Read again" Tag="&#xE72C;" Style="{StaticResource SmallButton}"/>
+                                <TextBlock x:Name="ComponentState" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="14,0"/>
+                            </DockPanel>
+
+                            <!-- The value right now, its status and its history -->
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <TextBlock x:Name="ComponentValue" DockPanel.Dock="Right" Text="-" FontSize="26" FontWeight="Bold" Margin="14,0,0,0"/>
+                                        <Ellipse x:Name="ComponentDot" DockPanel.Dock="Left" Width="12" Height="12" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock x:Name="ComponentSummary" Foreground="{StaticResource TextBrush}" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                    </DockPanel>
+                                    <Border Style="{StaticResource GraphFrame}" Height="150" Margin="0">
+                                        <Grid>
+                                            <Canvas x:Name="ComponentGraph" ClipToBounds="True">
+                                                <Polygon x:Name="ComponentArea" Fill="{StaticResource CpuBrush}" Opacity="0.16"/>
+                                                <Polyline x:Name="ComponentLine" Stroke="{StaticResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                            </Canvas>
+                                            <TextBlock Text="last 60 measurements, 0 - 100 %" Style="{StaticResource GraphCaption}"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- What to do, while the value is close to its limit or above it -->
+                            <Border x:Name="ComponentAdviceCard" Background="{StaticResource CriticalBackBrush}" BorderBrush="{StaticResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock x:Name="ComponentAdviceTitle" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap"/>
+                                    <ItemsControl x:Name="ComponentAdviceItems" Margin="0,6,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Margin="0,0,0,4">
+                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{StaticResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
+                                                    <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button x:Name="ComponentAdviceAction" Content="Open Task Manager" Tag="&#xE8A7;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- The values of the newest measurement, redrawn with every measurement -->
+                            <ItemsControl x:Name="ComponentLiveSections" ItemTemplate="{StaticResource DetailSection}"/>
+
+                            <!-- Everything else that can be read, redrawn when it was read again -->
+                            <ItemsControl x:Name="ComponentSections" ItemTemplate="{StaticResource DetailSection}"/>
                         </StackPanel>
                     </ScrollViewer>
 

@@ -257,6 +257,10 @@
         TrendSamples        = 15
         TrendAheadSamples   = 15
         TrendMinimumPercent = 50
+
+        # Detail page of a component: everything that does not come with the ordinary
+        # measurements is read again after this many seconds while the page is open.
+        DetailRefreshSeconds = 10
     }
 
     Score         = @{

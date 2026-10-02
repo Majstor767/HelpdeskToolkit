@@ -12,7 +12,8 @@ function Receive-WindowMonitor {
         (see Add-WindowRecordingRow).
 
         The same timer picks up the finished measurements of what takes up the space
-        of the drives (see Receive-WindowDiskUsage).
+        of the drives (see Receive-WindowDiskUsage) and what was read for the detail
+        page of a component (see Receive-WindowComponentDetail).
     #>
     [CmdletBinding()]
     param(
@@ -22,6 +23,7 @@ function Receive-WindowMonitor {
     )
 
     Receive-WindowDiskUsage -Gui $Gui
+    Receive-WindowComponentDetail -Gui $Gui
 
     $monitor = $Gui.Monitor
     if (-not $monitor) {

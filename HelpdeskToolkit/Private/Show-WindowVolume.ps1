@@ -9,9 +9,9 @@ function Show-WindowVolume {
 
         Below the meter is the line "What takes up the space", which opens a list of
         the largest programs and folders of the drive (see Switch-WindowVolume and
-        Get-DiskUsageDetail). The list comes with buttons that open the pages of
-        Windows where a program is removed and where files are cleaned up; the
-        application itself removes nothing.
+        Get-DiskUsageDetail). A click on a program opens the page of Windows where it
+        is removed (see Open-WindowUninstall), and buttons open that page and the one
+        where files are cleaned up; the application itself removes nothing.
 
         With -Volume the drives of a new measurement are stored and shown; without it
         the stored ones are drawn again (after a click, or when a measurement of the
@@ -67,11 +67,12 @@ function Show-WindowVolume {
                     $detail = $usage.Detail
                     $state = (Get-LocalizedText 'Measured at {0:HH:mm}. The {1} programs installed on this drive take up {2}.') -f
                         $detail.MeasuredAt, $detail.ProgramCount, (Format-Gigabyte -Bytes $detail.ProgramBytes)
-                    $programs = @($detail.Programs | ForEach-Object { [PSCustomObject]@{ Name = $_.Name; Text = & $toSize $_ } })
+                    $tip = Get-LocalizedText 'Click to open Installed apps of Windows, where this program is removed'
+                    $programs = @($detail.Programs | ForEach-Object { [PSCustomObject]@{ Name = $_.Name; Text = & $toSize $_; Kind = 'Program'; Tip = $tip } })
                     $folders = @($detail.Folders | ForEach-Object { [PSCustomObject]@{ Name = $_.Name; Text = & $toSize $_ } })
                     $lists = 'Show'
 
-                    $notes = @(Get-LocalizedText 'To remove a program, open Installed apps, choose it there and click Uninstall. This application itself removes nothing.')
+                    $notes = @(Get-LocalizedText 'To remove a program, click it: Installed apps of Windows opens, where you choose it and click Uninstall. This application itself removes nothing.')
                     if ($detail.UnknownCount -gt 0) {
                         $notes += (Get-LocalizedText 'Programs that do not say how large they are: {0}.') -f $detail.UnknownCount
                     }

@@ -15,8 +15,11 @@ function Show-WindowPage {
         - Settings: language, theme, the automatic check, keyboard shortcuts and where
           the application keeps its files. It is opened with the button below the page
           list, so no entry of the list is selected while it is shown.
-        - A category (System, Network, ...): every check of that category in the
-          order it ran.
+        - A category (System, Network, ...): every check of that category.
+
+        Order: on every page the most severe results come first, so a problem is never
+        hidden further down: Critical, then Warning, then OK, then Info. Results with
+        the same status keep the order in which the checks ran.
 
         Search and filter (on pages with results):
         - A search text looks through all results of the report, whatever page is
@@ -76,6 +79,9 @@ function Show-WindowPage {
         $controls.SettingsPanel.Visibility = $collapsed
         $controls.FilterPanel.Visibility = $collapsed
         $controls.MonitorPanel.Visibility = $visible
+        # The page opens with the monitor itself, not with the details of a component.
+        $controls.ComponentPanel.Visibility = $collapsed
+        $Gui.MonitorComponent = ''
         Enable-WindowMonitor -Gui $Gui
         return
     }
@@ -83,6 +89,8 @@ function Show-WindowPage {
     # Every other page leaves the monitor; it only measures while it is visible.
     Disable-WindowMonitor -Gui $Gui
     $controls.MonitorPanel.Visibility = $collapsed
+    $controls.ComponentPanel.Visibility = $collapsed
+    $Gui.MonitorComponent = ''
 
     if ($Name -eq 'Settings') {
         $controls.PageTitle.Text = Get-LocalizedText 'Settings'
@@ -119,7 +127,14 @@ function Show-WindowPage {
     }
 
     $controls.FilterPanel.Visibility = $visible
-    $results = @($report.Results)
+
+    # Most severe first; within one status the order of the checks is kept.
+    $results = @(
+        foreach ($status in 'Critical', 'Warning', 'OK', 'Info') {
+            $report.Results | Where-Object { $_.Status -eq $status }
+        }
+        $report.Results | Where-Object { $_.Status -notin 'Critical', 'Warning', 'OK', 'Info' }
+    )
 
     # The two filters
     $search = ([string]$controls.SearchBox.Text).Trim()
@@ -153,8 +168,8 @@ function Show-WindowPage {
             $subtitle = (Get-LocalizedText '{0} of {1} results have the chosen status.') -f $shown.Count, $results.Count
         }
         else {
-            # Most severe first, like the problem list of the HTML report.
-            $shown = @($results | Where-Object { $_.Status -eq 'Critical' }) + @($results | Where-Object { $_.Status -eq 'Warning' })
+            # Only the problems, like the problem list of the HTML report.
+            $shown = @($results | Where-Object { $_.Status -in 'Critical', 'Warning' })
             $subtitle = if ($shown.Count -eq 0) {
                 Get-LocalizedText 'Nothing needs attention. Choose a category on the left to see its details.'
             }

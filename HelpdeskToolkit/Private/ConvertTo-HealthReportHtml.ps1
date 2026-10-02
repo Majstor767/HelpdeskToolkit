@@ -136,7 +136,9 @@ function ConvertTo-HealthReportHtml {
     }
     $html.Add('</section>')
 
-    # Categories in the order the checks ran, each with its worst status.
+    # Categories in the order the checks ran, each with its worst status. Inside a
+    # category the most severe results come first; results with the same status keep
+    # the order in which the checks ran.
     $categories = @($results | ForEach-Object { $_.Category } | Select-Object -Unique)
     $categoryInfo = foreach ($category in $categories) {
         $categoryResults = @($results | Where-Object { $_.Category -eq $category })
@@ -144,7 +146,7 @@ function ConvertTo-HealthReportHtml {
         [PSCustomObject]@{
             Name    = $category
             Id      = 'cat-' + ($category.ToLower() -replace '[^a-z0-9]+', '-').Trim('-')
-            Results = $categoryResults
+            Results = @(foreach ($status in $statusOrder) { $categoryResults | Where-Object { $_.Status -eq $status } })
             Worst   = $worst
         }
     }

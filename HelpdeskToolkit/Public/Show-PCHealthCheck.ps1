@@ -14,8 +14,10 @@ function Show-PCHealthCheck {
           graphics, disks, network, sensors and the busiest programs). It needs no
           check, can be paused, and can record its measurements into a CSV file. A dot
           on the tiles of processor, memory and graphics turns orange and red as the
-          value approaches and passes its limit, with advice on what to do. Every
-          drive can list the programs and folders that take up its space.
+          value approaches and passes its limit, with advice on what to do. A click
+          on one of these tiles opens a page with everything that can be read about
+          that component. Every drive can list the programs and folders that take up
+          its space; a click on a program opens the page of Windows where it is removed.
         - Settings: language (English or Croatian), theme (light or dark) and how
           often the check is repeated by itself.
 
@@ -263,6 +265,37 @@ function Show-PCHealthCheck {
             }
         })
 
+    # A click on the tile of the processor, the memory or the graphics card opens the
+    # page with everything about it. (A click on the triangle inside a tile is used up
+    # by the triangle and does not arrive here.)
+    $controls.MonitorCpuTile.Add_MouseLeftButtonUp({ Open-WindowComponent -Gui $script:HealthCheckWindow -Name 'Cpu' })
+    $controls.MonitorMemoryTile.Add_MouseLeftButtonUp({ Open-WindowComponent -Gui $script:HealthCheckWindow -Name 'Memory' })
+    $controls.MonitorGpuTile.Add_MouseLeftButtonUp({ Open-WindowComponent -Gui $script:HealthCheckWindow -Name 'Gpu' })
+    $controls.ComponentBackButton.Add_Click({ Close-WindowComponent -Gui $script:HealthCheckWindow })
+    $controls.ComponentRefreshButton.Add_Click({
+            $state = $script:HealthCheckWindow
+            if ($state.MonitorComponent) {
+                Invoke-WindowComponentDetail -Gui $state -Name $state.MonitorComponent
+                Show-WindowComponentDetail -Gui $state
+            }
+        })
+    $controls.ComponentAdviceAction.Add_Click({
+            $state = $script:HealthCheckWindow
+            $entry = @($state.MonitorStatus) | Where-Object { $_.Name -eq $state.MonitorComponent } | Select-Object -First 1
+            if ($entry -and -not (Invoke-CheckAction -Check $entry.ActionCheck -Category 'Hardware')) {
+                $state.Controls.StatusText.Text = Get-LocalizedText 'Windows could not open that place.'
+            }
+        })
+
+    # A click on a program in "What takes up the space" opens the page of Windows where
+    # it is removed.
+    $controls.MonitorVolumes.AddHandler([System.Windows.UIElement]::MouseLeftButtonUpEvent, [System.Windows.Input.MouseButtonEventHandler] {
+            $item = $args[1].OriginalSource.DataContext
+            if ($item -and $item.PSObject.Properties['Kind'] -and $item.Kind -eq 'Program') {
+                [void](Open-WindowUninstall -Gui $script:HealthCheckWindow -Name $item.Name)
+            }
+        })
+
     # The drives: the line below a meter opens what takes up the space, and the buttons
     # in that box open the pages of Windows where programs and files are removed. Like
     # the result cards they come from a template, so the click is caught on the list.
@@ -354,7 +387,7 @@ function Show-PCHealthCheck {
             if ($state.Worker) {
                 [void]$state.Worker.BeginStop($null, $null)
             }
-            foreach ($usage in @($state.DiskUsage.Values)) {
+            foreach ($usage in @($state.DiskUsage.Values) + @($state.ComponentDetail.Values)) {
                 if ($usage.Worker) {
                     [void]$usage.Worker.BeginStop($null, $null)
                 }
