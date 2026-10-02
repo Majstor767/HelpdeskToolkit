@@ -68,6 +68,8 @@ function ConvertTo-WindowItem {
             SourceCheck         = $Result.Check
             # "Yes" frames the card; set for the result a notice has led to.
             Highlight           = ''
+            # Whether the details of a compact card are open; set by Show-WindowPage.
+            Expanded            = $false
             SourceCategory      = $Result.Category
         }
     }

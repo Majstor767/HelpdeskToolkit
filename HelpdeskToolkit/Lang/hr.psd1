@@ -147,6 +147,9 @@
         'Every 60 minutes'                                     = 'Svakih 60 minuta'
         'After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result.' = 'Nakon prve provjere aplikacija je ponavlja u pozadini i ažurira rezultate. Novi problem najavljuje se na vrhu prozora, a dok prozor nije u prvom planu i Windows obavijesti. Klik na nju vodi do rezultata.'
 
+        # --- Columns of a category page -------------------------------------------
+        'Nothing here.'                                        = 'Ovdje nema ništa.'
+
         # --- Question at the start ------------------------------------------------
         'Run the check with administrator rights?'             = 'Pokrenuti provjeru s administratorskim pravima?'
         'With administrator rights the check also shows what Windows only tells administrators: BitLocker and TPM, the temperature and wear of the drives, failed sign-ins and restore points. Windows asks you to confirm. Without them the check shows everything a standard user may see.' = 'S administratorskim pravima provjera prikazuje i ono što Windows govori samo administratorima: BitLocker i TPM, temperaturu i istrošenost diskova, neuspjele prijave i točke vraćanja. Windows će tražiti potvrdu. Bez njih provjera prikazuje sve što smije vidjeti standardni korisnik.'

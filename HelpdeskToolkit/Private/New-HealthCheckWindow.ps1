@@ -12,6 +12,8 @@ function New-HealthCheckWindow {
         - ManifestPath: where the module is, for the background runspaces
         - Settings, Theme: the settings of the window and the theme it was built with
         - Page:         name of the page that is shown
+        - CardState:    which compact result cards the user has opened or closed, by
+                        "category|check" (see Show-WindowPage)
         - AppLock:      the file that tells the installer the application is running
                         (see Lock-AppFile)
         - Startup:      how the window was asked to start (see Invoke-WindowStartup)
@@ -121,6 +123,7 @@ function New-HealthCheckWindow {
         Settings          = $Setting
         Theme             = $Theme
         Page              = 'Overview'
+        CardState         = @{}
         AppLock           = $null
         # RunCheck: start the check at once. NoQuestion: do not ask about administrator rights.
         Startup           = @{ RunCheck = $false; NoQuestion = $false }

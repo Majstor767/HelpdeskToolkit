@@ -15,17 +15,28 @@ function Show-WindowPage {
         - Settings: language, theme, the automatic check, keyboard shortcuts and where
           the application keeps its files. It is opened with the button below the page
           list, so no entry of the list is selected while it is shown.
-        - A category (System, Network, ...): every check of that category.
+        - A category (System, Network, ...): every check of that category, side by
+          side in four columns, one per status: Critical, Warning, OK, Info. Each kind
+          of result stands by itself, so a problem cannot be overlooked among the rest.
+          The cards of the columns are compact: the name of the check and its value. A
+          click opens the explanation, the allowed range and the recommendation. The
+          problems are open from the start, and what the user opens or closes is
+          remembered ($Gui.CardState) until the next check the user starts.
 
-        Order: on every page the most severe results come first, so a problem is never
-        hidden further down: Critical, then Warning, then OK, then Info. Results with
-        the same status keep the order in which the checks ran.
+        Order: wherever results are listed below each other (Overview, search results,
+        inside a column), the most severe come first: Critical, then Warning, then OK,
+        then Info. Results with the same status keep the order in which the checks ran.
+
+        The cards of the page are always in ResultItems, as one list; on the page of a
+        category the same cards are also handed to the four columns, which are shown
+        in place of the list.
 
         Search and filter (on pages with results):
         - A search text looks through all results of the report, whatever page is
           open; the cards then also name their category.
         - The status filter narrows down what the page shows. On the Overview, which
           normally lists the problems, it shows every result with the chosen status.
+          On the page of a category it hides the columns of the other statuses.
     #>
     [CmdletBinding()]
     param(
@@ -75,6 +86,7 @@ function Show-WindowPage {
         $controls.PageSubtitle.Text = Get-LocalizedText 'Measuring ...'
         $controls.OverviewPanel.Visibility = $collapsed
         $controls.ResultScroll.Visibility = $collapsed
+        $controls.ColumnsPanel.Visibility = $collapsed
         $controls.EmptyText.Visibility = $collapsed
         $controls.SettingsPanel.Visibility = $collapsed
         $controls.FilterPanel.Visibility = $collapsed
@@ -97,6 +109,7 @@ function Show-WindowPage {
         $controls.PageSubtitle.Text = Get-LocalizedText 'How the application looks, and where it keeps its own files.'
         $controls.OverviewPanel.Visibility = $collapsed
         $controls.ResultScroll.Visibility = $collapsed
+        $controls.ColumnsPanel.Visibility = $collapsed
         $controls.EmptyText.Visibility = $collapsed
         $controls.FilterPanel.Visibility = $collapsed
         $controls.SettingsPanel.Visibility = $visible
@@ -105,6 +118,7 @@ function Show-WindowPage {
     }
 
     $controls.SettingsPanel.Visibility = $collapsed
+    $controls.ColumnsPanel.Visibility = $collapsed
     $controls.ResultScroll.Visibility = $visible
 
     if (-not $report) {
@@ -212,8 +226,50 @@ function Show-WindowPage {
         $Gui.HighlightCheck = ''
     }
 
+    # Which compact cards are open: the problems, unless the user decided otherwise.
+    foreach ($item in $items) {
+        $key = '{0}|{1}' -f $item.SourceCategory, $item.SourceCheck
+        $item.Expanded = if ($Gui.CardState.ContainsKey($key)) { [bool]$Gui.CardState[$key] } else { $item.Status -in 'Critical', 'Warning' }
+    }
+
     $offset = $controls.ResultScroll.VerticalOffset
     $controls.ResultItems.ItemsSource = $items
+    $controls.EmptyText.Text = $emptyText
+
+    if (-not $search -and $Name -ne 'Overview') {
+        # The page of a category: one column per status. A status filter leaves only
+        # the columns it names.
+        $statuses = 'Critical', 'Warning', 'OK', 'Info'
+        $shown = switch ($statusFilter) {
+            '' { $statuses }
+            'Problems' { 'Critical', 'Warning' }
+            default { $statusFilter }
+        }
+
+        foreach ($status in $statuses) {
+            $cards = @($items | Where-Object { $_.Status -eq $status })
+            $scroll = $controls["Column${status}Scroll"]
+            $columnOffset = $scroll.VerticalOffset
+
+            $controls["Column${status}Items"].ItemsSource = $cards
+            $controls["Column${status}Count"].Text = [string]$cards.Count
+            $controls["Column${status}Empty"].Visibility = if ($cards.Count -eq 0) { $visible } else { $collapsed }
+            $controls["Column$status"].Visibility = if ($status -in $shown) { $visible } else { $collapsed }
+
+            if ($KeepScroll) {
+                $scroll.ScrollToVerticalOffset($columnOffset)
+            }
+            else {
+                $scroll.ScrollToTop()
+            }
+        }
+
+        $controls.ResultScroll.Visibility = $collapsed
+        $controls.EmptyText.Visibility = $collapsed
+        $controls.ColumnsPanel.Visibility = $visible
+        return
+    }
+
     if ($KeepScroll) {
         $controls.ResultScroll.ScrollToVerticalOffset($offset)
     }
@@ -221,11 +277,5 @@ function Show-WindowPage {
         $controls.ResultScroll.ScrollToTop()
     }
 
-    if ($items.Count -eq 0) {
-        $controls.EmptyText.Text = $emptyText
-        $controls.EmptyText.Visibility = $visible
-    }
-    else {
-        $controls.EmptyText.Visibility = $collapsed
-    }
+    $controls.EmptyText.Visibility = if ($items.Count -eq 0) { $visible } else { $collapsed }
 }

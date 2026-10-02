@@ -456,6 +456,159 @@
             </Setter>
         </Style>
 
+        <!-- The head of a column of results: the name of the status and how many results it has -->
+        <Style x:Key="ColumnHeader" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderThickness" Value="1,4,1,1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- The clickable upper part of a compact result card: name and value, with an arrow
+             that shows whether the details below are open -->
+        <Style x:Key="CardToggle" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="6" Padding="12,9,8,9">
+                            <DockPanel>
+                                <TextBlock x:Name="Arrow" DockPanel.Dock="Right" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Top" Margin="6,4,0,0"/>
+                                <ContentPresenter/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource HoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Arrow" Property="Text" Value="&#xE70E;"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- A result as a compact card, for the narrow columns of a category page. Closed
+             it shows the name of the check and the start of its value; a click opens the
+             whole value, the rest of a long list, the allowed range, the explanation and
+             the recommendation with its button. -->
+        <DataTemplate x:Key="CompactCard">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Margin="0,0,0,8">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Highlight}" Value="Yes">
+                                <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <ToggleButton x:Name="CardToggle" IsChecked="{Binding Expanded, Mode=OneWay}" Style="{StaticResource CardToggle}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Check}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Value}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,3,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <!-- Closed, a long value is cut after three lines -->
+                                            <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="False">
+                                                <Setter Property="MaxHeight" Value="52"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </ToggleButton>
+                    <StackPanel Margin="12,0,12,10">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=CardToggle}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="{Binding More}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,5">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding More}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Reference}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,3">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Reference}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Description}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Border CornerRadius="5" Padding="9,7" Margin="0,8,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="Warning">
+                                            <Setter Property="Background" Value="{StaticResource WarningBackBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="Critical">
+                                            <Setter Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Recommendation}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="{Binding RecommendationLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                <TextBlock Text="{Binding Recommendation}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <Button Content="{Binding ActionLabel}" Tag="&#xE8A7;" HorizontalAlignment="Left" Margin="0,8,0,1">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource SmallButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ActionLabel}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
         <!-- One section of a detail page of the Live monitor: a title and lines of a name
              and a value. A line can carry a meter in front of its value. -->
         <DataTemplate x:Key="DetailSection">
@@ -935,6 +1088,70 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
+                    <!-- The page of a category: its results side by side, one column per status,
+                         the most severe on the left. Every column scrolls on its own, so its
+                         head stays in view. A column that a status filter excludes is hidden
+                         and the others share its room. -->
+                    <UniformGrid x:Name="ColumnsPanel" Rows="1" Margin="0,0,-10,0" Visibility="Collapsed">
+                        <DockPanel x:Name="ColumnCritical" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource CriticalBrush}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ColumnCriticalCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource CriticalBrush}"/>
+                                    <TextBlock Text="CRITICAL" Style="{StaticResource TileLabel}" Foreground="{StaticResource CriticalBrush}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <Grid>
+                                <ScrollViewer x:Name="ColumnCriticalScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnCriticalItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ColumnCriticalEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </DockPanel>
+                        <DockPanel x:Name="ColumnWarning" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource WarningBrush}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ColumnWarningCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
+                                    <TextBlock Text="WARNING" Style="{StaticResource TileLabel}" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <Grid>
+                                <ScrollViewer x:Name="ColumnWarningScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnWarningItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ColumnWarningEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </DockPanel>
+                        <DockPanel x:Name="ColumnOK" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource OkBrush}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ColumnOKCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource OkBrush}"/>
+                                    <TextBlock Text="OK" Style="{StaticResource TileLabel}" Foreground="{StaticResource OkBrush}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <Grid>
+                                <ScrollViewer x:Name="ColumnOKScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnOKItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ColumnOKEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </DockPanel>
+                        <DockPanel x:Name="ColumnInfo" Margin="0,0,10,0">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}" BorderBrush="{StaticResource InfoBrush}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ColumnInfoCount" DockPanel.Dock="Right" Text="0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource InfoBrush}"/>
+                                    <TextBlock Text="INFO" Style="{StaticResource TileLabel}" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <Grid>
+                                <ScrollViewer x:Name="ColumnInfoScroll" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ColumnInfoItems" ItemTemplate="{StaticResource CompactCard}"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ColumnInfoEmpty" Text="Nothing here." Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False"/>
+                            </Grid>
+                        </DockPanel>
+                    </UniformGrid>
+
                     <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
 

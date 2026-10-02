@@ -14,7 +14,9 @@ function Show-PCHealthCheck {
           button that opens the place in Windows where it is fixed, and what changed
           since the last check of this computer.
         - A page per category (System, Hardware, Network and so on) with all of its
-          checks, each with an explanation, the allowed range and the typical value.
+          checks in four columns, one per status (Critical, Warning, OK, Info). A
+          click on a card shows the explanation, the allowed range, the typical value
+          and the recommendation.
         - Live monitor: what the computer is doing right now (processor, memory,
           graphics, disks, network, sensors and the busiest programs). It needs no
           check, can be paused, and can record its measurements into a CSV file. A dot
@@ -197,17 +199,14 @@ function Show-PCHealthCheck {
     # The button inside a card opens the place in Windows where the problem is fixed.
     # The cards are created from a template, so the click is caught on the list that
     # contains them; the card it came from is the "data context" of the button.
-    $controls.ResultItems.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler] {
-            # An event handler receives the sender and the details of the event.
-            $clicked = $args[1].OriginalSource
-            $state = $script:HealthCheckWindow
-            $item = $clicked.DataContext
-            if ($clicked -is [System.Windows.Controls.Button] -and $item -and $item.PSObject.Properties['SourceCheck']) {
-                if (-not (Invoke-CheckAction -Check $item.SourceCheck -Category $item.SourceCategory)) {
-                    $state.Controls.StatusText.Text = Get-LocalizedText 'Windows could not open that place.'
-                }
-            }
-        })
+    # The same goes for the compact cards in the columns of a category page, where a
+    # click on the card itself opens and closes its details (see Invoke-WindowCardClick).
+    $cardClick = [System.Windows.RoutedEventHandler] {
+        # An event handler receives the sender and the details of the event.
+        Invoke-WindowCardClick -Gui $script:HealthCheckWindow -Source $args[1].OriginalSource
+    }
+    $controls.ResultItems.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $cardClick)
+    $controls.ColumnsPanel.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $cardClick)
 
     # Saves the report as HTML in the output folder and opens it in the browser.
     $controls.OpenReportButton.Add_Click({

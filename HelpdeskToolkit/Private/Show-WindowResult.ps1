@@ -4,8 +4,8 @@ function Show-WindowResult {
         Opens the page of one result and scrolls to it.
     .DESCRIPTION
         Where a click on a notice leads. The page of the category is opened without
-        search and filter, so the result is certainly on it; its card gets a frame in
-        the accent color and is scrolled into view.
+        search and filter, so the result is certainly on it; its card is opened, gets
+        a frame in the accent color and is scrolled into view in the column of its status.
 
         Returns $true when the result was found.
     #>
@@ -50,20 +50,36 @@ function Show-WindowResult {
     }
 
     $Gui.HighlightCheck = $Check
+    # The card of the result is shown with its details.
+    $Gui.CardState['{0}|{1}' -f $Category, $Check] = $true
     Show-WindowPage -Gui $Gui -Name $page
 
-    $items = @($controls.ResultItems.ItemsSource)
-    for ($position = 0; $position -lt $items.Count; $position++) {
-        if ($items[$position].SourceCheck -eq $Check) {
+    $found = @($controls.ResultItems.ItemsSource) | Where-Object { $_.SourceCheck -eq $Check } | Select-Object -First 1
+    if (-not $found) {
+        return $false
+    }
+
+    # The card is in the column of its status on the page of a category, and in the
+    # one list of the page otherwise.
+    $list = if ($controls.ColumnsPanel.Visibility -eq [System.Windows.Visibility]::Visible) {
+        $controls["Column$($found.Status)Items"]
+    }
+    else {
+        $controls.ResultItems
+    }
+
+    $cards = @($list.ItemsSource)
+    for ($position = 0; $position -lt $cards.Count; $position++) {
+        if ($cards[$position].SourceCheck -eq $Check) {
             # The cards exist only after the layout has run.
-            $controls.ResultItems.UpdateLayout()
-            $card = $controls.ResultItems.ItemContainerGenerator.ContainerFromIndex($position)
+            $list.UpdateLayout()
+            $card = $list.ItemContainerGenerator.ContainerFromIndex($position)
             if ($card) {
                 $card.BringIntoView()
             }
-            return $true
+            break
         }
     }
 
-    $false
+    $true
 }

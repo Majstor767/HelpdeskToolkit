@@ -147,9 +147,11 @@ function Show-WindowReport {
     $Gui.Loading = $true
     try {
         if (-not $KeepPage) {
-            # A report the user asked for starts without a filter.
+            # A report the user asked for starts without a filter, and with the cards
+            # open or closed as they are by default.
             $controls.SearchBox.Text = ''
             $controls.StatusFilter.SelectedIndex = 0
+            $Gui.CardState.Clear()
         }
         $controls.CategoryList.ItemsSource = $entries
         $controls.CategoryList.SelectedIndex = $index
