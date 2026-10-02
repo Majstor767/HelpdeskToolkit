@@ -17,6 +17,14 @@ function Get-FolderSizeBatch {
         The threads are small runspaces that only get this loop as text; they do not
         load the module, so they start in a few milliseconds.
 
+        The loop calls as few .NET methods as it can: one per folder, for its listing.
+        In PowerShell 7 a method call from a script costs about a hundred times what
+        it costs in Windows PowerShell (every call is reported to the antimalware
+        interface of Windows), and the threads have to take turns for it; with a few
+        calls per folder eight threads were no faster than one there. The piles of
+        folders are therefore tables with a counter, not Stack objects with Push and
+        Pop, and work is handed over as one package instead of folder by folder.
+
         -BudgetMs limits the whole measurement. When the time is over, the folders
         whose subfolders were not all visited are returned with Complete = $false and
         the size counted so far.
@@ -53,13 +61,14 @@ function Get-FolderSizeBatch {
 
     $deadline = [datetime]::UtcNow.AddMilliseconds($BudgetMs)
 
-    # Work that is waiting for a thread: pairs of the number of the folder it belongs
-    # to and the folder itself. Busy counts the threads that have work of their own.
+    # Work that is waiting for a thread: packages of pairs, each pair being the number
+    # of the folder it belongs to and the folder itself. Busy counts the threads that
+    # have work of their own.
     $queue = New-Object -TypeName 'System.Collections.Concurrent.ConcurrentQueue[object]'
     $state = [hashtable]::Synchronized(@{ Busy = 0 })
     for ($index = 0; $index -lt $paths.Count; $index++) {
         if (Test-Path -LiteralPath $paths[$index] -PathType Container) {
-            $queue.Enqueue(@($index, (New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $paths[$index])))
+            $queue.Enqueue(@(, @($index, (New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $paths[$index]))))
         }
     }
 
@@ -74,9 +83,11 @@ function Get-FolderSizeBatch {
         # The folders this thread still has to visit, and for each one the number of the
         # folder it belongs to. A thread works through its own pile without asking
         # anybody; only when another thread has nothing to do does it hand over a part.
-        $folders = New-Object -TypeName 'System.Collections.Generic.Stack[System.IO.DirectoryInfo]'
-        $owners = New-Object -TypeName 'System.Collections.Generic.Stack[int]'
-        $item = $null
+        # The pile is a table with the places 0 to $top - 1 (see the description).
+        $folders = @{}
+        $owners = @{}
+        $top = 0
+        $package = $null
         $busy = $false
         $setBusy = {
             param([int]$Change)
@@ -85,37 +96,45 @@ function Get-FolderSizeBatch {
         }
 
         while ([datetime]::UtcNow -lt $Deadline) {
-            if ($folders.Count -eq 0) {
-                if ($busy) {
-                    & $setBusy -1
-                    $busy = $false
-                }
-                if ($Queue.TryDequeue([ref]$item)) {
+            if ($top -eq 0) {
+                # Busy is raised before the look into the queue: a thread that has just
+                # taken the last package must not look idle to the others for a moment,
+                # or they would go home while there is still work to hand over.
+                if (-not $busy) {
                     & $setBusy 1
                     $busy = $true
-                    $owners.Push([int]$item[0])
-                    $folders.Push($item[1])
                 }
-                elseif ($State.Busy -le 0) {
-                    # Nothing waits and nobody is working: everything is measured.
-                    break
+                if ($Queue.TryDequeue([ref]$package)) {
+                    foreach ($pair in $package) {
+                        $owners[$top] = [int]$pair[0]
+                        $folders[$top] = $pair[1]
+                        $top++
+                    }
                 }
                 else {
-                    [System.Threading.Thread]::Sleep(2)
+                    & $setBusy -1
+                    $busy = $false
+                    if ($State.Busy -le 0) {
+                        # Nothing waits and nobody is working: everything is measured.
+                        break
+                    }
+                    Start-Sleep -Milliseconds 10
                     continue
                 }
             }
 
-            $folder = $folders.Pop()
-            $index = $owners.Pop()
+            $top--
+            $folder = $folders[$top]
+            $index = $owners[$top]
             try {
                 # One listing returns the files with their sizes and the subfolders with
                 # their attributes, so no file has to be asked a second time.
                 foreach ($entry in $folder.EnumerateFileSystemInfos()) {
                     if ($entry.Attributes -band $directory) {
                         if (-not ($entry.Attributes -band $link)) {
-                            $folders.Push($entry)
-                            $owners.Push($index)
+                            $folders[$top] = $entry
+                            $owners[$top] = $index
+                            $top++
                         }
                     }
                     else {
@@ -130,10 +149,13 @@ function Get-FolderSizeBatch {
             }
 
             # Another thread is out of work: it gets half of what is waiting here.
-            if ($folders.Count -gt 3 -and $Queue.IsEmpty) {
-                for ($share = [int]($folders.Count / 2); $share -gt 0; $share--) {
-                    $Queue.Enqueue(@($owners.Pop(), $folders.Pop()))
-                }
+            if ($top -gt 3 -and $Queue.IsEmpty) {
+                $Queue.Enqueue(@(
+                        for ($share = [int]($top / 2); $share -gt 0; $share--) {
+                            $top--
+                            , @($owners[$top], $folders[$top])
+                        }
+                    ))
             }
         }
 
@@ -142,7 +164,8 @@ function Get-FolderSizeBatch {
         }
 
         # What this thread could not visit before the time was over
-        [PSCustomObject]@{ Bytes = $bytes; Files = $files; Unfinished = @($owners.ToArray() | Select-Object -Unique) }
+        $left = @(for ($place = 0; $place -lt $top; $place++) { $owners[$place] }) | Select-Object -Unique
+        [PSCustomObject]@{ Bytes = $bytes; Files = $files; Unfinished = @($left) }
     }
     $unfinished = @{}
     $failed = $false
@@ -191,9 +214,11 @@ function Get-FolderSizeBatch {
     }
 
     # What is left in the queue was not visited either: the time was over.
-    $item = $null
-    while ($queue.TryDequeue([ref]$item)) {
-        $unfinished[[int]$item[0]] = $true
+    $package = $null
+    while ($queue.TryDequeue([ref]$package)) {
+        foreach ($pair in $package) {
+            $unfinished[[int]$pair[0]] = $true
+        }
     }
 
     for ($index = 0; $index -lt $paths.Count; $index++) {
