@@ -131,6 +131,13 @@ Describe 'Launcher' {
         $text -replace "`r`n", '' | Should -Not -Match "`n"
     }
 
+    It 'Start-HelpdeskToolkit.ps1 passes on how the window is to start' {
+        $text = Get-Content -LiteralPath (Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.ps1') -Raw
+        $text | Should -Match '\[switch\]\$RunCheck'
+        $text | Should -Match '\[switch\]\$NoQuestion'
+        $text | Should -Match 'Show-PCHealthCheck -RunCheck:\$RunCheck -NoQuestion:\$NoQuestion'
+    }
+
     It 'Start-HelpdeskToolkit.ps1 loads the module from its own folder' {
         Get-Content -LiteralPath (Join-Path -Path $root -ChildPath 'Start-HelpdeskToolkit.ps1') -Raw |
             Should -Match '\$PSScriptRoot'

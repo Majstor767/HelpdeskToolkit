@@ -385,7 +385,7 @@ Describe 'Show-WindowPage: search, filter and settings' -Skip:(-not $isSta) {
 Describe 'Show-WindowSetting' -Skip:(-not $isSta) {
     BeforeAll {
         $gui = New-TestWindow
-        $gui.Settings = @{ Language = 'hr'; Theme = 'Dark'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 30 }
+        $gui.Settings = @{ Language = 'hr'; Theme = 'Dark'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 30; StartupElevation = 'Never' }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowSetting -Gui $Gui }
     }
 
@@ -396,6 +396,10 @@ Describe 'Show-WindowSetting' -Skip:(-not $isSta) {
 
     It 'selects how often the check is repeated' {
         $gui.Controls.AutoCheckBox.SelectedItem.Tag | Should -Be '30'
+    }
+
+    It 'selects what happens when the application starts' {
+        $gui.Controls.StartupBox.SelectedItem.Tag | Should -Be 'Never'
     }
 
     It 'does not leave the window in the "being filled" state' {
@@ -588,6 +592,13 @@ Describe 'Invoke-AppRestart' -Skip:(-not $isSta) {
         Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -ParameterFilter {
             $FilePath -like '*\WindowsPowerShell\v1.0\powershell.exe' -and $WindowStyle -eq 'Hidden' -and -not $Verb
         }
+    }
+
+    It 'tells the new copy to run the check at once, so it neither asks nor waits' {
+        Mock -ModuleName HelpdeskToolkit Start-Process { }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = (New-TestWindow) } { Invoke-AppRestart -Gui $Gui } | Out-Null
+
+        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -ParameterFilter { ($ArgumentList -join ' ') -match ' -RunCheck\b' }
     }
 
     It 'keeps the window open and says why when the new copy cannot be started' {

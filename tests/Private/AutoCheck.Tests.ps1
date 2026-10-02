@@ -177,7 +177,7 @@ Describe 'Invoke-WindowAutoCheck' -Skip:(-not $isSta) {
 
     BeforeEach {
         $gui = New-TestWindow
-        $gui.Settings = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5 }
+        $gui.Settings = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask' }
         $gui.Report = New-TestStateReport
         $gui.LastCheckAt = (Get-Date).AddMinutes(-6)
     }
