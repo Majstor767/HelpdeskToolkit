@@ -37,7 +37,8 @@ function Get-PerformanceSnapshot {
 
         The data comes from the performance classes of WMI, whose names are the same in
         every Windows language. Nothing is changed, and apart from DriveHealth no
-        administrator rights are needed. One measurement takes about two seconds.
+        administrator rights are needed. One measurement takes about half a second,
+        because the classes are read at the same time.
 
         Processor temperature, fan speeds and voltages of the motherboard are not
         included: Windows does not expose them, and tools that show them install their
@@ -79,6 +80,29 @@ function Get-PerformanceSnapshot {
         [switch]$IncludeLatency
     )
 
+    # The classes that Windows needs a moment for are asked all at once, so one
+    # measurement takes half a second instead of two and all values are from the same
+    # moment. A class that could not be read throws its error where it is used.
+    $batch = Get-CimInstanceBatch -ClassName @(
+        'Win32_PerfFormattedData_Counters_ProcessorInformation'
+        'Win32_OperatingSystem'
+        'Win32_PerfRawData_PerfOS_Memory'
+        'Win32_PerfFormattedData_PerfOS_PagingFile'
+        'Win32_PerfFormattedData_PerfDisk_PhysicalDisk'
+        'Win32_PerfFormattedData_Tcpip_NetworkInterface'
+        'Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine'
+        'Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory'
+        'Win32_PerfFormattedData_Counters_ThermalZoneInformation'
+        'Win32_PerfFormattedData_PerfProc_Process'
+    )
+    $cim = {
+        param([string]$Class)
+        if ($batch[$Class].Error) {
+            throw $batch[$Class].Error
+        }
+        $batch[$Class].Rows
+    }
+
     # A counter can momentarily read above 100 or below 0; the display should not.
     $limit = { param($Number) [int][math]::Max(0, [math]::Min(100, [math]::Round([double]$Number))) }
 
@@ -86,7 +110,7 @@ function Get-PerformanceSnapshot {
     $cpu = $null
     $logicalCount = [Environment]::ProcessorCount
     try {
-        $rows = @(Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation -ErrorAction Stop)
+        $rows = @(& $cim 'Win32_PerfFormattedData_Counters_ProcessorInformation')
 
         # Logical processors are named "group,number" (for example "0,3"); the rows
         # "_Total" and "0,_Total" are sums.
@@ -140,7 +164,7 @@ function Get-PerformanceSnapshot {
     $memory = $null
     $os = $null
     try {
-        $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        $os = & $cim 'Win32_OperatingSystem'
         $totalBytes = [double]$os.TotalVisibleMemorySize * 1KB
         $availableBytes = [double]$os.FreePhysicalMemory * 1KB
         $usedBytes = $totalBytes - $availableBytes
@@ -167,7 +191,7 @@ function Get-PerformanceSnapshot {
     # it answers at once, while a "formatted" class first measures for a moment.
     if ($memory) {
         try {
-            $detail = Get-CimInstance -ClassName Win32_PerfRawData_PerfOS_Memory -ErrorAction Stop | Select-Object -First 1
+            $detail = & $cim 'Win32_PerfRawData_PerfOS_Memory' | Select-Object -First 1
             # "Cached" as in Task Manager: memory that holds data of files and closed
             # programs and is given back the moment a program needs it.
             $memory.CachedBytes = [double]$detail.StandbyCacheNormalPriorityBytes + [double]$detail.StandbyCacheReserveBytes +
@@ -175,7 +199,7 @@ function Get-PerformanceSnapshot {
             $memory.PagedPoolBytes = [double]$detail.PoolPagedBytes
             $memory.NonPagedPoolBytes = [double]$detail.PoolNonpagedBytes
 
-            $pageFile = Get-CimInstance -ClassName Win32_PerfFormattedData_PerfOS_PagingFile -ErrorAction Stop |
+            $pageFile = & $cim 'Win32_PerfFormattedData_PerfOS_PagingFile' |
                 Where-Object { $_.Name -eq '_Total' } | Select-Object -First 1
             if ($pageFile) {
                 $memory.PageFilePercent = & $limit $pageFile.PercentUsage
@@ -190,7 +214,7 @@ function Get-PerformanceSnapshot {
     $disks = @()
     try {
         $disks = @(
-            Get-CimInstance -ClassName Win32_PerfFormattedData_PerfDisk_PhysicalDisk -ErrorAction Stop |
+            & $cim 'Win32_PerfFormattedData_PerfDisk_PhysicalDisk' |
                 Where-Object { $_.Name -ne '_Total' } |
                 Sort-Object -Property Name |
                 ForEach-Object {
@@ -267,7 +291,7 @@ function Get-PerformanceSnapshot {
     $network = @()
     try {
         $network = @(
-            Get-CimInstance -ClassName Win32_PerfFormattedData_Tcpip_NetworkInterface -ErrorAction Stop |
+            & $cim 'Win32_PerfFormattedData_Tcpip_NetworkInterface' |
                 Where-Object { $_.CurrentBandwidth -gt 0 } |
                 Sort-Object -Property Name |
                 ForEach-Object {
@@ -294,7 +318,7 @@ function Get-PerformanceSnapshot {
         $engineNames = [ordered]@{ '3D' = '3D'; 'Copy' = 'Copy'; 'VideoDecode' = 'Video decode'; 'VideoEncode' = 'Video encode' }
         $load = @{}
         $engineLoad = @{}
-        $engines = @(Get-CimInstance -ClassName Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -ErrorAction Stop |
+        $engines = @(& $cim 'Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine' |
                 Where-Object { $_.Name -match $adapterPattern })
 
         foreach ($group in ($engines | Group-Object -Property { [regex]::Match($_.Name, $adapterPattern).Value })) {
@@ -313,7 +337,7 @@ function Get-PerformanceSnapshot {
             )
         }
 
-        $adapters = @(Get-CimInstance -ClassName Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory -ErrorAction Stop)
+        $adapters = @(& $cim 'Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory')
         # The installed adapters do not change while the module is loaded, so the
         # registry is only read for the first snapshot.
         if ($null -eq $script:VideoMemoryCache) {
@@ -363,7 +387,7 @@ function Get-PerformanceSnapshot {
     $thermal = @()
     try {
         $thermal = @(
-            Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ThermalZoneInformation -ErrorAction Stop |
+            & $cim 'Win32_PerfFormattedData_Counters_ThermalZoneInformation' |
                 Sort-Object -Property Name |
                 ForEach-Object {
                     $kelvin = if ($_.HighPrecisionTemperature -gt 0) { [double]$_.HighPrecisionTemperature / 10 } else { [double]$_.Temperature }
@@ -408,7 +432,7 @@ function Get-PerformanceSnapshot {
     $threads = $null
     $handles = $null
     try {
-        $processRows = @(Get-CimInstance -ClassName Win32_PerfFormattedData_PerfProc_Process -ErrorAction Stop)
+        $processRows = @(& $cim 'Win32_PerfFormattedData_PerfProc_Process')
 
         $allProcesses = $processRows | Where-Object { $_.Name -eq '_Total' } | Select-Object -First 1
         if ($allProcesses) {

@@ -3,7 +3,7 @@ function Enable-WindowMonitor {
     .SYNOPSIS
         Starts (or resumes) the measurements for the Live monitor page.
     .DESCRIPTION
-        One measurement takes about two seconds, far too long for the thread that draws
+        One measurement takes about half a second, too long for the thread that draws
         the window. A second PowerShell runspace therefore measures in a loop and puts
         each snapshot into a table that both threads can use safely (a synchronized
         hashtable). A timer on the window thread looks into that table a few times per
