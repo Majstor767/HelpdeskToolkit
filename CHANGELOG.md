@@ -93,6 +93,20 @@ The first public version. It will be released as 1.0.0.
 - What takes up the space of a drive: its largest installed programs and folders. A
   click on a program opens the page of Windows where it is uninstalled.
 
+### Speed
+
+- The check categories run side by side, so a check takes 10 to 20 seconds instead
+  of half a minute. `Get-PCHealthReport -ThrottleLimit 1` runs them one after the
+  other.
+- Folder sizes are measured by several threads and, where the time allows, to their
+  end, instead of stopping at a lower bound after a few seconds.
+- The repeated checks of the window reuse the folder sizes for half an hour and take
+  only a few seconds.
+- The module loads in a third of the time: its files are loaded as one block.
+- A measurement of the Live monitor takes about half a second instead of two.
+- The window shows the results of the last check at the start, until the new check
+  has finished, and remembers "Skip network tests" and the number of days.
+
 ### Command line and automation
 
 - `Invoke-PCHealthCheck` runs everything and saves the report; one command per

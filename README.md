@@ -72,8 +72,10 @@ Left out on purpose:
 ![The Overview page](docs/screenshot-window.png)
 
 When the application starts, it asks one question: run with administrator rights or
-without? After the answer the check starts by itself; a progress bar shows which
-category is being checked.
+without? After the answer the check starts by itself. The categories are checked side
+by side, so it usually takes 10 to 20 seconds; a progress bar shows how many of them
+are done. When the application has been used before, the results of the last check
+are on the screen at once and are replaced as soon as the new check has finished.
 
 - **Yes** starts the application again with administrator rights (Windows asks for
   confirmation first) and runs the check there, including everything that Windows
@@ -83,7 +85,8 @@ category is being checked.
 
 The answer can be remembered, and changed later on the Settings page. After that first
 check the application keeps the results up to date by itself; **Run check** (F5) runs
-it again at any time.
+it again at any time. The options next to the button ("Skip network tests" and the
+number of days of history) are remembered for the next start as well.
 
 ![The question at the start](docs/screenshot-start.png)
 
@@ -124,7 +127,9 @@ it again at any time.
 The check is repeated in the background every five minutes (the interval can be changed
 or turned off in the settings). The new results replace the old ones without
 interrupting: the open page, the search and the place you have scrolled to stay as they
-are.
+are. A repeated check takes only a few seconds: the one thing that is slow to measure
+and changes slowly, the sizes of the largest folders, is measured again every half
+hour instead of every time.
 
 A problem that was not there before is announced in a bar at the top of the window, and
 with a Windows notification while the window is not in front. A click leads straight to
@@ -372,6 +377,11 @@ $now.Processes
 Get-ChangeTimeline -Days 7 | Format-Table Time, Level, Kind, Title, Count -AutoSize
 ```
 
+`Get-PCHealthReport` and `Invoke-PCHealthCheck` run the ten categories side by side,
+each in a PowerShell runspace of its own, so the check takes about as long as its
+slowest category instead of the sum of all. `Get-PCHealthReport -ThrottleLimit 1` runs
+them one after the other, which is also how another computer is checked.
+
 Available commands: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Compare-PCHealthReport`, `Get-SystemHealth`, `Get-ComputerSpecification`,
 `Get-HardwareHealth`, `Get-SoftwareHealth`, `Get-EventLogHealth`,
@@ -511,6 +521,25 @@ Windows PowerShell 5.1 and PowerShell 7 keep their modules in different folders,
 install the two modules in each version you want to test with.
 
 GitHub Actions runs the same script on Windows PowerShell 5.1 and PowerShell 7 for every push.
+
+### Speed
+
+What keeps the application quick, and where to look when it is not:
+
+- The module has about 190 files with one function each. They are read into one text
+  and loaded as one block, which takes a third of the time of loading them one by
+  one. With the environment variable `HELPDESKTOOLKIT_LOAD_FILES` set to `1` they are
+  loaded file by file again, so an error names its file and line; the tests do that.
+- The check categories run side by side (`Invoke-ParallelCommand`). The load of the
+  processor is measured before they start, so the check does not measure itself.
+- Folder sizes are measured by several threads that hand work over to each other
+  (`Get-FolderSizeBatch`), within a time budget. A size that could not be measured to
+  its end within the budget is shown with "or more" ("12.4 GB or more"). The loop of
+  a thread calls one .NET method per folder and no more: in PowerShell 7 a method
+  call from a script is slow and the threads have to take turns for it, which made
+  eight threads no faster than one until the loop was written that way.
+- The Live monitor asks for the performance classes of Windows all at once
+  (`Get-CimInstanceBatch`): one measurement takes about half a second instead of two.
 
 ### Building a release
 

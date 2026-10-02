@@ -74,8 +74,10 @@ Namjerno izostavljeno:
 ![Stranica Overview](docs/screenshot-window.png)
 
 Pri pokretanju aplikacija postavi jedno pitanje: pokrenuti s administratorskim pravima
-ili bez njih? Nakon odgovora provjera se pokreće sama; traka napretka pokazuje koja se
-kategorija upravo provjerava.
+ili bez njih? Nakon odgovora provjera se pokreće sama. Kategorije se provjeravaju
+istovremeno, pa provjera obično traje 10 do 20 sekundi; traka napretka pokazuje koliko
+ih je gotovo. Ako je aplikacija već korištena, rezultati zadnje provjere odmah su na
+ekranu i zamijene se čim nova provjera završi.
 
 - **Yes** ponovno pokreće aplikaciju s administratorskim pravima (Windows prvo traži
   potvrdu) i ondje pokreće provjeru, uključujući sve što Windows prikazuje samo
@@ -85,7 +87,8 @@ kategorija upravo provjerava.
 
 Odgovor se može zapamtiti i kasnije promijeniti na stranici Settings. Nakon te prve
 provjere aplikacija sama održava rezultate ažurnima; **Run check** (F5) pokreće je
-ponovno u bilo kojem trenutku.
+ponovno u bilo kojem trenutku. Opcije pokraj gumba ("Skip network tests" i broj dana
+povijesti) također se pamte do sljedećeg pokretanja.
 
 ![Pitanje pri pokretanju](docs/screenshot-start.png)
 
@@ -124,7 +127,9 @@ ponovno u bilo kojem trenutku.
 
 Provjera se ponavlja u pozadini svakih pet minuta (razmak se u postavkama može
 promijeniti ili isključiti). Novi rezultati zamjenjuju stare bez prekidanja: otvorena
-stranica, pretraga i mjesto do kojeg si listao ostaju kakvi jesu.
+stranica, pretraga i mjesto do kojeg si listao ostaju kakvi jesu. Ponovljena provjera
+traje samo nekoliko sekundi: jedino što se sporo mjeri, a sporo se i mijenja, veličine
+najvećih mapa, mjeri se ponovno svakih pola sata umjesto svaki put.
 
 Problem kojeg prije nije bilo najavljuje se u traci na vrhu prozora, a dok prozor nije
 u prvom planu i Windows obavijesti. Klik vodi ravno na rezultat, koji je uokviren da ga
@@ -370,6 +375,11 @@ $now.Processes
 Get-ChangeTimeline -Days 7 | Format-Table Time, Level, Kind, Title, Count -AutoSize
 ```
 
+`Get-PCHealthReport` i `Invoke-PCHealthCheck` pokreću deset kategorija istovremeno,
+svaku u vlastitom PowerShell runspaceu, pa provjera traje otprilike koliko njezina
+najsporija kategorija, a ne koliko sve zajedno. `Get-PCHealthReport -ThrottleLimit 1`
+pokreće ih jednu za drugom; tako se provjerava i drugo računalo.
+
 Dostupne naredbe: `Invoke-PCHealthCheck`, `Show-PCHealthCheck`, `Get-PCHealthReport`,
 `Compare-PCHealthReport`, `Get-SystemHealth`, `Get-ComputerSpecification`,
 `Get-HardwareHealth`, `Get-SoftwareHealth`, `Get-EventLogHealth`,
@@ -507,6 +517,25 @@ Windows PowerShell 5.1 i PowerShell 7 drže module u različitim mapama, pa ta d
 treba instalirati u svakoj verziji kojom želiš testirati.
 
 GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 na svaki push.
+
+### Brzina
+
+Što aplikaciju čini brzom i gdje gledati kad nije:
+
+- Modul ima oko 190 datoteka s po jednom funkcijom. Čitaju se u jedan tekst i učitavaju
+  kao jedan blok, što traje trećinu vremena učitavanja jedne po jedne. S varijablom
+  okruženja `HELPDESKTOOLKIT_LOAD_FILES` postavljenom na `1` opet se učitavaju datoteku
+  po datoteku, pa greška navodi svoju datoteku i redak; testovi rade upravo tako.
+- Kategorije provjere izvršavaju se istovremeno (`Invoke-ParallelCommand`). Opterećenje
+  procesora izmjeri se prije nego što krenu, da provjera ne mjeri samu sebe.
+- Veličine mapa mjeri više niti koje si međusobno predaju posao
+  (`Get-FolderSizeBatch`), unutar vremenskog ograničenja. Veličina koja se u tom
+  vremenu nije stigla izmjeriti do kraja prikazuje se s dodatkom "ili više"
+  ("12,4 GB ili više"). Petlja jedne niti poziva jednu .NET metodu po mapi i nijednu
+  više: u PowerShellu 7 poziv metode iz skripte je spor i niti se za njega moraju
+  izmjenjivati, pa osam niti nije bilo brže od jedne dok petlja nije tako napisana.
+- Live monitor traži Windowsove klase s podacima o performansama sve odjednom
+  (`Get-CimInstanceBatch`): jedno mjerenje traje oko pola sekunde umjesto dvije.
 
 ### Slaganje izdanja
 
