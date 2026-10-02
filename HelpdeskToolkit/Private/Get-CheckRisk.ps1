@@ -10,6 +10,8 @@ function Get-CheckRisk {
         The texts are in Config\Risks.psd1 and are looked up from the most specific
         key to the most general one:
 
+        0. for the drive Windows is installed on (the value of the result ends in
+           "Windows drive"), the short name with ":Windows drive"   "Disk:Windows drive"
         1. the name of the check                       "Firewall - Public profile"
         2. the part before the first colon or parenthesis   "Disk" for "Disk (C:)"
         3. the part before " - "                            "Firewall"
@@ -25,7 +27,10 @@ function Get-CheckRisk {
         [Parameter(Mandatory)]
         [string]$Check,
 
-        [string]$Category = ''
+        [string]$Category = '',
+
+        # The value of the result; it tells the drive of Windows from the other drives.
+        [string]$Value = ''
     )
 
     if (-not $script:Risks) {
@@ -33,6 +38,9 @@ function Get-CheckRisk {
     }
 
     $keys = @(
+        if ($Value -match ', Windows drive$') {
+            '{0}:Windows drive' -f ($Check -replace '\s*[:(].*$', '')
+        }
         $Check
         $Check -replace '\s*[:(].*$', ''
         $Check -replace '\s+-\s+.*$', ''

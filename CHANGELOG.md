@@ -20,6 +20,9 @@ The first public version. It will be released as 1.0.0.
   "Requires admin" and are included after "Restart as administrator".
 - Disk space: the largest folders of a disk that is running full, the hibernation
   file, temporary files, Downloads and the Recycle Bin.
+- The drive Windows is installed on is recognized and marked. Why a full drive is a
+  problem, and what to do about it, is said differently for that drive and for a
+  drive that only holds data or programs.
 - Drivers and hardware: devices without a working driver, unsigned and old drivers,
   battery health, health of the drives and, with administrator rights, their
   temperature and wear.

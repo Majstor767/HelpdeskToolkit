@@ -521,7 +521,12 @@ Describe 'Show-WindowMonitor' -Skip:(-not $isSta) {
         It 'shows the space on every drive letter, with its label' {
             $rows = @($gui.Controls.MonitorVolumes.ItemsSource)
             $rows.Name | Should -Be @('C: System', 'D:', 'E:')
-            $rows[0].Text | Should -Be '50 % used  |  100 GB free of 200 GB'
+            # The drive Windows is installed on says so; which one that is depends on the computer.
+            $expected = '50 % used  |  100 GB free of 200 GB'
+            if ($env:SystemDrive -eq 'C:') {
+                $expected += '  |  Windows drive'
+            }
+            $rows[0].Text | Should -Be $expected
         }
 
         It 'colors the meter of a drive by the limits of the disk space check' {

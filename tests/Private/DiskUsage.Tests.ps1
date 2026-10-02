@@ -176,6 +176,14 @@ Describe 'Show-WindowVolume and Switch-WindowVolume' -Skip:(-not $isSta) {
     BeforeAll {
         # The measurement itself is not started: the tests set its result.
         Mock -ModuleName HelpdeskToolkit Invoke-WindowDiskUsage { $Gui.DiskUsage[$Drive].State = 'Loading' }
+
+        # Windows is on C: in these tests, whatever the drive of the test computer is.
+        $realSystemDrive = $env:SystemDrive
+        $env:SystemDrive = 'C:'
+    }
+
+    AfterAll {
+        $env:SystemDrive = $realSystemDrive
     }
 
     BeforeEach {
@@ -187,8 +195,28 @@ Describe 'Show-WindowVolume and Switch-WindowVolume' -Skip:(-not $isSta) {
         $rows = @($gui.Controls.MonitorVolumes.ItemsSource)
         $rows.Name | Should -Be @('C: Windows', 'D:')
         $rows.Drive | Should -Be @('C:', 'D:')
-        $rows[0].Text | Should -Be '97 % used  |  6 GB free of 200 GB'
+        $rows[0].Text | Should -Be '97 % used  |  6 GB free of 200 GB  |  Windows drive'
         $rows[0].Percent | Should -Be 97
+    }
+
+    It 'names only the drive Windows is installed on as the Windows drive' {
+        $rows = @($gui.Controls.MonitorVolumes.ItemsSource)
+        $rows[1].Text | Should -Not -Match 'Windows drive'
+        @($rows | Where-Object { $_.Text -match 'Windows drive$' }).Drive | Should -Be 'C:'
+    }
+
+    It 'mentions the folders of Windows in the note of the Windows drive only' {
+        foreach ($drive in 'C:', 'D:') {
+            InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Drive = $drive } { Switch-WindowVolume -Gui $Gui -Drive $Drive }
+            $gui.DiskUsage[$drive].State = 'Done'
+            $gui.DiskUsage[$drive].Detail = New-TestDetail -IsElevated $false
+        }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowVolume -Gui $Gui }
+
+        $rows = @($gui.Controls.MonitorVolumes.ItemsSource)
+        $rows[0].Note | Should -Match 'the folders of Windows and of other users'
+        $rows[1].Note | Should -Match 'folders that belong to other users'
+        $rows[1].Note | Should -Not -Match 'folders of Windows'
     }
 
     It 'colors the meter by the limits of the disk space check' {

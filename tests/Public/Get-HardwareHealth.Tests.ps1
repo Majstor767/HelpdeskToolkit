@@ -6,6 +6,10 @@ BeforeAll {
 
 Describe 'Get-HardwareHealth' {
     BeforeAll {
+        # Windows is on C: in these tests, whatever the drive of the test computer is.
+        $realSystemDrive = $env:SystemDrive
+        $env:SystemDrive = 'C:'
+
         Mock -ModuleName HelpdeskToolkit Get-CimInstance { throw "Unexpected CIM query: $ClassName" }
 
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Processor' } {
@@ -66,7 +70,7 @@ Describe 'Get-HardwareHealth' {
         It 'reports <Check> as <Status> with value "<Value>"' -ForEach @(
             @{ Check = 'CPU load'; Status = 'OK'; Value = '20 % (Contoso Core 8)' }
             @{ Check = 'Memory usage'; Status = 'OK'; Value = '50 % (8 GB of 16 GB used)' }
-            @{ Check = 'Disk (C:)'; Status = 'OK'; Value = '50 % free (100 GB of 200 GB)' }
+            @{ Check = 'Disk (C:)'; Status = 'OK'; Value = '50 % free (100 GB of 200 GB), Windows drive' }
             @{ Check = 'Drive: Contoso NVMe 256GB'; Status = 'OK'; Value = 'SSD, NVMe, 256 GB, health: Healthy' }
             @{ Check = 'Temporary files'; Status = 'OK'; Value = '1 GB' }
             @{ Check = 'Downloads folder'; Status = 'Info'; Value = '1 GB in 40 files' }
@@ -158,12 +162,54 @@ Describe 'Get-HardwareHealth' {
         It 'is Critical below 5 % free' {
             $disk = $results | Where-Object Check -eq 'Disk (C:)'
             $disk.Status | Should -Be 'Critical'
-            $disk.Value | Should -Be '3 % free (3 GB of 100 GB)'
+            $disk.Value | Should -Be '3 % free (3 GB of 100 GB), Windows drive'
             $disk.Recommendation | Should -Match 'almost full'
         }
 
         It 'is a Warning below 15 % free' {
             ($results | Where-Object Check -eq 'Disk (D:)').Status | Should -Be 'Warning'
+        }
+
+        It 'marks only the drive Windows is installed on' {
+            ($results | Where-Object Check -like 'Disk (*' | Where-Object { $_.Value -like '*, Windows drive' }).Check | Should -Be 'Disk (C:)'
+            ($results | Where-Object Check -eq 'Disk (D:)').Value | Should -Be '10 % free (10 GB of 100 GB)'
+        }
+
+        It 'explains the Windows drive and a data drive differently' {
+            ($results | Where-Object Check -eq 'Disk (C:)').Description | Should -Match '^The drive letter \(partition\) Windows is installed on'
+            ($results | Where-Object Check -eq 'Disk (D:)').Description | Should -Match 'Windows is installed on another drive'
+            ($results | Where-Object Check -eq 'Disk (E:)').Description | Should -Match 'Windows is installed on another drive'
+        }
+
+        It 'talks about Windows updates only in the advice for the Windows drive' {
+            ($results | Where-Object Check -eq 'Disk (C:)').Recommendation | Should -Match 'Windows updates'
+            $data = ($results | Where-Object Check -eq 'Disk (D:)').Recommendation
+            $data | Should -Match 'Move files to another drive'
+            $data | Should -Not -Match 'Windows|Disk Cleanup'
+        }
+
+        It 'gives a full data drive advice about its largest folders that does not mention Windows' {
+            Mock -ModuleName HelpdeskToolkit Get-LargestFolder { [PSCustomObject]@{ Name = 'Games'; Bytes = 80GB; Complete = $true } }
+            $folders = Get-HardwareHealth | Where-Object Check -like 'Largest folders*'
+
+            ($folders | Where-Object Check -eq 'Largest folders (C:)').Recommendation | Should -Match 'inside Windows, Program Files or ProgramData'
+            $data = ($folders | Where-Object Check -eq 'Largest folders (D:)').Recommendation
+            $data | Should -Match 'removed by uninstalling it'
+            $data | Should -Not -Match 'Windows'
+        }
+
+        It 'follows Windows to whatever drive it is installed on' {
+            $env:SystemDrive = 'D:'
+            try {
+                $moved = Get-HardwareHealth
+                ($moved | Where-Object Check -eq 'Disk (D:)').Value | Should -Be '10 % free (10 GB of 100 GB), Windows drive'
+                ($moved | Where-Object Check -eq 'Disk (D:)').Recommendation | Should -Match 'Disk Cleanup'
+                ($moved | Where-Object Check -eq 'Disk (C:)').Value | Should -Be '3 % free (3 GB of 100 GB)'
+                ($moved | Where-Object Check -eq 'Disk (C:)').Recommendation | Should -Match 'Windows is not installed here'
+            }
+            finally {
+                $env:SystemDrive = 'C:'
+            }
         }
 
         It 'is OK with plenty of free space' {
@@ -609,5 +655,9 @@ Describe 'Get-HardwareHealth' {
             ($results | Where-Object Check -eq 'Memory test').Value | Should -Be 'Unavailable'
             ($results | Where-Object Check -eq 'Battery').Value | Should -Be 'No battery (desktop computer)'
         }
+    }
+
+    AfterAll {
+        $env:SystemDrive = $realSystemDrive
     }
 }

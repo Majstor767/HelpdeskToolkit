@@ -52,6 +52,11 @@ function Show-WindowVolume {
         $level = if ($freePercent -lt $diskLimits.CriticalFreePercent) { 'Critical' } elseif ($freePercent -lt $diskLimits.WarningFreePercent) { 'Warning' } else { 'Normal' }
         $text = ((Get-LocalizedText '{0} % used') -f $entry.Percent) + $separator +
             ((Get-LocalizedText '{0} free of {1}') -f (Format-Gigabyte -Bytes $entry.FreeBytes), (Format-Gigabyte -Bytes $entry.TotalBytes))
+        # The drive Windows is installed on is named as such: it is the one that must not run full.
+        $isWindowsDrive = $drive -eq [string]$env:SystemDrive
+        if ($isWindowsDrive) {
+            $text += $separator + (Get-LocalizedText 'Windows drive')
+        }
 
         $usage = $Gui.DiskUsage[$drive]
         $expanded = [bool]($usage -and $usage.Expanded)
@@ -77,7 +82,12 @@ function Show-WindowVolume {
                         $notes += (Get-LocalizedText 'Programs that do not say how large they are: {0}.') -f $detail.UnknownCount
                     }
                     if (-not $detail.IsElevated) {
-                        $notes += Get-LocalizedText 'Without administrator rights, the folders of Windows and of other users are only measured as far as they can be read.'
+                        $notes += if ($isWindowsDrive) {
+                            Get-LocalizedText 'Without administrator rights, the folders of Windows and of other users are only measured as far as they can be read.'
+                        }
+                        else {
+                            Get-LocalizedText 'Without administrator rights, folders that belong to other users are only measured as far as they can be read.'
+                        }
                     }
                     $note = $notes -join ' '
                 }

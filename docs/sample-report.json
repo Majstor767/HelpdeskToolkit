@@ -526,9 +526,9 @@
                     {
                         "Category":  "Hardware",
                         "Check":  "Disk (C:)",
-                        "Description":  "A drive letter (partition) and its free space. Windows needs free space for updates, temporary files and virtual memory.",
+                        "Description":  "The drive letter (partition) Windows is installed on, and its free space. Windows needs free space here for updates, temporary files and virtual memory.",
                         "Status":  "Critical",
-                        "Value":  "3.1 % free (7.4 GB of 237.9 GB)",
+                        "Value":  "3.1 % free (7.4 GB of 237.9 GB), Windows drive",
                         "Details":  [
 
                                     ],
@@ -539,7 +539,7 @@
                     {
                         "Category":  "Hardware",
                         "Check":  "Disk (D:)",
-                        "Description":  "A drive letter (partition) and its free space. Windows needs free space for updates, temporary files and virtual memory.",
+                        "Description":  "A drive letter (partition) and its free space. Windows is installed on another drive; this one holds programs or data.",
                         "Status":  "OK",
                         "Value":  "61.4 % free (286.1 GB of 465.8 GB)",
                         "Details":  [

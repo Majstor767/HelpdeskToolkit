@@ -83,7 +83,7 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
         , @('Hardware', 'Top memory consumers', 'Info', 'msedge (4.9 GB), Teams (2.1 GB), EXCEL (1.6 GB), OUTLOOK (1.2 GB), Memory Compression (0.9 GB)', '')
         , @('Hardware', 'Drive: Contoso NVMe 256GB', 'OK', 'SSD, NVMe, 238.5 GB, health: Healthy', '')
         , @('Hardware', 'Drive: Contoso HDD 500GB', 'Warning', 'HDD, SATA, 465.8 GB, health: Warning', 'The drive reports a problem and may fail. Back up the data now and plan to replace the drive.')
-        , @('Hardware', 'Disk (C:)', 'Critical', '3.1 % free (7.4 GB of 237.9 GB)', 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.')
+        , @('Hardware', 'Disk (C:)', 'Critical', '3.1 % free (7.4 GB of 237.9 GB), Windows drive', 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.')
         , @('Hardware', 'Disk (D:)', 'OK', '61.4 % free (286.1 GB of 465.8 GB)', '')
         , @('Hardware', 'Largest folders (C:)', 'Info', 'Users\m.horvat\AppData 71.2 GB or more, Windows 28.4 GB or more, Program Files 19.6 GB, Users\m.horvat\Downloads 11.2 GB, Users\m.horvat\Videos 9.7 GB, hiberfil.sys 6.3 GB and 6 more', 'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.')
         , @('Hardware', 'Temporary files', 'Warning', '6.8 GB', 'Temporary files take up a lot of space. Remove them in Settings > System > Storage > Temporary files.')
@@ -248,6 +248,10 @@ $folder = (Resolve-Path -LiteralPath $OutputPath).Path
             # Services are described by their service name, the part in parentheses.
             $description = if ($row[0] -eq 'Services' -and $row[1] -match '\((\w+)\)$') {
                 Get-CheckDescription -Key ('Service:{0}' -f $Matches[1])
+            }
+            elseif ($row[3] -like '*, Windows drive') {
+                # The drive Windows is installed on has an explanation of its own.
+                Get-CheckDescription -Key 'Disk:Windows drive'
             }
             else {
                 ''

@@ -20,7 +20,8 @@ function Get-HardwareHealth {
         admin": the details every drive reports about itself (temperature, wear,
         power-on hours, uncorrected errors), drives flagged for a disk check and the
         size of the temporary files of Windows.
-        - free space on every local fixed disk
+        - free space on every local fixed disk, with the drive Windows is installed on
+          marked as such; a full data drive gets other advice than a full Windows drive
         - battery charge, when the computer has a battery
 
         The limits for Warning and Critical come from Config\Thresholds.psd1.
@@ -159,8 +160,16 @@ function Get-HardwareHealth {
         $disks = @(Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType = 3' -ErrorAction Stop)
         foreach ($disk in $disks) {
             $check = 'Disk ({0})' -f $disk.DeviceID
+
+            # The drive Windows is installed on is a different matter than a data drive:
+            # when it runs full, Windows itself is in trouble. The result says which one
+            # it is (", Windows drive" at the end of the value), and the explanation, the
+            # reason why a full drive matters and the advice are chosen to fit.
+            $isWindowsDrive = [string]$disk.DeviceID -eq [string]$env:SystemDrive
+            $description = if ($isWindowsDrive) { Get-CheckDescription -Key 'Disk:Windows drive' } else { '' }
+
             if (-not $disk.Size) {
-                New-CheckResult -Category $category -Check $check -Status Info -Value 'Size unknown'
+                New-CheckResult -Category $category -Check $check -Status Info -Value 'Size unknown' -Description $description
                 continue
             }
 
@@ -171,12 +180,29 @@ function Get-HardwareHealth {
                 $lowDisks += [string]$disk.DeviceID
             }
             $recommendation = switch ($status) {
-                'Critical' { 'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.' }
-                'Warning' { 'Free space is low. Run Disk Cleanup, empty the Recycle Bin and remove programs and files that are no longer needed.' }
+                'Critical' {
+                    if ($isWindowsDrive) {
+                        'The disk is almost full. Free up space now: Windows updates and applications can fail without free space.'
+                    }
+                    else {
+                        'This drive is almost full, so nothing more can be saved on it. Windows is not installed here and keeps working; move files to another drive or delete what is no longer needed.'
+                    }
+                }
+                'Warning' {
+                    if ($isWindowsDrive) {
+                        'Free space is low. Run Disk Cleanup, empty the Recycle Bin and remove programs and files that are no longer needed.'
+                    }
+                    else {
+                        'Free space on this drive is low. Move files to another drive or delete what is no longer needed, and empty the Recycle Bin.'
+                    }
+                }
                 default { '' }
             }
-            New-CheckResult -Category $category -Check $check -Status $status `
-                -Value ('{0} % free ({1} of {2})' -f [string]$freePercent, (Format-Gigabyte -Bytes $disk.FreeSpace), (Format-Gigabyte -Bytes $disk.Size)) `
+            $value = '{0} % free ({1} of {2})' -f [string]$freePercent, (Format-Gigabyte -Bytes $disk.FreeSpace), (Format-Gigabyte -Bytes $disk.Size)
+            if ($isWindowsDrive) {
+                $value = '{0}, Windows drive' -f $value
+            }
+            New-CheckResult -Category $category -Check $check -Status $status -Value $value -Description $description `
                 -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.Disk.WarningFreePercent -Critical $thresholds.Disk.CriticalFreePercent -Unit '% free' -LowerIsWorse) `
                 -Typical $thresholds.Disk.Typical
@@ -201,8 +227,14 @@ function Get-HardwareHealth {
             }
             else {
                 $list = ConvertTo-ListValue -Item $largest -Shown 6
-                New-CheckResult -Category $category -Check $check -Status Info -Value $list.Value -Details $list.Details `
-                    -Recommendation 'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.'
+                # The folders of Windows are only on the drive Windows is installed on.
+                $recommendation = if ([string]$letter -eq [string]$env:SystemDrive) {
+                    'This is where the space of the disk goes. Start cleaning up with the largest folders that hold your own files (Downloads, Videos, Desktop); do not delete anything inside Windows, Program Files or ProgramData by hand. "Or more" means the folder was too large to be measured completely in the time allowed.'
+                }
+                else {
+                    'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.'
+                }
+                New-CheckResult -Category $category -Check $check -Status Info -Value $list.Value -Details $list.Details -Recommendation $recommendation
             }
         }
         catch {

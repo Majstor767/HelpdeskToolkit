@@ -7,7 +7,8 @@
     # check, the part of the name before the first colon or parenthesis ("Disk" for
     # "Disk (C:)"), the part before " - " ("Firewall" for "Firewall - Public profile"),
     # "Service:<name>" for a Windows service, and at last "Category:<name>" for every
-    # check of a category that has no entry of its own.
+    # check of a category that has no entry of its own. Before all of them comes
+    # "<name>:Windows drive" for a result about the drive Windows is installed on.
 
     # --- System ---------------------------------------------------------------------
     'Uptime'                            = 'Windows that runs for many days without a restart gets slower: the memory fills up with leftovers, updates stay half installed and small faults pile up. In the end programs hang, and security updates that wait for the restart are not active.'
@@ -24,7 +25,11 @@
     'CPU load'                          = 'A processor that stays close to its limit makes everything slow and jerky, keeps the fans loud and heats the computer up. Constant heat shortens the life of the hardware.'
     'Memory usage'                      = 'When the memory is full, Windows moves data to the much slower disk. Programs freeze for seconds, and in the end Windows closes them without warning, with the unsaved work lost.'
     'Page file'                         = 'A page file that is almost full means Windows is running out of room for the memory it has promised to programs. Programs then stop with "out of memory" or close by themselves.'
-    'Disk'                              = 'A full disk stops Windows updates from installing, makes programs fail when they save, and slows the computer down. With no space left at all, Windows may not start properly and files can be damaged.'
+    # A drive without Windows on it; the text makes no claim about Windows, so it is
+    # also true for a report of an older version, which does not say which drive it is.
+    'Disk'                              = 'A full drive takes nothing more: programs that save to it fail, downloads and backups stop half way, and a file that could not be written completely can be damaged.'
+    # The drive Windows is installed on (the value of the result ends in "Windows drive").
+    'Disk:Windows drive'                = 'Windows is installed on this drive. When it is full, Windows updates no longer install, programs fail when they save, and the whole computer slows down. With no space left at all, Windows may not start properly and files can be damaged.'
     'Drive'                             = 'A drive that reports problems can fail completely at any time. Everything stored on it is then gone, unless there is a backup.'
     'Drive details'                     = 'A drive that runs too hot or is worn out is close to failing. A failed drive takes all its data with it, usually without another warning.'
     'File system'                       = 'Errors in the file system grow: files become unreadable, programs crash when they touch them, and in the worst case Windows no longer starts.'

@@ -111,6 +111,7 @@ Describe 'Get-LocalizedText' {
         @{ Text = '9 in the last 7 days: EXCEL.EXE (6)'; Expected = '9 u zadnjih 7 dana: EXCEL.EXE (6)' }
         @{ Text = 'None in the last 30 days'; Expected = 'Nema u zadnjih 30 dana' }
         @{ Text = '3.1 % free (7.4 GB of 237.9 GB)'; Expected = '3.1 % slobodno (7.4 GB od 237.9 GB)' }
+        @{ Text = '3.1 % free (7.4 GB of 237.9 GB), Windows drive'; Expected = '3.1 % slobodno (7.4 GB od 237.9 GB), disk s Windowsom' }
         @{ Text = '88 % (14 GB of 15.8 GB used)'; Expected = '88 % (zauzeto 14 GB od 15.8 GB)' }
         @{ Text = 'KB5000001 on 2026-09-18 (12 days ago)'; Expected = 'KB5000001, 2026-09-18 (prije 12 dana)' }
         @{ Text = 'Supported until 2026-10-13 (13 days left)'; Expected = 'Podržano do 2026-10-13 (još 13 dana)' }

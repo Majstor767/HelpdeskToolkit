@@ -72,7 +72,7 @@ function ConvertTo-HealthReportHtml {
         # not be read ("Unavailable") is no finding.
         $risk = ''
         if ($Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable') {
-            $riskText = Get-CheckRisk -Check $Result.Check -Category $Result.Category
+            $riskText = Get-CheckRisk -Check $Result.Check -Category $Result.Category -Value ([string]$Result.Value)
             if ($riskText) {
                 $risk = '<div class="risk">{0}</div>' -f (ConvertTo-HtmlEncodedText -Text $riskText)
             }

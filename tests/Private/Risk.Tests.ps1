@@ -38,6 +38,26 @@ Describe 'Get-CheckRisk' {
         Get-TestRisk -Check $Check -Category $Category | Should -Be $risks[$Key]
     }
 
+    It 'has a text of its own for the drive Windows is installed on' {
+        $windows = InModuleScope HelpdeskToolkit { Get-CheckRisk -Check 'Disk (C:)' -Category 'Hardware' -Value '3 % free (3 GB of 100 GB), Windows drive' }
+        $data = InModuleScope HelpdeskToolkit { Get-CheckRisk -Check 'Disk (D:)' -Category 'Hardware' -Value '3 % free (3 GB of 100 GB)' }
+
+        $windows | Should -Be $risks['Disk:Windows drive']
+        $windows | Should -Match '^Windows is installed on this drive'
+        $data | Should -Be $risks['Disk']
+        $windows | Should -Not -Be $data
+    }
+
+    It 'says nothing about Windows for a drive that is not the one of Windows' {
+        $risks['Disk'] | Should -Not -Match 'Windows'
+    }
+
+    It 'only looks at the end of the value, so a name that contains the words changes nothing' {
+        InModuleScope HelpdeskToolkit { Get-CheckRisk -Check 'Memory usage' -Category 'Hardware' -Value 'Windows drive tool (3 GB)' } | Should -Be $risks['Memory usage']
+        # A check without a text for the Windows drive falls back to its ordinary one.
+        InModuleScope HelpdeskToolkit { Get-CheckRisk -Check 'BitLocker (C:)' -Category 'Security' -Value 'Protection off, Windows drive' } | Should -Be $risks['BitLocker']
+    }
+
     It 'prefers the text of the check itself to the one of its category' {
         Get-TestRisk -Check 'Uptime' -Category 'System' | Should -Not -Be $risks['Category:System']
     }
@@ -189,7 +209,7 @@ Describe 'The window: why a problem matters' -Skip:(-not $isSta) {
 Describe 'The HTML report: why a problem matters' {
     BeforeAll {
         $results = @(
-            New-TestResult -Category 'Hardware' -Check 'Disk (C:)' -Status Critical -Value '3 % free' -Recommendation 'Free up space.'
+            New-TestResult -Category 'Hardware' -Check 'Disk (C:)' -Status Critical -Value '3 % free (3 GB of 100 GB), Windows drive' -Recommendation 'Free up space.'
             New-TestResult -Category 'Hardware' -Check 'CPU load' -Status OK -Value '12 %'
             New-TestResult -Category 'Network' -Check 'Proxy' -Status Warning -Value 'Unavailable' -Recommendation 'The information could not be read: Access denied'
         )
@@ -197,7 +217,7 @@ Describe 'The HTML report: why a problem matters' {
     }
 
     It 'says next to a problem what it leads to' {
-        $html | Should -Match ([regex]::Escape('<div class="risk">A full disk stops Windows updates from installing'))
+        $html | Should -Match ([regex]::Escape('<div class="risk">Windows is installed on this drive. When it is full, Windows updates no longer install'))
     }
 
     It 'says it in the problem list and in the card of the category' {

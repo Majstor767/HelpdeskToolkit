@@ -56,7 +56,7 @@ function ConvertTo-WindowItem {
         # not be read ("Unavailable") is no finding, so nothing is said about it.
         $risk = ''
         if ($Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable') {
-            $risk = Get-LocalizedText (Get-CheckRisk -Check $Result.Check -Category $Result.Category)
+            $risk = Get-LocalizedText (Get-CheckRisk -Check $Result.Check -Category $Result.Category -Value ([string]$Result.Value))
         }
 
         [PSCustomObject]@{
