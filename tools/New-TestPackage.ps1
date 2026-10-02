@@ -63,6 +63,20 @@ $name = 'HelpdeskToolkit-test-{0}' -f $version
 $package = Join-Path -Path $outputFolder -ChildPath $name
 $packageZip = '{0}.zip' -f $package
 
+# A copy of the application that was started from the old package keeps a file of it
+# open (see Lock-AppFile). Deleting the folder under a running window would leave that
+# window without its files, so nothing is touched while it runs.
+$lockFile = Join-Path -Path $package -ChildPath 'Bez-instalacije\HelpdeskToolkit\Assets\HelpdeskToolkit.ico'
+if (Test-Path -LiteralPath $lockFile) {
+    try {
+        $stream = [System.IO.File]::Open($lockFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+        $stream.Dispose()
+    }
+    catch [System.IO.IOException] {
+        throw "A copy of the application that was started from $package is still running. Close its window, or choose another folder with -OutputPath, and run the script again. Nothing was changed."
+    }
+}
+
 # A package of an earlier run is replaced as a whole.
 foreach ($old in $package, $packageZip) {
     if (Test-Path -LiteralPath $old) {

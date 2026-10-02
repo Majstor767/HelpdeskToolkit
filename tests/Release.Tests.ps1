@@ -241,6 +241,13 @@ Describe 'Package for a tester' {
         $text | Should -Match 'Expand-Archive'
     }
 
+    It 'does not delete an old package while a copy started from it is still running' {
+        $text = Get-Content -LiteralPath $script -Raw
+        $text | Should -Match 'is still running'
+        # The test for the open file comes before anything is removed.
+        $text.IndexOf('[System.IO.FileShare]::None') | Should -BeLessThan $text.IndexOf('-Recurse -Force')
+    }
+
     It 'has instructions that Notepad shows with their Croatian letters' {
         $bytes = [System.IO.File]::ReadAllBytes($readme)
         $bytes[0], $bytes[1], $bytes[2] | Should -Be @(0xEF, 0xBB, 0xBF)
