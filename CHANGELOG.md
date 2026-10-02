@@ -73,4 +73,6 @@ The first public version. It will be released as 1.0.0.
 
 - Installer for the current user (no administrator rights), portable ZIP, or use as a
   PowerShell module.
+- Setup and the uninstaller stop with a message while the application is open,
+  instead of replacing files under it.
 - Runs on Windows PowerShell 5.1 and PowerShell 7.
