@@ -468,24 +468,80 @@
             </Style.Triggers>
         </Style>
 
-        <!-- One entry of the page list on the left. -->
+        <!-- One entry of the page list on the left, laid out like the navigation of Windows
+             11: an icon, the name, and on the right the number of problems. The selected
+             entry gets a tinted background and a short bar of the accent color on its
+             left edge. -->
         <Style x:Key="NavItem" TargetType="ListBoxItem">
-            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Padding" Value="10,6"/>
             <Setter Property="Margin" Value="0,1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="NavBackground" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
+                        <Grid>
+                            <Border x:Name="NavBackground" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter/>
+                            </Border>
+                            <Border x:Name="NavIndicator" Width="3" Height="16" CornerRadius="1.5" Background="{DynamicResource InfoBrush}"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="NavBackground" Property="Background" Value="{DynamicResource HoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="NavBackground" Property="Background" Value="{DynamicResource SelectedBrush}"/>
+                                <Setter TargetName="NavIndicator" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The heading of a group in the side bar ("CHECKS", "REPORT") -->
+        <Style x:Key="NavHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="Margin" Value="10,12,0,4"/>
+        </Style>
+
+        <!-- A button of the side bar that looks like an entry of the page list: the icon in
+             the same column, the text where the names of the pages begin. The icon is a
+             character of "Segoe MDL2 Assets", passed in the Tag. -->
+        <Style x:Key="NavActionButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                           Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource HoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SelectedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Chrome" Property="Opacity" Value="0.45"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -750,92 +806,125 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left: pages, and the report buttons below them -->
+            <!-- Left: the pages and the report, then the rights and the settings at the bottom -->
             <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
-                <DockPanel Margin="10,12">
-                    <StackPanel DockPanel.Dock="Bottom" Margin="2,10,2,0">
-                        <!-- Shows whether the window runs with administrator rights; the button
-                             below it is hidden once it does. -->
-                        <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,0,0,6"/>
-                        <Button x:Name="ElevateButton" Content="Restart as administrator" Tag="&#xEA18;" Style="{StaticResource ActionButton}" Margin="0,0,0,14"/>
-                        <Button x:Name="OpenReportButton" Content="Open HTML report" Tag="&#xE8A7;" Style="{StaticResource AccentButton}" IsEnabled="False" Margin="0,0,0,6"/>
-                        <Button x:Name="CopySummaryButton" Content="Copy summary" Tag="&#xE8C8;" ToolTip="Copy the problems as text for a ticket or an e-mail (Ctrl+Shift+C)" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
-                        <Button x:Name="SaveAsButton" Content="Save as..." Tag="&#xE74E;" ToolTip="Save the report as HTML, PDF, JSON or CSV (Ctrl+S)" Style="{StaticResource ActionButton}" IsEnabled="False"/>
-                        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-2,12,-2,0" Padding="0,8,0,0">
-                            <Button x:Name="SettingsButton" Content="Settings" Tag="&#xE713;" ToolTip="Language, theme and the automatic check (Ctrl+,)" Style="{StaticResource NavButton}"/>
-                        </Border>
-                    </StackPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PAGES" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" Margin="12,2,0,6"/>
-                    <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
-                             ItemContainerStyle="{StaticResource NavItem}"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <!-- Without the frame of the standard list, which turns grey when
-                             the window is disabled behind the question at the start -->
-                        <ListBox.Template>
-                            <ControlTemplate TargetType="ListBox">
-                                <ScrollViewer Focusable="False">
-                                    <ItemsPresenter/>
-                                </ScrollViewer>
-                            </ControlTemplate>
-                        </ListBox.Template>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <DockPanel>
-                                    <!-- Number of problems in the category; hidden when there are none -->
-                                    <Border DockPanel.Dock="Right" CornerRadius="9" Padding="7,0" MinWidth="22" VerticalAlignment="Center">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                        <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Badge}" Value="">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
+                <DockPanel Margin="8,10,8,8">
+                    <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-8,8,-8,0" Padding="8,6,8,0">
+                        <StackPanel>
+                            <!-- Whether the window runs with administrator rights: without them
+                                 a button offers the restart, with them a line says so. -->
+                            <Button x:Name="ElevateButton" Content="Restart as administrator" Tag="&#xEA18;" ToolTip="Standard rights: some checks are skipped." Style="{StaticResource NavActionButton}"/>
+                            <DockPanel x:Name="ElevationPanel" Margin="10,4,4,4" Visibility="Collapsed">
+                                <TextBlock Text="&#xEA18;" FontFamily="Segoe MDL2 Assets" FontSize="13" Foreground="{DynamicResource OkBrush}" VerticalAlignment="Top" Margin="0,2,17,0"/>
+                                <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                            </DockPanel>
+                            <Button x:Name="SettingsButton" Content="Settings" Tag="&#xE713;" ToolTip="Language, theme and the automatic check (Ctrl+,)" Style="{StaticResource NavActionButton}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Pages and report scroll together when the window is too low for all
+                         of them, so the pages always come first. -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                        <StackPanel>
+                            <!-- The pages of the application, then the check categories under their
+                                 own heading (the entries carry the name of their group). -->
+                            <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
+                                     ItemContainerStyle="{StaticResource NavItem}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <!-- Without the frame of the standard list, which turns grey when
+                                     the window is disabled behind the question at the start -->
+                                <ListBox.Template>
+                                    <ControlTemplate TargetType="ListBox">
+                                        <ItemsPresenter/>
+                                    </ControlTemplate>
+                                </ListBox.Template>
+                                <ListBox.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.ContainerStyle>
+                                            <Style TargetType="GroupItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="GroupItem">
+                                                            <StackPanel>
+                                                                <ContentPresenter/>
+                                                                <ItemsPresenter/>
+                                                            </StackPanel>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </Style>
-                                        </Border.Style>
-                                        <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                            <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Border>
-                                    <!-- Dot in the color of the worst status in the category -->
-                                    <Ellipse Width="9" Height="9" Margin="0,0,10,0" VerticalAlignment="Center">
-                                        <Ellipse.Style>
-                                            <Style TargetType="Ellipse">
-                                                <Setter Property="Fill" Value="{DynamicResource NeutralBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Worst}" Value="OK">
-                                                        <Setter Property="Fill" Value="{DynamicResource OkBrush}"/>
+                                        </GroupStyle.ContainerStyle>
+                                        <GroupStyle.HeaderTemplate>
+                                            <DataTemplate>
+                                                <TextBlock x:Name="GroupTitle" Text="{Binding Name}" Style="{StaticResource NavHeader}"/>
+                                                <DataTemplate.Triggers>
+                                                    <!-- The first group, the pages, has no heading -->
+                                                    <DataTrigger Binding="{Binding Name}" Value="">
+                                                        <Setter TargetName="GroupTitle" Property="Visibility" Value="Collapsed"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Worst}" Value="Info">
-                                                        <Setter Property="Fill" Value="{DynamicResource InfoBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Worst}" Value="Warning">
-                                                        <Setter Property="Fill" Value="{DynamicResource WarningDotBrush}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Worst}" Value="Critical">
-                                                        <Setter Property="Fill" Value="{DynamicResource CriticalBrush}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Ellipse.Style>
-                                    </Ellipse>
-                                    <TextBlock Text="{Binding Label}" FontSize="14" VerticalAlignment="Center" Foreground="{DynamicResource TextBrush}"/>
-                                </DockPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </GroupStyle.HeaderTemplate>
+                                    </GroupStyle>
+                                </ListBox.GroupStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="NavIcon" Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                       Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="NavLabel" Grid.Column="1" Text="{Binding Label}" FontSize="14" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                            <!-- Number of problems in the category, in the color of the
+                                                 worst one; hidden when there are none -->
+                                            <Border Grid.Column="2" CornerRadius="9" Padding="7,1" MinWidth="22" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Worst}" Value="Critical">
+                                                                <Setter Property="Background" Value="{DynamicResource CriticalBackBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Badge}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Worst}" Value="Critical">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                <Setter TargetName="NavIcon" Property="Foreground" Value="{DynamicResource InfoBrush}"/>
+                                                <Setter TargetName="NavLabel" Property="FontWeight" Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <TextBlock Text="REPORT" Style="{StaticResource NavHeader}"/>
+                            <Button x:Name="OpenReportButton" Content="Open HTML report" Tag="&#xE8A7;" ToolTip="Save the report and open it in the browser (Ctrl+O)" Style="{StaticResource NavActionButton}" IsEnabled="False"/>
+                            <Button x:Name="CopySummaryButton" Content="Copy summary" Tag="&#xE8C8;" ToolTip="Copy the problems as text for a ticket or an e-mail (Ctrl+Shift+C)" Style="{StaticResource NavActionButton}" IsEnabled="False"/>
+                            <Button x:Name="SaveAsButton" Content="Save as..." Tag="&#xE74E;" ToolTip="Save the report as HTML, PDF, JSON or CSV (Ctrl+S)" Style="{StaticResource NavActionButton}" IsEnabled="False"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
 

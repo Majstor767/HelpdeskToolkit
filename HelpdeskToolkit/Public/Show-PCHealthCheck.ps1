@@ -173,9 +173,11 @@ function Show-PCHealthCheck {
     $gui.MonitorTimer.Interval = [timespan]::FromMilliseconds(400)
     $gui.MonitorTimer.Add_Tick({ Receive-WindowMonitor -Gui $script:HealthCheckWindow })
 
-    # With administrator rights there is nothing left to elevate.
+    # With administrator rights there is nothing left to elevate: the button gives way
+    # to a line that says so.
     if (Test-IsAdministrator) {
         $controls.ElevationText.Text = Get-LocalizedText 'Running as administrator: all checks are included.'
+        $controls.ElevationPanel.Visibility = [System.Windows.Visibility]::Visible
         $controls.ElevateButton.Visibility = [System.Windows.Visibility]::Collapsed
     }
     $controls.ElevateButton.Add_Click({ [void](Invoke-ElevatedRestart -Gui $script:HealthCheckWindow -RunCheck) })

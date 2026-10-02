@@ -70,11 +70,16 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
         $gui.Controls.MonitorPanel.Visibility | Should -Be 'Collapsed'
     }
 
-    It 'gives every button the rounded template and an icon' {
-        foreach ($name in 'RunButton', 'ElevateButton', 'OpenReportButton', 'SaveAsButton') {
+    It 'gives the Run button the rounded template and an icon' {
+        $gui.Controls.RunButton.Template | Should -Be $gui.Window.FindResource('ButtonTemplate')
+        # One character of the icon font, from its private range.
+        [int][char]([string]$gui.Controls.RunButton.Tag) | Should -BeGreaterThan 0xE000
+    }
+
+    It 'gives the buttons of the side bar the look of the page list, each with an icon' {
+        foreach ($name in 'OpenReportButton', 'CopySummaryButton', 'SaveAsButton', 'ElevateButton', 'SettingsButton') {
             $button = $gui.Controls[$name]
-            $button.Template | Should -Be $gui.Window.FindResource('ButtonTemplate') -Because "$name should use the shared button template"
-            # One character of the icon font, from its private range.
+            $button.Style | Should -Be $gui.Window.FindResource('NavActionButton') -Because "$name belongs to the side bar"
             ([string]$button.Tag).Length | Should -Be 1
             [int][char]([string]$button.Tag) | Should -BeGreaterThan 0xE000
         }
@@ -175,6 +180,17 @@ Describe 'Show-WindowReport' -Skip:(-not $isSta) {
         ($entries | Where-Object Name -eq 'Network').Badge | Should -Be ''
         ($entries | Where-Object Name -eq 'Live monitor').Worst | Should -Be 'Info'
         ($entries | Where-Object Name -eq 'Live monitor').Badge | Should -Be ''
+    }
+
+    It 'shows the pages first and the categories under the heading CHECKS, also after the entries were replaced' {
+        $groups = @($gui.Controls.CategoryList.Items.Groups)
+        $groups.Count | Should -Be 2
+        $groups[0].Name | Should -Be ''
+        @($groups[0].Items).Name | Should -Be @('Overview', 'Live monitor')
+        $groups[1].Name | Should -Be 'CHECKS'
+        @($groups[1].Items).Name | Should -Be @('System', 'Hardware', 'Network')
+        # Selecting by position still means the order of the list on the screen.
+        $gui.Controls.CategoryList.Items[2].Name | Should -Be 'System'
     }
 
     It 'opens the Overview page with the problems, critical first' {
@@ -299,6 +315,34 @@ Describe 'ConvertTo-WindowNavigationItem' {
             (ConvertTo-WindowNavigationItem -Name 'Overview').Worst | Should -Be 'None'
             (ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info').Worst | Should -Be 'Info'
         }
+    }
+
+    It 'gives every page and every category an icon of its own' {
+        $names = 'Overview', 'Live monitor', 'Timeline', 'System', 'Specifications', 'Hardware', 'Software',
+        'Event Log', 'Windows Update', 'Security', 'Network', 'Printers', 'Services'
+        $icons = InModuleScope HelpdeskToolkit -Parameters @{ Names = $names } {
+            foreach ($name in $Names) { (ConvertTo-WindowNavigationItem -Name $name).Icon }
+        }
+        @($icons).Count | Should -Be $names.Count
+        @($icons | Select-Object -Unique).Count | Should -Be $names.Count
+        foreach ($icon in $icons) {
+            $icon.Length | Should -Be 1
+            [int][char]$icon | Should -BeGreaterThan 0xE000
+        }
+    }
+
+    It 'puts the pages in a group without a heading and the categories under CHECKS' {
+        InModuleScope HelpdeskToolkit {
+            foreach ($name in 'Overview', 'Live monitor', 'Timeline') {
+                (ConvertTo-WindowNavigationItem -Name $name).Group | Should -Be ''
+            }
+            (ConvertTo-WindowNavigationItem -Name 'Security').Group | Should -Be 'CHECKS'
+        }
+    }
+
+    It 'gives a category it does not know a general icon instead of none' {
+        $icon = InModuleScope HelpdeskToolkit { (ConvertTo-WindowNavigationItem -Name 'Something new').Icon }
+        $icon.Length | Should -Be 1
     }
 }
 

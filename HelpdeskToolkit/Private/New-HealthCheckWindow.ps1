@@ -116,6 +116,10 @@ function New-HealthCheckWindow {
         }
     }
 
+    # The page list is grouped by the Group of its entries (see
+    # ConvertTo-WindowNavigationItem). The grouping belongs to the list, not to the
+    # entries, so it stays when they are replaced after a check.
+    $controls.CategoryList.Items.GroupDescriptions.Add((New-Object -TypeName System.Windows.Data.PropertyGroupDescription -ArgumentList 'Group'))
     $controls.CategoryList.ItemsSource = @(
         ConvertTo-WindowNavigationItem -Name 'Overview'
         ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
