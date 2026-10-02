@@ -8,7 +8,9 @@ function Invoke-AppRestart {
         of the application, which reads the new settings, and closes the old one.
 
         The new copy runs with the same rights as this one: started from an elevated
-        window it is elevated too, without another prompt.
+        window it is elevated too, without another prompt. It does not ask about
+        administrator rights again and runs the check at once, so the results are back
+        without a click.
 
         Returns $true when the new copy was started.
     #>
@@ -23,7 +25,7 @@ function Invoke-AppRestart {
     $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
     try {
-        Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument) -WindowStyle Hidden -ErrorAction Stop
+        Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument -RunCheck) -WindowStyle Hidden -ErrorAction Stop
     }
     catch {
         $Gui.Controls.StatusText.Text = (Get-LocalizedText 'The application could not be restarted: {0}') -f $_.Exception.Message

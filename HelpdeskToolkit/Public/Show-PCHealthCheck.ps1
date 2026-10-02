@@ -3,7 +3,12 @@ function Show-PCHealthCheck {
     .SYNOPSIS
         Opens the HelpdeskToolkit window for running the health check with the mouse.
     .DESCRIPTION
-        Shows a window with a "Run check" button and a list of pages:
+        When the window opens, it asks whether to run with administrator rights and
+        then starts the check by itself: with "Yes" in a new, elevated window (after
+        the confirmation Windows asks for), with "No" in this one with standard
+        rights. The answer can be remembered. An elevated start asks nothing.
+
+        The window has a "Run check" button and a list of pages:
 
         - Overview: the health score, every problem with its recommended fix and a
           button that opens the place in Windows where it is fixed, and what changed
@@ -44,10 +49,20 @@ function Show-PCHealthCheck {
         Folder used by the "Open HTML report" button and for recordings of the Live
         monitor. It is created when needed. Defaults to a HelpdeskToolkit folder
         inside the current user's Documents.
+    .PARAMETER RunCheck
+        Start the check as soon as the window is open, with the rights the window
+        has, without asking about administrator rights.
+    .PARAMETER NoQuestion
+        Do not ask about administrator rights. Without -RunCheck the window then
+        waits for a click on "Run check".
     .EXAMPLE
         Show-PCHealthCheck
 
-        Opens the window.
+        Opens the window, asks about administrator rights and runs the check.
+    .EXAMPLE
+        Show-PCHealthCheck -NoQuestion
+
+        Opens the window and waits for "Run check".
     .EXAMPLE
         Show-PCHealthCheck -OutputPath C:\Temp\Reports
 
@@ -58,7 +73,11 @@ function Show-PCHealthCheck {
     [CmdletBinding()]
     param(
         [ValidateNotNullOrEmpty()]
-        [string]$OutputPath = (Join-Path -Path ([Environment]::GetFolderPath('MyDocuments')) -ChildPath 'HelpdeskToolkit')
+        [string]$OutputPath = (Join-Path -Path ([Environment]::GetFolderPath('MyDocuments')) -ChildPath 'HelpdeskToolkit'),
+
+        [switch]$RunCheck,
+
+        [switch]$NoQuestion
     )
 
     # WPF windows can only be created on a single-threaded apartment (STA) thread.
@@ -72,6 +91,7 @@ function Show-PCHealthCheck {
     $script:Language = $settings.Language
     $gui = New-HealthCheckWindow -Theme (Get-WindowTheme -Setting $settings.Theme) -Setting $settings
     $gui.OutputFolder = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputPath)
+    $gui.Startup = @{ RunCheck = [bool]$RunCheck; NoQuestion = [bool]$NoQuestion }
 
     # The event handlers below run later, when a button is clicked. They reach the
     # window through this module-level variable.
@@ -135,7 +155,13 @@ function Show-PCHealthCheck {
         $controls.ElevationText.Text = Get-LocalizedText 'Running as administrator: all checks are included.'
         $controls.ElevateButton.Visibility = [System.Windows.Visibility]::Collapsed
     }
-    $controls.ElevateButton.Add_Click({ [void](Invoke-ElevatedRestart -Gui $script:HealthCheckWindow) })
+    $controls.ElevateButton.Add_Click({ [void](Invoke-ElevatedRestart -Gui $script:HealthCheckWindow -RunCheck) })
+
+    # The question at the start and its two answers. The window decides what to do once
+    # it has been drawn for the first time (see Invoke-WindowStartup).
+    $controls.StartupYesButton.Add_Click({ [void](Invoke-WindowElevationChoice -Gui $script:HealthCheckWindow -Elevate) })
+    $controls.StartupNoButton.Add_Click({ [void](Invoke-WindowElevationChoice -Gui $script:HealthCheckWindow) })
+    $window.Add_ContentRendered({ [void](Invoke-WindowStartup -Gui $script:HealthCheckWindow) })
 
     # Choosing an entry in the page list shows that page on the right. A search belongs
     # to the page it was typed on, so it is cleared.
@@ -335,6 +361,16 @@ function Show-PCHealthCheck {
     $controls.LanguageBox.Add_SelectionChanged($changeSetting)
     $controls.ThemeBox.Add_SelectionChanged($changeSetting)
     $controls.RestartButton.Add_Click({ [void](Invoke-AppRestart -Gui $script:HealthCheckWindow) })
+
+    # What happens at the next start
+    $controls.StartupBox.Add_SelectionChanged({
+            $state = $script:HealthCheckWindow
+            if ($state.Loading -or -not $state.Controls.StartupBox.SelectedItem) {
+                return
+            }
+            $state.Settings.StartupElevation = [string]$state.Controls.StartupBox.SelectedItem.Tag
+            [void](Save-AppSetting -Setting $state.Settings)
+        })
 
     # The interval of the automatic check applies at once.
     $controls.AutoCheckBox.Add_SelectionChanged({

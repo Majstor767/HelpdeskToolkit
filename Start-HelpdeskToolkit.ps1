@@ -9,18 +9,27 @@
     Both start this script through "conhost.exe --headless", so there is no console
     window at all and an error would go unnoticed. Any failure is therefore shown in a
     message box.
+.PARAMETER RunCheck
+    Start the check as soon as the window is open, without asking about administrator
+    rights. The window uses it when it starts itself again.
+.PARAMETER NoQuestion
+    Do not ask about administrator rights.
 .EXAMPLE
     .\Start-HelpdeskToolkit.ps1
 
-    Opens the window.
+    Opens the window, which asks about administrator rights and runs the check.
 #>
 [CmdletBinding()]
-param()
+param(
+    [switch]$RunCheck,
+
+    [switch]$NoQuestion
+)
 
 try {
     $manifest = Join-Path -Path $PSScriptRoot -ChildPath 'HelpdeskToolkit\HelpdeskToolkit.psd1'
     Import-Module -Name $manifest -ErrorAction Stop
-    Show-PCHealthCheck
+    Show-PCHealthCheck -RunCheck:$RunCheck -NoQuestion:$NoQuestion
 }
 catch {
     Add-Type -AssemblyName PresentationFramework

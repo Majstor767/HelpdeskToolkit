@@ -3,9 +3,9 @@ function Show-WindowSetting {
     .SYNOPSIS
         Fills the Settings page of the window.
     .DESCRIPTION
-        Selects the current language, theme and interval of the automatic check in
-        their lists, lists the keyboard shortcuts and shows the version and the folder
-        in which the application keeps its own files.
+        Selects the current language, theme, start behaviour and interval of the
+        automatic check in their lists, lists the keyboard shortcuts and shows the
+        version and the folder in which the application keeps its own files.
 
         While the lists are set from code, $Gui.Loading is $true, so the handlers that
         react to a choice of the user do not mistake this for one.
@@ -34,6 +34,7 @@ function Show-WindowSetting {
         & $select $controls.LanguageBox ([string]$settings.Language)
         & $select $controls.ThemeBox ([string]$settings.Theme)
         & $select $controls.AutoCheckBox ([string]$settings.AutoCheckMinutes)
+        & $select $controls.StartupBox ([string]$settings.StartupElevation)
     }
     finally {
         $Gui.Loading = $false

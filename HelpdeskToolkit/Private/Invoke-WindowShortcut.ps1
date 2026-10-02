@@ -18,6 +18,9 @@ function Invoke-WindowShortcut {
         A shortcut does what the button with the same purpose does, by "clicking" that
         button, and does nothing while the button is disabled.
 
+        While the question at the start is open (see Invoke-WindowStartup), only its
+        two answers have keys: Enter for "Yes" and Esc for "No".
+
         Returns $true when the key was a shortcut, so the caller can stop Windows from
         handling the key a second time.
     #>
@@ -45,6 +48,20 @@ function Invoke-WindowShortcut {
         if ($Button.IsEnabled -and $Button.Visibility -eq [System.Windows.Visibility]::Visible) {
             $Button.RaiseEvent((New-Object -TypeName System.Windows.RoutedEventArgs -ArgumentList ([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent)))
         }
+    }
+
+    if ($controls.StartupOverlay.Visibility -eq [System.Windows.Visibility]::Visible) {
+        switch ($Key) {
+            'Return' {
+                & $click $controls.StartupYesButton
+                return $true
+            }
+            'Escape' {
+                & $click $controls.StartupNoButton
+                return $true
+            }
+        }
+        return $false
     }
 
     # Selects a page of the list by its name.

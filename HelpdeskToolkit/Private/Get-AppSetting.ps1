@@ -14,6 +14,9 @@ function Get-AppSetting {
         - MonitorIntervalSeconds: how often the Live monitor measures
         - AutoCheckMinutes:       how often the check is repeated in the background
                                   after the first one; 0 turns that off
+        - StartupElevation:       what happens when the application starts: "Ask"
+                                  whether to use administrator rights, "Always"
+                                  restart with them, or "Never"
         - WindowWidth, WindowHeight, WindowLeft, WindowTop, WindowMaximized:
                                   where the window was when it was closed
     #>
@@ -26,6 +29,7 @@ function Get-AppSetting {
         Theme                  = 'System'
         MonitorIntervalSeconds = 2
         AutoCheckMinutes       = 5
+        StartupElevation       = 'Ask'
         WindowWidth            = $null
         WindowHeight           = $null
         WindowLeft             = $null
@@ -61,6 +65,9 @@ function Get-AppSetting {
     }
     if ($settings.AutoCheckMinutes -notin 0, 5, 15, 30, 60) {
         $settings.AutoCheckMinutes = 5
+    }
+    if ($settings.StartupElevation -notin 'Ask', 'Always', 'Never') {
+        $settings.StartupElevation = 'Ask'
     }
 
     $settings

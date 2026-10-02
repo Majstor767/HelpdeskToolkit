@@ -54,6 +54,8 @@
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#5290EA"/>
         <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#2B67C0"/>
         <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF"/>
+        <!-- The veil over the window while the question at the start is open -->
+        <SolidColorBrush x:Key="OverlayBrush" Color="#99101822"/>
 
         <!-- Live monitor: one color per component, used for its tile, meter and graph -->
         <SolidColorBrush x:Key="CpuBrush" Color="#2B5EA8"/>
@@ -495,7 +497,8 @@
         <StaticResource ResourceKey="WindowBrush"/>
     </Window.Background>
 
-    <DockPanel>
+    <Grid>
+    <DockPanel x:Name="MainLayout">
 
         <!-- Header: title on the left, options and the Run button on the right -->
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderBrush}" Padding="20,14">
@@ -562,6 +565,15 @@
                     <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
                              ItemContainerStyle="{StaticResource NavItem}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <!-- Without the frame of the standard list, which turns grey when
+                             the window is disabled behind the question at the start -->
+                        <ListBox.Template>
+                            <ControlTemplate TargetType="ListBox">
+                                <ScrollViewer Focusable="False">
+                                    <ItemsPresenter/>
+                                </ScrollViewer>
+                            </ControlTemplate>
+                        </ListBox.Template>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <DockPanel>
@@ -1484,6 +1496,21 @@
 
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
+                                    <TextBlock Text="When the application starts" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock DockPanel.Dock="Left" Text="Administrator rights" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <ComboBox x:Name="StartupBox" Width="260" HorizontalAlignment="Left">
+                                            <ComboBoxItem Content="Ask every time" Tag="Ask"/>
+                                            <ComboBoxItem Content="Always start as administrator" Tag="Always"/>
+                                            <ComboBoxItem Content="Always start with standard rights" Tag="Never"/>
+                                        </ComboBox>
+                                    </DockPanel>
+                                    <TextBlock Text="The check starts by itself as soon as the application is open. Before Windows gives administrator rights, it always asks for confirmation." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
                                     <TextBlock Text="Automatic check" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <DockPanel Margin="0,0,0,8">
                                         <TextBlock DockPanel.Dock="Left" Text="Repeat the check" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
@@ -1530,4 +1557,24 @@
             </Grid>
         </Grid>
     </DockPanel>
+
+    <!-- The question at the start: with administrator rights or without? It covers the
+         window until it is answered; the check then starts by itself. -->
+    <Border x:Name="StartupOverlay" Background="{StaticResource OverlayBrush}" Visibility="Collapsed">
+        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="28,24" MaxWidth="580" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="&#xEA18;" FontFamily="Segoe MDL2 Assets" FontSize="30" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12"/>
+                <TextBlock Text="Run the check with administrator rights?" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="With administrator rights the check also shows what Windows only tells administrators: BitLocker and TPM, the temperature and wear of the drives, failed sign-ins and restore points. Windows asks you to confirm. Without them the check shows everything a standard user may see." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock Text="The check starts by itself after your answer." Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                    <Button x:Name="StartupYesButton" Content="Yes, as administrator" Tag="&#xEA18;" ToolTip="Key: Enter" Style="{StaticResource AccentButton}" Margin="0,0,10,0"/>
+                    <Button x:Name="StartupNoButton" Content="No, standard rights" ToolTip="Key: Esc" Style="{StaticResource ActionButton}"/>
+                </StackPanel>
+                <CheckBox x:Name="StartupRememberBox" Content="Remember my answer and do not ask again" Foreground="{StaticResource TextBrush}" Margin="0,18,0,0"/>
+                <TextBlock Text="The answer can be changed on the Settings page." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="20,3,0,0"/>
+            </StackPanel>
+        </Border>
+    </Border>
+    </Grid>
 </Window>

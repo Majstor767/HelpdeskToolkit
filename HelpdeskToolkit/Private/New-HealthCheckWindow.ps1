@@ -14,6 +14,7 @@ function New-HealthCheckWindow {
         - Page:         name of the page that is shown
         - AppLock:      the file that tells the installer the application is running
                         (see Lock-AppFile)
+        - Startup:      how the window was asked to start (see Invoke-WindowStartup)
         - Report, PreviousReport, Worker, Handle, Timer: state of the health check
         - Background, LastCheckAt, AutoTimer, Notices, HighlightCheck, TrayIcon:
                         state of the automatic check and of what it announces
@@ -50,7 +51,7 @@ function New-HealthCheckWindow {
         [ValidateSet('Light', 'Dark')]
         [string]$Theme = 'Light',
 
-        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5 }
+        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask' }
     )
 
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
@@ -121,6 +122,8 @@ function New-HealthCheckWindow {
         Theme             = $Theme
         Page              = 'Overview'
         AppLock           = $null
+        # RunCheck: start the check at once. NoQuestion: do not ask about administrator rights.
+        Startup           = @{ RunCheck = $false; NoQuestion = $false }
         Report            = $null
         PreviousReport    = $null
         Worker            = $null

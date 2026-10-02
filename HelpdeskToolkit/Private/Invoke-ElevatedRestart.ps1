@@ -12,6 +12,9 @@ function Invoke-ElevatedRestart {
         appears next to it. Nothing about the computer is changed; the application
         stays read-only with administrator rights too.
 
+        With -RunCheck the new instance starts the check as soon as it is open, so
+        the user does not have to click again after confirming.
+
         Returns $true when the elevated instance was started.
     #>
     [CmdletBinding()]
@@ -19,13 +22,15 @@ function Invoke-ElevatedRestart {
     param(
         # The table returned by New-HealthCheckWindow.
         [Parameter(Mandatory)]
-        [hashtable]$Gui
+        [hashtable]$Gui,
+
+        [switch]$RunCheck
     )
 
     $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
     try {
-        Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument) -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
+        Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument -RunCheck:$RunCheck) -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
     }
     catch {
         # Thrown when the user answers "No" in the User Account Control prompt.

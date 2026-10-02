@@ -147,6 +147,24 @@
         'Every 60 minutes'                                     = 'Svakih 60 minuta'
         'After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result.' = 'Nakon prve provjere aplikacija je ponavlja u pozadini i ažurira rezultate. Novi problem najavljuje se na vrhu prozora, a dok prozor nije u prvom planu i Windows obavijesti. Klik na nju vodi do rezultata.'
 
+        # --- Question at the start ------------------------------------------------
+        'Run the check with administrator rights?'             = 'Pokrenuti provjeru s administratorskim pravima?'
+        'With administrator rights the check also shows what Windows only tells administrators: BitLocker and TPM, the temperature and wear of the drives, failed sign-ins and restore points. Windows asks you to confirm. Without them the check shows everything a standard user may see.' = 'S administratorskim pravima provjera prikazuje i ono što Windows govori samo administratorima: BitLocker i TPM, temperaturu i istrošenost diskova, neuspjele prijave i točke vraćanja. Windows će tražiti potvrdu. Bez njih provjera prikazuje sve što smije vidjeti standardni korisnik.'
+        'The check starts by itself after your answer.'        = 'Provjera se pokreće sama nakon tvog odgovora.'
+        'Yes, as administrator'                                = 'Da, kao administrator'
+        'No, standard rights'                                  = 'Ne, standardna prava'
+        'Key: Enter'                                           = 'Tipka: Enter'
+        'Key: Esc'                                             = 'Tipka: Esc'
+        'Remember my answer and do not ask again'              = 'Zapamti moj odgovor i ne pitaj ponovno'
+        'The answer can be changed on the Settings page.'      = 'Odgovor se može promijeniti na stranici Postavke.'
+        'Administrator rights were not granted; the check runs with standard rights.' = 'Administratorska prava nisu odobrena; provjera se izvodi sa standardnim pravima.'
+        'When the application starts'                          = 'Pri pokretanju aplikacije'
+        'Administrator rights'                                 = 'Administratorska prava'
+        'Ask every time'                                       = 'Pitaj svaki put'
+        'Always start as administrator'                        = 'Uvijek pokreni kao administrator'
+        'Always start with standard rights'                    = 'Uvijek pokreni sa standardnim pravima'
+        'The check starts by itself as soon as the application is open. Before Windows gives administrator rights, it always asks for confirmation.' = 'Provjera se pokreće sama čim se aplikacija otvori. Prije nego što da administratorska prava, Windows uvijek traži potvrdu.'
+
         # --- Automatic check and its notices --------------------------------------
         'The check is running. It takes about half a minute.'  = 'Provjera je u tijeku. Traje oko pola minute.'
         'Checking the computer ... The results appear here as soon as the check is finished.' = 'Provjeravam računalo ... Rezultati će se pojaviti ovdje čim provjera završi.'
