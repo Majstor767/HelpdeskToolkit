@@ -41,7 +41,9 @@ B) Bez instalacije
 1. Aplikacija odmah pita: pokrenuti s administratorskim pravima?
    - "Yes" -> Windows traži svoju potvrdu, pa se provjera pokrene sa svim podacima.
    - "No"  -> provjera se pokrene odmah, bez dijela koji vidi samo administrator.
-2. Provjera traje oko pola minute.
+2. Provjera obično traje 10 do 20 sekundi (na sporijem računalu ili punom disku
+   malo dulje). Ako je aplikacija već bila pokrenuta, odmah se vide rezultati
+   zadnje provjere dok nova ne završi.
 3. Hrvatski jezik: zupčanik "Settings" dolje lijevo > Language > Hrvatski >
    "Restart now".
 4. Tamna tema: prekidač sa suncem/mjesecom gore desno (ili Ctrl+T). Mijenja se odmah.

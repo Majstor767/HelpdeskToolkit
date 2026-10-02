@@ -171,7 +171,6 @@
         'The check starts by itself as soon as the application is open. Before Windows gives administrator rights, it always asks for confirmation.' = 'Provjera se pokreće sama čim se aplikacija otvori. Prije nego što da administratorska prava, Windows uvijek traži potvrdu.'
 
         # --- Automatic check and its notices --------------------------------------
-        'The check is running. It takes about half a minute.'  = 'Provjera je u tijeku. Traje oko pola minute.'
         'Checking the computer ... The results appear here as soon as the check is finished.' = 'Provjeravam računalo ... Rezultati će se pojaviti ovdje čim provjera završi.'
         'Updating ...'                                         = 'Ažuriram ...'
         'Checking again in the background; the results stay in place until the new ones are there ...' = 'Ponovno provjeravam u pozadini; rezultati ostaju na mjestu dok ne stignu novi ...'
@@ -1005,6 +1004,11 @@
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
 
+        # --- A faster check ---------------------------------------------------------
+        'The check is running. It usually takes 10 to 20 seconds.' = 'Provjera je u tijeku. Obično traje 10 do 20 sekundi.'
+        'Checking {0} categories at the same time ...'         = 'Provjeravam {0} kategorija istovremeno ...'
+        'These are the results of the last check ({0}). They are replaced as soon as a new check has finished.' = 'Ovo su rezultati zadnje provjere ({0}). Zamijenit će se čim nova provjera završi.'
+
         # --- Theme switch -----------------------------------------------------------
         'Switch to the dark theme (Ctrl+T)'                    = 'Prebaci na tamnu temu (Ctrl+T)'
         'Switch to the light theme (Ctrl+T)'                   = 'Prebaci na svijetlu temu (Ctrl+T)'
@@ -1220,6 +1224,7 @@
         @{ Match = '^Automatic configuration script: '; Text = 'Skripta za automatsko podešavanje: ' },
         @{ Match = '^temperature up to (.+), lifetime used up to (\d+) %, 0 uncorrected errors$'; Text = 'temperatura do $1, potrošeni vijek do $2 %, 0 neispravljenih grešaka' },
         @{ Match = '^step (\d+) of (\d+)$'; Text = 'korak $1 od $2' },
+        @{ Match = '^(\d+) of (\d+) done$'; Text = 'gotovo $1 od $2' },
         @{ Match = '^(\d+) % \((.+) of (.+) used\)$'; Text = '$1 % (zauzeto $2 od $3)' },
         @{ Match = '^([\d.]+) % free \((.+) of (.+)\)$'; Text = '$1 % slobodno ($2 od $3)' },
         @{ Match = '^(.+) of 10$'; Text = '$1 od 10' },

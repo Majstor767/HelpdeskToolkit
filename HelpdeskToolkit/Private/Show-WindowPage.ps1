@@ -143,7 +143,7 @@ function Show-WindowPage {
         $controls.FilterPanel.Visibility = $collapsed
         $controls.ResultItems.ItemsSource = @()
         if ($Gui.Worker) {
-            $controls.PageSubtitle.Text = Get-LocalizedText 'The check is running. It takes about half a minute.'
+            $controls.PageSubtitle.Text = Get-LocalizedText 'The check is running. It usually takes 10 to 20 seconds.'
             $controls.EmptyText.Text = Get-LocalizedText 'Checking the computer ... The results appear here as soon as the check is finished.'
         }
         else {

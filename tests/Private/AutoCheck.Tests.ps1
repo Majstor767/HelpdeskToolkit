@@ -130,7 +130,7 @@ Describe 'The Overview before and during the first check' -Skip:(-not $isSta) {
 
             $gui.Controls.EmptyText.Text | Should -Be 'Checking the computer ... The results appear here as soon as the check is finished.'
             $gui.Controls.EmptyText.Visibility | Should -Be 'Visible'
-            $gui.Controls.PageSubtitle.Text | Should -Be 'The check is running. It takes about half a minute.'
+            $gui.Controls.PageSubtitle.Text | Should -Be 'The check is running. It usually takes 10 to 20 seconds.'
         }
         finally {
             $gui.Timer.Stop()

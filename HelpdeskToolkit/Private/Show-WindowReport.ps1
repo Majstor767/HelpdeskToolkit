@@ -29,7 +29,11 @@ function Show-WindowReport {
         # The report of the previous check of the same computer, if there is one.
         [PSCustomObject]$Previous,
 
-        [switch]$KeepPage
+        [switch]$KeepPage,
+
+        # With -KeepPage: the check was asked for, not one the application repeated by
+        # itself. Only the wording of the status bar depends on it.
+        [switch]$Requested
     )
 
     $controls = $Gui.Controls
@@ -39,6 +43,7 @@ function Show-WindowReport {
     $collapsed = [System.Windows.Visibility]::Collapsed
     $Gui.Report = $Report
     $Gui.PreviousReport = $Previous
+    $Gui.StaleReport = $false
 
     $controls.CriticalCount.Text = [string]$summary.Critical
     $controls.WarningCount.Text = [string]$summary.Warning
@@ -78,7 +83,7 @@ function Show-WindowReport {
 
     $controls.ComputerText.Text = (Get-LocalizedText 'Computer: {0}  |  checked {1}  |  {2} s') -f $Report.ComputerName, $Report.GeneratedAt, [string]$Report.DurationSeconds
 
-    $status = if ($KeepPage) {
+    $status = if ($KeepPage -and -not $Requested) {
         (Get-LocalizedText 'Updated automatically: {0} results, checked {1}.') -f $results.Count, $Report.GeneratedAt
     }
     else {

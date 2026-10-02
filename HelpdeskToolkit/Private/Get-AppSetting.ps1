@@ -17,6 +17,8 @@ function Get-AppSetting {
         - StartupElevation:       what happens when the application starts: "Ask"
                                   whether to use administrator rights, "Always"
                                   restart with them, or "Never"
+        - SkipNetwork:            whether "Skip network tests" is ticked
+        - HistoryDays:            the history period of the check: 7, 14, 30 or 90 days
         - WindowWidth, WindowHeight, WindowLeft, WindowTop, WindowMaximized:
                                   where the window was when it was closed
     #>
@@ -30,6 +32,8 @@ function Get-AppSetting {
         MonitorIntervalSeconds = 2
         AutoCheckMinutes       = 5
         StartupElevation       = 'Ask'
+        SkipNetwork            = $false
+        HistoryDays            = 7
         WindowWidth            = $null
         WindowHeight           = $null
         WindowLeft             = $null
@@ -69,6 +73,10 @@ function Get-AppSetting {
     if ($settings.StartupElevation -notin 'Ask', 'Always', 'Never') {
         $settings.StartupElevation = 'Ask'
     }
+    if ($settings.HistoryDays -notin 7, 14, 30, 90) {
+        $settings.HistoryDays = 7
+    }
+    $settings.SkipNetwork = $settings.SkipNetwork -eq $true
 
     $settings
 }

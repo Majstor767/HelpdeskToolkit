@@ -28,6 +28,10 @@ function Show-PCHealthCheck {
         - Settings: language (English or Croatian), theme (light or dark) and how
           often the check is repeated by itself.
 
+        When the window opens, it shows the results of the last check of this
+        computer at once; the results of the new check replace them when it has
+        finished. "Skip network tests" and the history period are remembered.
+
         After the first check the application repeats it in the background and
         replaces the results without interrupting. A problem that is new is announced
         at the top of the window and, while the window is not in front, with a Windows
@@ -131,6 +135,23 @@ function Show-PCHealthCheck {
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
 
+    # The two options of a check are remembered from the last time.
+    $controls.SkipNetworkCheckBox.IsChecked = [bool]$settings.SkipNetwork
+    $daysItem = $controls.DaysComboBox.Items | Where-Object { [int]$_.Tag -eq [int]$settings.HistoryDays } | Select-Object -First 1
+    if ($daysItem) {
+        $controls.DaysComboBox.SelectedItem = $daysItem
+    }
+    $saveOptions = {
+        $state = $script:HealthCheckWindow
+        $state.Settings.SkipNetwork = $state.Controls.SkipNetworkCheckBox.IsChecked -eq $true
+        if ($state.Controls.DaysComboBox.SelectedItem) {
+            $state.Settings.HistoryDays = [int]$state.Controls.DaysComboBox.SelectedItem.Tag
+        }
+        [void](Save-AppSetting -Setting $state.Settings)
+    }
+    $controls.SkipNetworkCheckBox.Add_Click($saveOptions)
+    $controls.DaysComboBox.Add_SelectionChanged($saveOptions)
+
     # Looks every few seconds whether it is time to repeat the check (see Invoke-WindowAutoCheck).
     $gui.AutoTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
     $gui.AutoTimer.Interval = [timespan]::FromSeconds(15)
@@ -163,7 +184,13 @@ function Show-PCHealthCheck {
     # it has been drawn for the first time (see Invoke-WindowStartup).
     $controls.StartupYesButton.Add_Click({ [void](Invoke-WindowElevationChoice -Gui $script:HealthCheckWindow -Elevate) })
     $controls.StartupNoButton.Add_Click({ [void](Invoke-WindowElevationChoice -Gui $script:HealthCheckWindow) })
-    $window.Add_ContentRendered({ [void](Invoke-WindowStartup -Gui $script:HealthCheckWindow) })
+    # The moment the window is drawn, it shows what the last check found, so there is
+    # something to read while the new check runs.
+    $window.Add_ContentRendered({
+            $state = $script:HealthCheckWindow
+            [void](Show-WindowLastReport -Gui $state)
+            [void](Invoke-WindowStartup -Gui $state)
+        })
 
     # Choosing an entry in the page list shows that page on the right. A search belongs
     # to the page it was typed on, so it is cleared.

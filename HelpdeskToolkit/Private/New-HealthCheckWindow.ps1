@@ -55,7 +55,7 @@ function New-HealthCheckWindow {
         [ValidateSet('Light', 'Dark')]
         [string]$Theme = 'Light',
 
-        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask' }
+        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask'; SkipNetwork = $false; HistoryDays = 7 }
     )
 
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
@@ -144,11 +144,16 @@ function New-HealthCheckWindow {
         Startup           = @{ RunCheck = $false; NoQuestion = $false }
         Report            = $null
         PreviousReport    = $null
+        # The report on the screen is the one of an earlier start of the application,
+        # shown until the first check of this start has finished (see Show-WindowLastReport).
+        StaleReport       = $false
         Worker            = $null
         Handle            = $null
         Timer             = $null
         # The running check was started by the application itself (see Invoke-WindowAutoCheck).
         Background        = $false
+        # The progress of the running check that is on the screen (see Receive-WindowCheck).
+        RunStep           = ''
         # When the last check ended; the automatic check counts from here.
         LastCheckAt       = $null
         AutoTimer         = $null
