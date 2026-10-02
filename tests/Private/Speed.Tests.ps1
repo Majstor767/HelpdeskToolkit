@@ -114,19 +114,20 @@ Describe 'Invoke-ParallelCommand' {
     }
 
     It 'really runs the commands side by side' {
-        # Three commands that each wait: one after the other they would take three times as long.
+        # Three commands that each wait 3 seconds: one after the other they need at least 9.
+        # The waits are long, so the time the runspaces need to load the module (more on
+        # a busy computer) cannot blur the difference.
         $jobs = [ordered]@{}
         foreach ($name in 'A', 'B', 'C') {
-            $jobs[$name] = @{ Command = 'Start-Sleep'; Parameters = @{ Milliseconds = 1500 } }
+            $jobs[$name] = @{ Command = 'Start-Sleep'; Parameters = @{ Milliseconds = 3000 } }
         }
-        # A first run makes the three runspaces load the module, which takes its own time.
         $watch = [System.Diagnostics.Stopwatch]::StartNew()
         InModuleScope HelpdeskToolkit -Parameters @{ Job = $jobs; Manifest = $manifest } {
             [void](Invoke-ParallelCommand -Job $Job -ManifestPath $Manifest -ThrottleLimit 3)
         }
         $sideBySide = $watch.Elapsed.TotalSeconds
 
-        $sideBySide | Should -BeLessThan 4.5 -Because 'three waits of 1.5 seconds side by side are over long before 4.5 seconds'
+        $sideBySide | Should -BeLessThan 7.5 -Because 'three waits of 3 seconds side by side are over long before the 9 seconds they need one after the other'
     }
 }
 
