@@ -219,3 +219,39 @@ function Invoke-PCHealthCheck {
         $run.ExitCode | Should -Be 2
     }
 }
+
+Describe 'Package for a tester' {
+    BeforeAll {
+        $script = Join-Path -Path $root -ChildPath 'tools\New-TestPackage.ps1'
+        $readme = Join-Path -Path $root -ChildPath 'docs\tester\PROCITAJ-ME.txt'
+    }
+
+    It 'has a script that puts the package together, with help' {
+        $script | Should -Exist
+        (Get-Help -Name $script).Synopsis | Should -Match 'folder'
+        $errors = $null
+        [void][System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$null, [ref]$errors)
+        $errors | Should -BeNullOrEmpty
+    }
+
+    It 'builds on the release files, so the tester gets exactly what a release contains' {
+        $text = Get-Content -LiteralPath $script -Raw
+        $text | Should -Match 'Build-Release\.ps1'
+        $text | Should -Match "HelpdeskToolkit-Setup-\{0\}\.exe"
+        $text | Should -Match 'Expand-Archive'
+    }
+
+    It 'has instructions that Notepad shows with their Croatian letters' {
+        $bytes = [System.IO.File]::ReadAllBytes($readme)
+        $bytes[0], $bytes[1], $bytes[2] | Should -Be @(0xEF, 0xBB, 0xBF)
+    }
+
+    It 'tells the tester how to start it, what Windows will warn about and what the tool does not do' {
+        $text = [System.IO.File]::ReadAllText($readme, [System.Text.Encoding]::UTF8)
+        $text | Should -Match 'Start-HelpdeskToolkit\.cmd'
+        $text | Should -Match 'Windows protected your PC'
+        $text | Should -Match 'Run anyway'
+        $text | Should -Match 'SAMO .ITA'
+        $text | Should -Match 'Privatnost'
+    }
+}

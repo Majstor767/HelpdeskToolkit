@@ -461,6 +461,7 @@ GitHub Actions runs the same script on Windows PowerShell 5.1 and PowerShell 7 f
 ```powershell
 .\tools\Build-Release.ps1           # installer (needs Inno Setup 6), ZIP and checksums in dist\
 .\tools\Build-Release.ps1 -SkipInstaller
+.\tools\New-TestPackage.ps1         # a folder to hand to a tester: installer, unpacked portable copy, instructions
 ```
 
 Pushing a tag such as `v1.0.0` runs the tests, builds the installer and the ZIP and

@@ -457,6 +457,7 @@ GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 
 ```powershell
 .\tools\Build-Release.ps1           # instalacija (treba Inno Setup 6), ZIP i kontrolni zbrojevi u dist\
 .\tools\Build-Release.ps1 -SkipInstaller
+.\tools\New-TestPackage.ps1         # mapa za osobu koja isprobava: instalacija, raspakirana prijenosna kopija, upute
 ```
 
 Slanje oznake poput `v1.0.0` pokreće testove, slaže instalaciju i ZIP te ih objavljuje

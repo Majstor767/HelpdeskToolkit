@@ -1,0 +1,78 @@
+﻿HelpdeskToolkit - probna verzija
+================================
+
+Hvala što isprobavaš! Ovo je alat koji provjeri stanje Windows računala (disk,
+memorija, ažuriranja, zaštita, mreža, pisači ...) i pokaže što nije u redu, zašto je
+to problem i kako se rješava.
+
+Alat SAMO ČITA podatke. Ništa ne mijenja na računalu, ništa ne briše i nikamo ne
+šalje podatke. Jedino što ide na internet su mrežni testovi (ping, DNS i HTTPS prema
+adresama 1.1.1.1 i microsoft.com); mogu se isključiti kvačicom "Skip network tests".
+
+Treba: Windows 10 (verzija 1809 ili novija) ili Windows 11. Ništa drugo.
+
+
+KAKO POKRENUTI
+--------------
+
+A) S instalacijom (preporučeno)
+
+   1. Dvoklik na HelpdeskToolkit-Setup-<verzija>.exe
+   2. Windows će vjerojatno prikazati plavi prozor "Windows protected your PC",
+      jer program nije digitalno potpisan. Klikni "More info", pa "Run anyway".
+   3. Instalira se samo za tvoj korisnički račun i ne traži administratora.
+   4. Pokreni HelpdeskToolkit iz Start izbornika.
+
+   Uklanjanje: Postavke > Aplikacije > Instalirane aplikacije > HelpdeskToolkit.
+
+B) Bez instalacije
+
+   1. Otvori mapu "Bez-instalacije".
+   2. Dvoklik na Start-HelpdeskToolkit.cmd
+   3. Ako Windows pita smije li se datoteka pokrenuti, potvrdi (Run / Pokreni).
+
+   Kad završiš, mapu jednostavno obriši.
+
+
+ŠTO ĆE SE DOGODITI
+------------------
+
+1. Aplikacija odmah pita: pokrenuti s administratorskim pravima?
+   - "Yes" -> Windows traži svoju potvrdu, pa se provjera pokrene sa svim podacima.
+   - "No"  -> provjera se pokrene odmah, bez dijela koji vidi samo administrator.
+2. Provjera traje oko pola minute.
+3. Hrvatski jezik: zupčanik "Settings" dolje lijevo > Language > Hrvatski >
+   "Restart now".
+
+
+ŠTO VRIJEDI ISPROBATI
+---------------------
+
+- Overview: popis problema. Uz svaki piše zašto je to problem i što učiniti, a gumb
+  otvara mjesto u Windowsu gdje se to rješava.
+- Sekcije lijevo (System, Hardware, Security ...): rezultati u četiri stupca.
+  Klik na karticu otvara detalje.
+- Live monitor: što računalo radi upravo sada. Klik na pločicu Processor, Memory ili
+  Graphics otvara stranicu sa svime o toj komponenti.
+- Live monitor > Disks > "What takes up the space on C:": najveći programi i mape.
+- Tražilica gore desno i filtar po statusu.
+- "Open HTML report" i "Save as..." (HTML, PDF, CSV, JSON).
+- Tamna tema: Settings > Theme.
+- Ostavi aplikaciju otvorenu nekoliko minuta: provjeru ponavlja sama i javi ako se
+  pojavi novi problem.
+
+
+ŠTO BIH VOLIO ČUTI
+------------------
+
+- Je li se pokrenula iz prve? Ako nije: što je pisalo (slika ekrana pomaže).
+- Je li nešto prikazano krivo za tvoje računalo, ili nešto nedostaje?
+- Je li jasno što koji rezultat znači i što treba napraviti?
+- Je li negdje sporo, zbunjujuće ili ružno?
+- Koji Windows imaš (10 ili 11) i je li računalo prijenosno ili stolno.
+  Na prijenosnom me posebno zanimaju baterija i Wi-Fi, jer ih na svom računalu
+  nisam mogao isprobati.
+
+Privatnost: spremljeni izvještaj (Save as...) sadrži ime računala, korisnička imena
+i popis instaliranih programa. Šalji ga samo ako ti to ne smeta; slika ekrana je
+sasvim dovoljna.
