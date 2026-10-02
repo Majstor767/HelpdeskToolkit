@@ -85,7 +85,7 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
     }
 
     It 'starts with empty histories for the graphs of the Live monitor' {
-        $gui.MonitorHistory.Keys | Sort-Object | Should -Be @('Cpu', 'Disk', 'Gpu', 'Memory', 'NetworkDown', 'NetworkUp')
+        $gui.MonitorHistory.Keys | Sort-Object | Should -Be @('Cpu', 'Disk', 'Gpu', 'Latency', 'Memory', 'NetworkDown', 'NetworkUp')
         $gui.MonitorHistory.Cpu.Count | Should -Be 0
     }
 

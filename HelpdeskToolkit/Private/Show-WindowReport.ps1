@@ -3,8 +3,9 @@ function Show-WindowReport {
     .SYNOPSIS
         Displays a finished health report in the application window.
     .DESCRIPTION
-        Fills in the verdict, the score and the count per status, rebuilds the page
-        list on the left and opens the Overview page. Every entry of the list carries
+        Fills in the verdict, the score (and which categories cost how many points)
+        and the count per status, rebuilds the page list on the left and opens the
+        Overview page. Every entry of the list carries
         the worst status of its category (shown as a colored dot) and the number of
         problems in it, so the user sees at a glance where to look.
 
@@ -122,10 +123,24 @@ function Show-WindowReport {
         $controls.ChangesBorder.Visibility = $collapsed
     }
 
-    # Page list: Overview and Live monitor first, then the categories in the order they ran.
+    # Where the points of the score went
+    $lost = @(Get-HealthScoreBreakdown -Result $results | ForEach-Object { '{0} -{1}' -f (Get-LocalizedText $_.Category), $_.Points })
+    if ($lost.Count -gt 0) {
+        $controls.ScoreDetailText.Text = (Get-LocalizedText 'Points lost: {0}') -f ($lost -join ', ')
+        $controls.ScoreDetailText.Visibility = $visible
+    }
+    else {
+        $controls.ScoreDetailText.Visibility = $collapsed
+    }
+
+    # Page list: Overview, Live monitor and the timeline first, then the categories in
+    # the order they ran. A report of an older version has no timeline.
     $entries = @(
         ConvertTo-WindowNavigationItem -Name 'Overview' -Result $results
         ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
+        if ($Report.PSObject.Properties['Timeline']) {
+            ConvertTo-WindowNavigationItem -Name 'Timeline' -EmptyStatus 'Info'
+        }
     )
     foreach ($category in @($results | ForEach-Object { $_.Category } | Select-Object -Unique)) {
         $entries += ConvertTo-WindowNavigationItem -Name $category -Result @($results | Where-Object { $_.Category -eq $category })

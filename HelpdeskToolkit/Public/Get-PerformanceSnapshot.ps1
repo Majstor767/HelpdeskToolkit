@@ -22,6 +22,8 @@ function Get-PerformanceSnapshot {
         - DriveHealth:     temperature, wear and power-on hours of every drive
                            (administrator rights needed; otherwise State is "RequiresAdmin")
         - Network:         receive and send rate and link speed of each network adapter
+        - Latency:         with -IncludeLatency: how quickly the router and the internet
+                           answer a ping right now (nothing without the switch)
         - Thermal:         temperature of the thermal zones the firmware reports (mostly
                            on laptops)
         - Battery:         charge and remaining time, on computers that have a battery
@@ -44,6 +46,10 @@ function Get-PerformanceSnapshot {
         A part that cannot be read is returned empty; the other parts are still filled in.
     .PARAMETER TopProcessCount
         How many programs to return in Processes, MemoryProcesses and IoProcesses. The default is 5.
+    .PARAMETER IncludeLatency
+        Also ping the router and the address of the internet connectivity test (see
+        Config\Thresholds.psd1) and return the answer times in Latency. This is the
+        only part of a snapshot that sends anything over the network.
     .EXAMPLE
         Get-PerformanceSnapshot
 
@@ -62,13 +68,15 @@ function Get-PerformanceSnapshot {
         Prints the busiest programs every few seconds until Ctrl+C is pressed.
     .OUTPUTS
         HelpdeskToolkit.PerformanceSnapshot
-        An object with the properties TakenAt, Cpu, System, Memory, Gpu, GpuSensors, Disks, Volumes, DriveHealth, Network, Thermal, Battery, Processes, MemoryProcesses and IoProcesses.
+        An object with the properties TakenAt, Cpu, System, Memory, Gpu, GpuSensors, Disks, Volumes, DriveHealth, Network, Latency, Thermal, Battery, Processes, MemoryProcesses and IoProcesses.
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.PerformanceSnapshot')]
     param(
         [ValidateRange(1, 20)]
-        [int]$TopProcessCount = 5
+        [int]$TopProcessCount = 5,
+
+        [switch]$IncludeLatency
     )
 
     # A counter can momentarily read above 100 or below 0; the display should not.
@@ -447,6 +455,17 @@ function Get-PerformanceSnapshot {
         }
     }
 
+    # --- Answer time of the router and the internet --------------------------------
+    $latency = $null
+    if ($IncludeLatency) {
+        try {
+            $latency = Get-NetworkLatency -TimeoutMs (Get-HealthThreshold).Monitor.LatencyTimeoutMs
+        }
+        catch {
+            Write-Verbose "The answer times could not be measured: $($_.Exception.Message)"
+        }
+    }
+
     [PSCustomObject]@{
         PSTypeName      = 'HelpdeskToolkit.PerformanceSnapshot'
         TakenAt         = Get-Date
@@ -459,6 +478,7 @@ function Get-PerformanceSnapshot {
         Volumes         = $volumes
         DriveHealth     = $driveHealth
         Network         = $network
+        Latency         = $latency
         Thermal         = $thermal
         Battery         = $battery
         Processes       = $processes

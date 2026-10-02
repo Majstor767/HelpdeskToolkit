@@ -30,6 +30,9 @@ function Receive-WindowMonitor {
         return
     }
 
+    # "Skip network tests" also switches off the pings of the monitor.
+    $monitor.Shared.Latency = $Gui.Controls.SkipNetworkCheckBox.IsChecked -ne $true
+
     $sequence = $monitor.Shared.Sequence
     if ($sequence -eq $monitor.LastSequence) {
         return

@@ -337,7 +337,7 @@ Describe 'ConvertTo-HealthSummaryText' {
 
     It 'starts with the computer, the time, the score and the count per status' {
         $lines[0] | Should -Be 'PC Health Check - TEST-PC-01'
-        $lines[1] | Should -Be 'Checked: 2026-01-15 10:30:00  |  Health score: 81 of 100'
+        $lines[1] | Should -Be 'Checked: 2026-01-15 10:30:00  |  Health score: 81 of 100 (Hardware -15, System -4)'
         $lines[2] | Should -Be '1 critical, 1 warning, 1 OK, 1 info'
     }
 

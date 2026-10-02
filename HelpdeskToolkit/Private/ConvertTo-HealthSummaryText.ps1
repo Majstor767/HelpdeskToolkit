@@ -24,6 +24,12 @@ function ConvertTo-HealthSummaryText {
     $checked = (Get-LocalizedText 'Checked: {0}') -f $Report.GeneratedAt
     if ($Report.PSObject.Properties['Score']) {
         $checked = '{0}  |  {1}' -f $checked, ((Get-LocalizedText 'Health score: {0} of 100') -f $Report.Score)
+
+        # Where the points went, for example "(Security -19, Software -8)"
+        $lost = @(Get-HealthScoreBreakdown -Result @($Report.Results) | ForEach-Object { '{0} -{1}' -f (Get-LocalizedText $_.Category), $_.Points })
+        if ($lost.Count -gt 0) {
+            $checked = '{0} ({1})' -f $checked, ($lost -join ', ')
+        }
     }
     $lines.Add($checked)
     $lines.Add(((Get-LocalizedText '{0} critical, {1} warning, {2} OK, {3} info') -f $summary.Critical, $summary.Warning, $summary.OK, $summary.Info))

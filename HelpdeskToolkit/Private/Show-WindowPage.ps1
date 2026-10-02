@@ -1,7 +1,7 @@
 function Show-WindowPage {
     <#
     .SYNOPSIS
-        Shows one page of the window: the Overview, the Live monitor, the settings or one category.
+        Shows one page of the window: the Overview, the Live monitor, the timeline, the settings or one category.
     .DESCRIPTION
         Called when an entry of the page list or the Settings button is clicked, and
         again when the search text or the status filter changes. The name of the page
@@ -12,6 +12,8 @@ function Show-WindowPage {
           with its recommended fix.
         - Live monitor: what the computer is doing right now. It needs no health check
           and measures only while it is shown (or while a recording runs).
+        - Timeline: what happened on the computer lately (installations, updates,
+          crashes), grouped by day; see Show-WindowTimeline.
         - Settings: language, theme, the automatic check, keyboard shortcuts and where
           the application keeps its files. It is opened with the button below the page
           list, so no entry of the list is selected while it is shown.
@@ -62,6 +64,7 @@ function Show-WindowPage {
         $Name = if ($selected) { $selected.Name } elseif ($Gui.Page -eq 'Settings') { 'Settings' } else { 'Overview' }
     }
     $Gui.Page = $Name
+    $controls.TimelinePanel.Visibility = $collapsed
 
     # The Settings button is drawn like the selected entry of the list while its page is open.
     if ($Name -eq 'Settings') {
@@ -120,6 +123,17 @@ function Show-WindowPage {
     $controls.SettingsPanel.Visibility = $collapsed
     $controls.ColumnsPanel.Visibility = $collapsed
     $controls.ResultScroll.Visibility = $visible
+
+    if ($Name -eq 'Timeline' -and $report) {
+        $controls.PageTitle.Text = Get-LocalizedText 'Timeline'
+        $controls.PageSubtitle.Text = Get-LocalizedText 'What happened on this computer lately, as Windows recorded it: installations, updates, crashes and failures.'
+        $controls.OverviewPanel.Visibility = $collapsed
+        $controls.ResultScroll.Visibility = $collapsed
+        $controls.FilterPanel.Visibility = $collapsed
+        $controls.TimelinePanel.Visibility = $visible
+        Show-WindowTimeline -Gui $Gui -KeepScroll:$KeepScroll
+        return
+    }
 
     if (-not $report) {
         # No health check has finished yet: the Overview says that the first one is

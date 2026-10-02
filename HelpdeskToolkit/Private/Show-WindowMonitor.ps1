@@ -13,6 +13,11 @@ function Show-WindowMonitor {
         no fixed upper end, so its two lines (download and upload) are drawn against
         the highest rate in the history, which the caption of the graph names.
 
+        The Internet tile shows how quickly the internet answers a ping; its dot is
+        judged from the last measurements (see Get-LatencyStatus). The Network section
+        lists the answer time of the router next to it, which tells whether a bad
+        connection sits in the local network or beyond it.
+
         The same histories decide about the warnings at the top of the page (see
         Get-MonitorAlert) and about the status dots of the tiles (see Get-MonitorStatus).
     #>
@@ -232,6 +237,38 @@ function Show-WindowMonitor {
     Show-WindowVolume -Gui $Gui -Volume @($Snapshot.Volumes | Where-Object { $_ })
 
     # --- Network -----------------------------------------------------------------
+    # Answer times of the router and of the internet. They are not measured while
+    # "Skip network tests" is ticked; a snapshot of an older version has none.
+    $latency = if ($Snapshot.PSObject.Properties['Latency']) { $Snapshot.Latency } else { $null }
+    $latencyRows = @()
+    $brushes = @{ Ok = 'OkBrush'; Near = 'WarningDotBrush'; Over = 'CriticalBrush'; None = 'NeutralBrush' }
+    $toAnswer = {
+        param($Milliseconds)
+        if ($null -eq $Milliseconds) { Get-LocalizedText 'no answer' } elseif ($Milliseconds -lt 1) { Get-LocalizedText 'under 1 ms' } else { '{0} ms' -f [int]$Milliseconds }
+    }
+    if ($latency) {
+        $answers = & $remember 'Latency' $(if ($null -ne $latency.InternetMs) { $latency.InternetMs } else { -1 })
+        $connection = Get-LatencyStatus -History $answers
+
+        $controls.MonitorTileLatency.Text = $connection.Value
+        $controls.MonitorTileLatencySub.Text = $connection.Sub
+        $controls.MonitorLatencyDot.Fill = $Gui.Window.FindResource($brushes[$connection.Level])
+        $controls.MonitorLatencyTile.ToolTip = $connection.Summary
+
+        $latencyRows = @(
+            if ($latency.Gateway) {
+                [PSCustomObject]@{ Name = (Get-LocalizedText 'Router answers ({0})') -f $latency.Gateway; Text = & $toAnswer $latency.GatewayMs }
+            }
+            [PSCustomObject]@{ Name = (Get-LocalizedText 'Internet answers ({0})') -f $latency.Internet; Text = '{0}{1}{2}' -f (& $toAnswer $latency.InternetMs), $separator, $connection.Sub }
+        )
+    }
+    else {
+        $controls.MonitorTileLatency.Text = '-'
+        $controls.MonitorTileLatencySub.Text = Get-LocalizedText 'not measured: network tests are skipped'
+        $controls.MonitorLatencyDot.Fill = $Gui.Window.FindResource($brushes.None)
+        $controls.MonitorLatencyTile.ToolTip = Get-LocalizedText 'Untick "Skip network tests" to measure how quickly the internet answers.'
+    }
+
     $network = @($Snapshot.Network | Where-Object { $_ })
     $controls.MonitorNetwork.ItemsSource = @(
         $network | ForEach-Object {
@@ -242,6 +279,7 @@ function Show-WindowMonitor {
             }
             [PSCustomObject]@{ Name = $_.Name; Text = $text }
         }
+        $latencyRows
     )
 
     # Graph: both directions of all adapters together, in bytes per second. The scale is

@@ -893,6 +893,9 @@
                         </Border>
                     </UniformGrid>
 
+                    <!-- Where the points of the score went, for example "Points lost: Security -19" -->
+                    <TextBlock x:Name="ScoreDetailText" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="2,-6,6,12" Visibility="Collapsed"/>
+
                     <!-- What changed since the previous check of this computer -->
                     <Border x:Name="ChangesBorder" Style="{StaticResource SectionCard}" Margin="0,0,6,12" Visibility="Collapsed">
                         <StackPanel>
@@ -1182,6 +1185,76 @@
                     <TextBlock x:Name="EmptyText" Text="No results yet. Click Run check." Foreground="{StaticResource MutedBrush}" FontSize="14"
                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
 
+                    <!-- Timeline page: what happened on the computer lately, one group per day.
+                         A red dot is a failure, a blue one a change. -->
+                    <DockPanel x:Name="TimelinePanel" Visibility="Collapsed">
+                        <Border DockPanel.Dock="Top" Style="{StaticResource SectionCard}" Margin="0,0,6,10">
+                            <DockPanel>
+                                <ComboBox x:Name="TimelineFilter" DockPanel.Dock="Right" Width="150" VerticalAlignment="Top" SelectedIndex="0" Margin="12,0,0,0">
+                                    <ComboBoxItem Content="Everything" Tag=""/>
+                                    <ComboBoxItem Content="Problems only" Tag="Problem"/>
+                                    <ComboBoxItem Content="Changes only" Tag="Change"/>
+                                </ComboBox>
+                                <StackPanel>
+                                    <TextBlock x:Name="TimelineSummary" Style="{StaticResource SectionTitle}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <ScrollViewer x:Name="TimelineScroll" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="TimelineItems" Margin="0,0,6,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,12">
+                                            <DockPanel Margin="2,0,2,5">
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" Foreground="{StaticResource MutedBrush}" FontSize="12" VerticalAlignment="Bottom"/>
+                                                <TextBlock Text="{Binding Day}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                            </DockPanel>
+                                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Padding="12,8">
+                                                <ItemsControl ItemsSource="{Binding Events}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <DockPanel Margin="0,2">
+                                                                <TextBlock DockPanel.Dock="Left" Text="{Binding Time}" Width="46" Foreground="{StaticResource MutedBrush}"/>
+                                                                <Ellipse DockPanel.Dock="Left" Width="9" Height="9" Margin="0,0,9,0" VerticalAlignment="Center">
+                                                                    <Ellipse.Style>
+                                                                        <Style TargetType="Ellipse">
+                                                                            <Setter Property="Fill" Value="{StaticResource InfoBrush}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Level}" Value="Problem">
+                                                                                    <Setter Property="Fill" Value="{StaticResource CriticalBrush}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Ellipse.Style>
+                                                                </Ellipse>
+                                                                <TextBlock DockPanel.Dock="Left" Text="{Binding Kind}" Width="220" TextTrimming="CharacterEllipsis">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Level}" Value="Problem">
+                                                                                    <Setter Property="Foreground" Value="{StaticResource CriticalBrush}"/>
+                                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                <TextBlock DockPanel.Dock="Right" Text="{Binding Times}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                                            </DockPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+
                     <!-- Live monitor page: what the computer is doing right now. It replaces
                          the result cards while the "Live monitor" entry is selected. -->
                     <ScrollViewer x:Name="MonitorPanel" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
@@ -1224,7 +1297,7 @@
                             </ItemsControl>
 
                             <!-- The most important numbers at a glance -->
-                            <UniformGrid Columns="4" Margin="0,0,-10,10">
+                            <UniformGrid Columns="5" Margin="0,0,-10,10">
                                 <Border x:Name="MonitorCpuTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the processor">
                                     <StackPanel>
                                         <DockPanel>
@@ -1256,6 +1329,16 @@
                                         </DockPanel>
                                         <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource GpuBrush}"/>
                                         <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border x:Name="MonitorLatencyTile" Style="{StaticResource MonitorTile}">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <Ellipse x:Name="MonitorLatencyDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="INTERNET" Style="{StaticResource TileLabel}"/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="MonitorTileLatency" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock x:Name="MonitorTileLatencySub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource MonitorTile}">
@@ -1523,7 +1606,8 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Network: download and upload of all adapters as two lines, then one row per adapter -->
+                            <!-- Network: download and upload of all adapters as two lines, then one row per
+                                 adapter and the answer times of the router and of the internet -->
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
                                     <TextBlock Text="Network" Style="{StaticResource SectionTitle}" Margin="0,0,0,8"/>

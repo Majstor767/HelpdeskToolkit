@@ -6,7 +6,8 @@ function Add-WindowRecordingRow {
         The line holds the values that tell most about "why is it slow right now":
         processor load and speed, memory in use, load and temperature of the graphics
         card, the busiest disk with its read and write rate, the network rates of all
-        adapters together, and the program that used the most processor time.
+        adapters together, the program that used the most processor time, and the
+        answer times of the router and of the internet.
 
         Each line is appended to the file immediately, so nothing is lost when the
         window is closed or the computer hangs. Numbers are written with a dot as the
@@ -38,6 +39,7 @@ function Add-WindowRecordingRow {
     $gpu = @($Snapshot.Gpu | Where-Object { $_ }) | Select-Object -First 1
     $sensor = @($Snapshot.GpuSensors | Where-Object { $_ }) | Select-Object -First 1
     $busiest = @($Snapshot.Processes | Where-Object { $_ }) | Select-Object -First 1
+    $latency = if ($Snapshot.PSObject.Properties['Latency']) { $Snapshot.Latency } else { $null }
 
     $values = @(
         $Snapshot.TakenAt.ToString('yyyy-MM-dd HH:mm:ss')
@@ -54,6 +56,9 @@ function Add-WindowRecordingRow {
         $(if ($network.Count -gt 0) { & $number (($network | Measure-Object -Property SentBytesPerSecond -Sum).Sum * 8 / 1000) } else { '' })
         $(if ($busiest) { '"{0}"' -f ([string]$busiest.Name).Replace('"', '""') } else { '' })
         $(if ($busiest) { & $number $busiest.Percent } else { '' })
+        # Empty when there was no answer, or when the network tests are skipped
+        $(if ($latency) { & $number $latency.GatewayMs } else { '' })
+        $(if ($latency) { & $number $latency.InternetMs } else { '' })
     )
 
     try {

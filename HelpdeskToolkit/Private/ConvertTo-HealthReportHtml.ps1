@@ -9,8 +9,9 @@ function ConvertTo-HealthReportHtml {
         attached to a ticket.
 
         Layout, top to bottom: header with computer and run details, overall verdict,
-        counts per status, the list of problems with recommendations, then one card
-        per category with every check.
+        counts per status, where the points of the score went, the list of problems
+        with recommendations, one card per category with every check, and at the end
+        the time line of recent changes and failures.
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -146,6 +147,18 @@ function ConvertTo-HealthReportHtml {
     }
     $html.Add('</section>')
 
+    # Where the points of the score went
+    $lost = @(Get-HealthScoreBreakdown -Result $results | ForEach-Object {
+            $parts = @(
+                if ($_.Critical -gt 0) { '{0} critical' -f $_.Critical }
+                if ($_.Warning -gt 0) { '{0} warning{1}' -f $_.Warning, $(if ($_.Warning -ne 1) { 's' }) }
+            )
+            '<span><b>{0}</b> &minus;{1} ({2})</span>' -f (ConvertTo-HtmlEncodedText -Text $_.Category), $_.Points, ($parts -join ', ')
+        })
+    if ($lost.Count -gt 0 -and $Report.PSObject.Properties['Score']) {
+        $html.Add(('<p class="score-breakdown">Health score {0} of 100. Points lost: {1}</p>' -f [string]$Report.Score, ($lost -join '')))
+    }
+
     # Categories in the order the checks ran, each with its worst status. Inside a
     # category the most severe results come first; results with the same status keep
     # the order in which the checks ran.
@@ -201,6 +214,35 @@ function ConvertTo-HealthReportHtml {
             $html.Add((& $newRow -Result $result))
         }
         $html.Add('</tbody></table>')
+        $html.Add('</section>')
+    }
+
+    # Time line: what happened on the computer lately, newest first. Reports of
+    # older versions have none.
+    $timeline = @()
+    if ($Report.PSObject.Properties['Timeline']) {
+        $timeline = @($Report.Timeline | Where-Object { $_ })
+    }
+    if ($timeline.Count -gt 0) {
+        $problemCount = @($timeline | Where-Object { $_.Level -eq 'Problem' }).Count
+        $html.Add('<section class="card" id="timeline">')
+        $html.Add(('<div class="card-header"><h2>Timeline</h2><span class="counts">{0} problems &middot; {1} changes</span></div>' -f $problemCount, ($timeline.Count - $problemCount)))
+        $html.Add('<p class="timeline-hint">What happened on this computer lately, as Windows recorded it for Reliability Monitor. Look for a change (an installation, an update, a driver) shortly before the first failure.</p>')
+        $html.Add('<details><summary>Show the {0} entries</summary>' -f $timeline.Count)
+        $html.Add('<table class="timeline">')
+        $html.Add('<thead><tr><th class="col-time">Time</th><th class="col-kind">What</th><th>Program or update</th></tr></thead>')
+        $html.Add('<tbody>')
+        foreach ($entry in $timeline) {
+            $title = ConvertTo-HtmlEncodedText -Text $entry.Title
+            if ($entry.Count -gt 1) {
+                $title = '{0} <span class="times">&times; {1}</span>' -f $title, $entry.Count
+            }
+            $html.Add(('<tr class="{0}"><td class="col-time">{1}</td><td class="col-kind"><span class="dot {2}"></span>{3}</td><td>{4}</td></tr>' -f `
+                    $entry.Level.ToLower(), (ConvertTo-HtmlEncodedText -Text $entry.Time), $(if ($entry.Level -eq 'Problem') { 'critical' } else { 'info' }),
+                    (ConvertTo-HtmlEncodedText -Text $entry.Kind), $title))
+        }
+        $html.Add('</tbody></table>')
+        $html.Add('</details>')
         $html.Add('</section>')
     }
 

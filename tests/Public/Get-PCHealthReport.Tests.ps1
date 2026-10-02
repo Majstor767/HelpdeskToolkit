@@ -17,6 +17,11 @@ Describe 'Get-PCHealthReport' {
         Mock -ModuleName HelpdeskToolkit Get-PrinterHealth { New-TestResult -Category 'Printers' -Check 'Print queue' -Status OK }
         Mock -ModuleName HelpdeskToolkit Get-ServiceHealth { New-TestResult -Category 'Services' -Check 'Spooler' -Status OK }
         Mock -ModuleName HelpdeskToolkit Write-Progress { }
+        # Two entries of the time line, as Get-ChangeTimeline returns them.
+        Mock -ModuleName HelpdeskToolkit Get-ChangeTimeline {
+            [PSCustomObject]@{ Time = [datetime]'2026-01-14 09:05:00'; Level = 'Problem'; Kind = 'Program crashed'; Title = 'editor.exe'; Count = 3 }
+            [PSCustomObject]@{ Time = [datetime]'2026-01-13 16:40:00'; Level = 'Change'; Kind = 'Program installed'; Title = 'Contoso Edit'; Count = 1 }
+        }
     }
 
     Context 'the report object' {

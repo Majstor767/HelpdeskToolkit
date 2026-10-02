@@ -9,9 +9,11 @@ function Enable-WindowMonitor {
         hashtable). A timer on the window thread looks into that table a few times per
         second and displays a new snapshot when there is one (Receive-WindowMonitor).
 
-        The same table carries the wishes of the window to the loop: Paused, Stop and
-        IntervalSeconds, the time from the start of one measurement to the start of the
-        next. The loop waits in short steps, so it reacts to a change within a moment.
+        The same table carries the wishes of the window to the loop: Paused, Stop,
+        IntervalSeconds (the time from the start of one measurement to the start of the
+        next) and Latency (whether the router and the internet are pinged, which is
+        left out while "Skip network tests" is ticked). The loop waits in short steps,
+        so it reacts to a change within a moment.
 
         The runspace is created once per window. Leaving the page only pauses it
         (Disable-WindowMonitor), so coming back shows data again without a delay. When
@@ -29,6 +31,8 @@ function Enable-WindowMonitor {
                 Paused          = $false
                 Stop            = $false
                 IntervalSeconds = [int]$Gui.Settings.MonitorIntervalSeconds
+                # Whether the answer times of router and internet are measured too
+                Latency         = $Gui.Controls.SkipNetworkCheckBox.IsChecked -ne $true
                 Snapshot        = $null
                 Error           = $null
                 Sequence        = 0
@@ -45,7 +49,7 @@ function Enable-WindowMonitor {
 
                 $started = Get-Date
                 try {
-                    $Shared.Snapshot = Get-PerformanceSnapshot
+                    $Shared.Snapshot = Get-PerformanceSnapshot -IncludeLatency:([bool]$Shared.Latency)
                     $Shared.Error = $null
                 }
                 catch {

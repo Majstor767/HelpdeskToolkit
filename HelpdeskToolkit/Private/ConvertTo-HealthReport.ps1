@@ -42,6 +42,19 @@ function ConvertTo-HealthReport {
         }
     )
 
+    # The time line; a report of an older version has none.
+    $timeline = @(
+        foreach ($item in @(& $read $InputObject 'Timeline' @())) {
+            [PSCustomObject]@{
+                Time  = [string](& $read $item 'Time' '')
+                Level = [string](& $read $item 'Level' 'Change')
+                Kind  = [string](& $read $item 'Kind' '')
+                Title = [string](& $read $item 'Title' '')
+                Count = [int](& $read $item 'Count' 1)
+            }
+        }
+    )
+
     # Counted again from the results, so the numbers always match them.
     $summary = Get-HealthSummary -Result $results
 
@@ -56,5 +69,6 @@ function ConvertTo-HealthReport {
         Score           = Get-HealthScore -Summary $summary
         Summary         = $summary
         Results         = $results
+        Timeline        = $timeline
     }
 }

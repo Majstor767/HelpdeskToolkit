@@ -61,6 +61,10 @@ function Write-HealthSummary {
     Write-Host ''
     if ($Report.PSObject.Properties['Score']) {
         Write-Host ('Health score: {0} of 100' -f $Report.Score)
+        $lost = @(Get-HealthScoreBreakdown -Result @($Report.Results) | ForEach-Object { '{0} -{1}' -f $_.Category, $_.Points })
+        if ($lost.Count -gt 0) {
+            Write-Host ('Points lost: {0}' -f ($lost -join ', ')) -ForegroundColor DarkGray
+        }
     }
 
     if (-not $Report.IsElevated) {

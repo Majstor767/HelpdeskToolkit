@@ -36,7 +36,8 @@ function Enable-WindowRecording {
     $path = Join-Path -Path $folder -ChildPath ('Monitor_{0}_{1:yyyyMMdd-HHmmss}.csv' -f $env:COMPUTERNAME, (Get-Date))
     $delimiter = [string][cultureinfo]::CurrentCulture.TextInfo.ListSeparator
     $columns = 'Time', 'CpuPercent', 'CpuSpeedMHz', 'MemoryPercent', 'MemoryUsedMB', 'GpuPercent', 'GpuTemperatureC',
-        'DiskActivePercent', 'DiskReadKBps', 'DiskWriteKBps', 'NetworkDownKbps', 'NetworkUpKbps', 'BusiestProgram', 'BusiestProgramPercent'
+        'DiskActivePercent', 'DiskReadKBps', 'DiskWriteKBps', 'NetworkDownKbps', 'NetworkUpKbps', 'BusiestProgram', 'BusiestProgramPercent',
+        'PingRouterMs', 'PingInternetMs'
 
     $encoding = New-Object -TypeName System.Text.UTF8Encoding -ArgumentList $true
     [System.IO.File]::WriteAllText($path, (($columns -join $delimiter) + "`r`n"), $encoding)

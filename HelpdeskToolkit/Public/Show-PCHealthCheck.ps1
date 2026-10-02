@@ -196,6 +196,14 @@ function Show-PCHealthCheck {
             }
         })
 
+    # The filter of the Timeline page: everything, only the problems or only the changes.
+    $controls.TimelineFilter.Add_SelectionChanged({
+            $state = $script:HealthCheckWindow
+            if (-not $state.Loading -and $state.Page -eq 'Timeline') {
+                Show-WindowTimeline -Gui $state
+            }
+        })
+
     # The button inside a card opens the place in Windows where the problem is fixed.
     # The cards are created from a template, so the click is caught on the list that
     # contains them; the card it came from is the "data context" of the button.

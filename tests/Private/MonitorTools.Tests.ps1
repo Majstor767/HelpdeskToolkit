@@ -276,7 +276,8 @@ Describe 'Recording the Live monitor' -Skip:(-not $isSta) {
         $bytes = [System.IO.File]::ReadAllBytes($path)
         $bytes[0], $bytes[1], $bytes[2] | Should -Be @(0xEF, 0xBB, 0xBF)
         (Get-Content -LiteralPath $path -TotalCount 1) | Should -Be (('Time', 'CpuPercent', 'CpuSpeedMHz', 'MemoryPercent', 'MemoryUsedMB', 'GpuPercent', 'GpuTemperatureC',
-                'DiskActivePercent', 'DiskReadKBps', 'DiskWriteKBps', 'NetworkDownKbps', 'NetworkUpKbps', 'BusiestProgram', 'BusiestProgramPercent') -join $delimiter)
+                'DiskActivePercent', 'DiskReadKBps', 'DiskWriteKBps', 'NetworkDownKbps', 'NetworkUpKbps', 'BusiestProgram', 'BusiestProgramPercent',
+                'PingRouterMs', 'PingInternetMs') -join $delimiter)
     }
 
     It 'turns the button into "Stop recording" and says where it records' {

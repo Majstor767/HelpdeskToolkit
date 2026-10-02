@@ -5,7 +5,8 @@ function Get-PCHealthReport {
     .DESCRIPTION
         Runs every check category (system, specifications, hardware, software, event
         log, Windows Update, security, network, printers and services) and returns one
-        report object with the run details, the count per status and all results.
+        report object with the run details, the count per status, all results and
+        the time line of recent changes and failures.
 
         Nothing is printed, saved or opened. Use this command when the data is needed
         in a script; use Invoke-PCHealthCheck for the console summary and the saved
@@ -25,8 +26,9 @@ function Get-PCHealthReport {
     .PARAMETER Days
         How many days of event log and crash history to analyze. The default is 7.
     .PARAMETER SkipNetwork
-        Skip the connectivity tests (ping, DNS, HTTPS). The adapter configuration is
-        still reported.
+        Skip everything that asks the internet: the connectivity tests (ping, DNS,
+        HTTPS) and the search for newer versions of the installed programs. The
+        adapter configuration is still reported.
     .EXAMPLE
         $report = Get-PCHealthReport
         $report.Summary
@@ -44,7 +46,8 @@ function Get-PCHealthReport {
     .OUTPUTS
         HelpdeskToolkit.HealthReport
         An object with the properties ToolVersion, ComputerName, GeneratedAt,
-        DurationSeconds, IsElevated, EventLogDays, Score, Summary and Results.
+        DurationSeconds, IsElevated, EventLogDays, Score, Summary, Results and
+        Timeline (what happened on the computer lately, see Get-ChangeTimeline).
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.HealthReport')]
@@ -74,7 +77,7 @@ function Get-PCHealthReport {
         'System'         = @{ Command = 'Get-SystemHealth'; Parameters = @{} }
         'Specifications' = @{ Command = 'Get-ComputerSpecification'; Parameters = @{} }
         'Hardware'       = @{ Command = 'Get-HardwareHealth'; Parameters = @{} }
-        'Software'       = @{ Command = 'Get-SoftwareHealth'; Parameters = @{ Days = $Days } }
+        'Software'       = @{ Command = 'Get-SoftwareHealth'; Parameters = @{ Days = $Days; SkipUpdateCheck = $SkipNetwork.IsPresent } }
         'Event Log'      = @{ Command = 'Get-EventLogHealth'; Parameters = @{ Days = $Days } }
         'Windows Update' = @{ Command = 'Get-WindowsUpdateHealth'; Parameters = @{} }
         'Security'       = @{ Command = 'Get-SecurityHealth'; Parameters = @{ Days = $Days } }
@@ -105,6 +108,25 @@ function Get-PCHealthReport {
     Write-Progress -Activity $activity -Completed
     $results = @($results)
 
+    # What happened on the computer lately. It is no check with a verdict, so it is
+    # kept next to the results; a time line that cannot be read must not fail the report.
+    $timeline = @()
+    try {
+        $timeline = @(Get-ChangeTimeline -Days (Get-HealthThreshold).Timeline.Days | ForEach-Object {
+                [PSCustomObject]@{
+                    # As text, like GeneratedAt: it survives saving as JSON on every PowerShell version.
+                    Time  = $_.Time.ToString('yyyy-MM-dd HH:mm')
+                    Level = $_.Level
+                    Kind  = $_.Kind
+                    Title = $_.Title
+                    Count = $_.Count
+                }
+            })
+    }
+    catch {
+        Write-Verbose "The time line could not be read: $($_.Exception.Message)"
+    }
+
     $stopwatch.Stop()
     $summary = Get-HealthSummary -Result $results
 
@@ -119,5 +141,6 @@ function Get-PCHealthReport {
         Score           = Get-HealthScore -Summary $summary
         Summary         = $summary
         Results         = $results
+        Timeline        = $timeline
     }
 }

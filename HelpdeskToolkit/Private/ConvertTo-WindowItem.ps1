@@ -17,9 +17,9 @@ function ConvertTo-WindowItem {
         - StatusText: the status as shown on the badge
 
         All texts are shown in the language of the window (see Get-LocalizedText). The
-        properties Status, SourceCheck and SourceCategory keep the original, English
-        values: the colors of the card depend on Status, and the button looks its
-        target up by the original names.
+        properties Status, SourceCheck, SourceValue and SourceCategory keep the
+        original, English values: the colors of the card depend on Status, and the
+        button looks its target up by the original names.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -46,7 +46,7 @@ function ConvertTo-WindowItem {
 
         $actionLabel = ''
         if ($Result.Recommendation) {
-            $action = Get-CheckAction -Check $Result.Check -Category $Result.Category
+            $action = Get-CheckAction -Check $Result.Check -Category $Result.Category -Value ([string]$Result.Value)
             if ($action) {
                 $actionLabel = Get-LocalizedText $action.Label
             }
@@ -75,6 +75,7 @@ function ConvertTo-WindowItem {
             RecommendationLabel = Get-LocalizedText $label
             ActionLabel         = $actionLabel
             SourceCheck         = $Result.Check
+            SourceValue         = [string]$Result.Value
             # "Yes" frames the card; set for the result a notice has led to.
             Highlight           = ''
             # Whether the details of a compact card are open; set by Show-WindowPage.

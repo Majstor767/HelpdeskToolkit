@@ -13,6 +13,7 @@
     # nothing internal is exported by accident.
     FunctionsToExport    = @(
         'Compare-PCHealthReport'
+        'Get-ChangeTimeline'
         'Get-ComputerSpecification'
         'Get-EventLogHealth'
         'Get-HardwareHealth'

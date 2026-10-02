@@ -1016,6 +1016,7 @@
         'Unexpected shutdown'                                  = 'Neočekivano gašenje'
         'Windows crashed (blue screen)'                        = 'Windows se srušio (plavi ekran)'
         'Antivirus definitions'                                = 'Definicije antivirusa'
+        'Microsoft Store apps'                                 = 'Aplikacije iz Microsoft Storea'
 
         # --- Names of the checks ----------------------------------------------------
         'Startup delays'                                       = 'Usporenja pri pokretanju'

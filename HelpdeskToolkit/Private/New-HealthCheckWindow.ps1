@@ -158,6 +158,8 @@ function New-HealthCheckWindow {
             Disk         = & $newHistory
             NetworkDown  = & $newHistory
             NetworkUp    = & $newHistory
+            # Answer time of the internet in milliseconds; -1 for a measurement without an answer
+            Latency      = & $newHistory
         }
         # The judgements behind the status dots of the tiles, and the tile whose advice is open.
         MonitorStatus     = @()
