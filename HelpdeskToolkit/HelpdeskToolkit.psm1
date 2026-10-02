@@ -41,6 +41,8 @@ $script:DriveHealthCache = $null
 $script:ToolVersion = $null
 # Where the checks lead to in Windows (Config\Actions.psd1), read on first use.
 $script:Actions = $null
+# Why a problem matters (Config\Risks.psd1), read on first use.
+$script:Risks = $null
 # Language of the window ("en" or "hr") and the translations of that language.
 $script:Language = 'en'
 $script:Translations = $null

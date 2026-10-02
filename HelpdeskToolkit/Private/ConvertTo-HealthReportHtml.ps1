@@ -61,6 +61,16 @@ function ConvertTo-HealthReportHtml {
             ''
         }
 
+        # Why the problem matters; only for a result that is one. A check that could
+        # not be read ("Unavailable") is no finding.
+        $risk = ''
+        if ($Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable') {
+            $riskText = Get-CheckRisk -Check $Result.Check -Category $Result.Category
+            if ($riskText) {
+                $risk = '<div class="risk">{0}</div>' -f (ConvertTo-HtmlEncodedText -Text $riskText)
+            }
+        }
+
         # Measurements carry the allowed range and a typical value to compare with.
         $referenceParts = @()
         if ($Result.Allowed) {
@@ -76,8 +86,8 @@ function ConvertTo-HealthReportHtml {
             ''
         }
 
-        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check"><div class="check">{2}</div>{3}</td><td><div class="value">{4}</div>{5}{6}{7}</td></tr>' -f `
-            $statusClass, $Result.Status, $check, $description, (ConvertTo-HtmlEncodedText -Text $Result.Value), $details, $reference, $recommendation
+        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check"><div class="check">{2}</div>{3}</td><td><div class="value">{4}</div>{5}{6}{7}{8}</td></tr>' -f `
+            $statusClass, $Result.Status, $check, $description, (ConvertTo-HtmlEncodedText -Text $Result.Value), $details, $reference, $risk, $recommendation
     }
 
     $tableHead = '<thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>'

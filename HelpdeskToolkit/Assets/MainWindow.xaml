@@ -571,7 +571,20 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <Border CornerRadius="5" Padding="9,7" Margin="0,8,0,0">
+                        <!-- Why the problem matters: what it leads to when it stays -->
+                        <StackPanel Margin="0,8,0,0">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Risk}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding Risk}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>                        <Border CornerRadius="5" Padding="9,7" Margin="0,8,0,0">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Background" Value="{StaticResource InfoBackBrush}"/>
@@ -1046,6 +1059,20 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
 
+                                                <!-- Why the problem matters: what it leads to when it stays -->
+                                                <StackPanel Margin="0,8,0,0">
+                                                    <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Risk}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </StackPanel.Style>
+                                                    <TextBlock Text="{Binding RiskLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Risk}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                </StackPanel>
                                                 <!-- What to do about it, with a button that opens the place in
                                                      Windows where it is done -->
                                                 <Border CornerRadius="5" Padding="10,7" Margin="0,8,0,2">

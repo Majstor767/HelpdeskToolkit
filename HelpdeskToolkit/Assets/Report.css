@@ -358,6 +358,17 @@ details li {
     font-weight: 600;
 }
 
+.risk {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.risk::before {
+    content: "Why this is a problem: ";
+    font-weight: 600;
+}
+
 .recommendation {
     margin-top: 4px;
     color: var(--muted);

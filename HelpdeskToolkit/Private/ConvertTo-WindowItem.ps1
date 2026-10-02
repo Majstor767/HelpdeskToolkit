@@ -52,6 +52,13 @@ function ConvertTo-WindowItem {
             }
         }
 
+        # Why the problem matters; only for a result that is one. A check that could
+        # not be read ("Unavailable") is no finding, so nothing is said about it.
+        $risk = ''
+        if ($Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable') {
+            $risk = Get-LocalizedText (Get-CheckRisk -Check $Result.Check -Category $Result.Category)
+        }
+
         [PSCustomObject]@{
             Status              = $Result.Status
             StatusText          = Get-LocalizedText $Result.Status
@@ -62,6 +69,8 @@ function ConvertTo-WindowItem {
             Reference           = $reference -join '   |   '
             More                = $details -join "`n"
             MoreHeader          = if ($details.Count -gt 0) { (Get-LocalizedText 'Show {0} more') -f $details.Count } else { '' }
+            Risk                = $risk
+            RiskLabel           = Get-LocalizedText 'WHY THIS IS A PROBLEM'
             Recommendation      = Get-LocalizedText ([string]$Result.Recommendation)
             RecommendationLabel = Get-LocalizedText $label
             ActionLabel         = $actionLabel
