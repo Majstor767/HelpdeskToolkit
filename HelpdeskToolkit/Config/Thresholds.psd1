@@ -97,6 +97,13 @@
         # the whole disk.
         LargestFolderTimeoutMs = 3000
         LargestFolderBudgetMs  = 15000
+        # "What takes up the space" in the Live monitor. A program that does not say how
+        # large it is gets its folder measured: time per program and for all of them.
+        ProgramSizeTimeoutMs   = 1500
+        ProgramSizeBudgetMs    = 10000
+        # How many programs and folders that list shows.
+        UsageProgramCount      = 15
+        UsageFolderCount       = 8
     }
 
     DriveDetail   = @{
@@ -231,6 +238,25 @@
         AlertSamples        = 10
         # Temperature of the graphics card, in degrees Celsius, from which a warning is shown.
         GpuTemperatureAlert = 85
+
+        # Status dot on the tiles of the Live monitor. It judges the average of the last
+        # StatusSamples measurements, so a single peak does not change its color.
+        # Red: the average is above the limit. For processor and memory that is the
+        # Warning limit of their health checks (Cpu and Memory above); the graphics card
+        # has no health check, so its limit is here.
+        StatusSamples       = 5
+        GpuWarningPercent   = 95
+        # Orange: the average is closer to the limit than this many percentage points,
+        # or the graphics card is hotter than GpuTemperatureNear ...
+        NearMarginPercent   = 10
+        GpuTemperatureNear  = 75
+        # ... or the value keeps rising: a straight line through the last TrendSamples
+        # measurements reaches the limit within the next TrendAheadSamples. A rise only
+        # counts from TrendMinimumPercent on, so that a program starting up on an idle
+        # computer does not turn the dot orange.
+        TrendSamples        = 15
+        TrendAheadSamples   = 15
+        TrendMinimumPercent = 50
     }
 
     Score         = @{

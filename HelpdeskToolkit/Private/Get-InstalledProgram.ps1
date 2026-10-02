@@ -1,7 +1,7 @@
 function Get-InstalledProgram {
     <#
     .SYNOPSIS
-        Returns the programs listed in "Installed apps", with version and install date.
+        Returns the programs listed in "Installed apps", with version, install date, size and folder.
     .DESCRIPTION
         Installers register themselves under three Uninstall keys in the registry:
         64-bit programs, 32-bit programs and programs installed for the current user
@@ -11,8 +11,9 @@ function Get-InstalledProgram {
         possibly repair, every installed MSI package, which is slow and changes the system.
 
         Entries without a name and entries marked as system components are skipped,
-        like in the Windows list. The install date is optional in the registry, so it
-        can be empty.
+        like in the Windows list. The install date, the size (the estimate the
+        installer wrote down) and the folder are optional in the registry, so they can
+        be empty.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -56,10 +57,23 @@ function Get-InstalledProgram {
             }
         }
 
+        # EstimatedSize is a number of kilobytes.
+        $size = $null
+        if ($names -contains 'EstimatedSize' -and $entry.EstimatedSize -gt 0) {
+            $size = [long]$entry.EstimatedSize * 1KB
+        }
+
+        $location = ''
+        if ($names -contains 'InstallLocation' -and $entry.InstallLocation) {
+            $location = ([string]$entry.InstallLocation).Trim().Trim('"').TrimEnd('\')
+        }
+
         [PSCustomObject]@{
             Name        = ([string]$entry.DisplayName).Trim()
             Version     = $version.Trim()
             InstallDate = $installed
+            SizeBytes   = $size
+            Location    = $location
         }
     }
 }
