@@ -11,6 +11,17 @@ function Receive-WindowCheck {
         A finished report is also added to the history of the application (see
         Save-HealthReportHistory), after the report of the previous check was looked
         up, so the Overview can show what changed since then.
+
+        The report of an automatic check (Invoke-WindowCheck -Background) is handled
+        differently:
+        - It replaces the results without interrupting the user (Show-WindowReport
+          -KeepPage) and is not added to the history, which would otherwise fill up
+          with a report every few minutes.
+        - It is compared with the report it replaces. What is new or worse is
+          announced at the top of the window (Add-WindowNotice) and, while the window
+          is not in front, with a Windows notification (Show-WindowToast).
+
+        A check the user starts is a fresh look at everything, so it removes the notices.
     #>
     [CmdletBinding()]
     param(
@@ -51,6 +62,7 @@ function Receive-WindowCheck {
     }
 
     $Gui.Timer.Stop()
+    $background = [bool]$Gui.Background
     try {
         $output = @($worker.EndInvoke($Gui.Handle))
         $report = $output |
@@ -62,14 +74,43 @@ function Receive-WindowCheck {
             throw $reason
         }
 
-        $previous = Get-PreviousHealthReport -Report $report
-        [void](Save-HealthReportHistory -Report $report)
+        if ($background -and $Gui.Report) {
+            $worse = @(
+                Compare-PCHealthReport -Reference $Gui.Report -Difference $report |
+                    Where-Object { $_.Change -in 'New problem', 'Worse' }
+            )
 
-        if ($previous) {
-            Show-WindowReport -Gui $Gui -Report $report -Previous $previous
+            $parameters = @{ Gui = $Gui; Report = $report; KeepPage = $true }
+            if ($Gui.PreviousReport) {
+                $parameters.Previous = $Gui.PreviousReport
+            }
+            Show-WindowReport @parameters
+
+            $added = @(Add-WindowNotice -Gui $Gui -Change $worse)
+            if ($added.Count -gt 0 -and -not $Gui.Window.IsActive) {
+                $title = if ($added.Count -eq 1) {
+                    Get-LocalizedText 'HelpdeskToolkit: a new problem'
+                }
+                else {
+                    (Get-LocalizedText 'HelpdeskToolkit: {0} new problems') -f $added.Count
+                }
+                $lines = $added | Select-Object -First 3 | ForEach-Object {
+                    '{0}: {1}' -f (Get-LocalizedCheckName $_.Check), (Get-LocalizedText $_.Value)
+                }
+                Show-WindowToast -Gui $Gui -Title $title -Text ($lines -join "`n")
+            }
         }
         else {
-            Show-WindowReport -Gui $Gui -Report $report
+            $previous = Get-PreviousHealthReport -Report $report
+            [void](Save-HealthReportHistory -Report $report)
+
+            if ($previous) {
+                Show-WindowReport -Gui $Gui -Report $report -Previous $previous
+            }
+            else {
+                Show-WindowReport -Gui $Gui -Report $report
+            }
+            Show-WindowNotice -Gui $Gui -Clear
         }
     }
     catch {
@@ -79,8 +120,16 @@ function Receive-WindowCheck {
         $worker.Dispose()
         $Gui.Worker = $null
         $Gui.Handle = $null
+        $Gui.Background = $false
+        # The automatic check counts from here, also after a check that failed.
+        $Gui.LastCheckAt = Get-Date
         $controls.RunButton.IsEnabled = $true
         $controls.RunButton.Content = Get-LocalizedText 'Run check'
         $controls.RunPanel.Visibility = [System.Windows.Visibility]::Collapsed
+
+        # A first check that failed leaves the Overview empty; it shows its hint again.
+        if (-not $Gui.Report -and $Gui.Page -notin 'Live monitor', 'Settings') {
+            Show-WindowPage -Gui $Gui -Name 'Overview'
+        }
     }
 }

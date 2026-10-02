@@ -3,9 +3,9 @@ function Show-WindowSetting {
     .SYNOPSIS
         Fills the Settings page of the window.
     .DESCRIPTION
-        Selects the current language and theme in the two lists, lists the keyboard
-        shortcuts and shows the version and the folder in which the application keeps
-        its own files.
+        Selects the current language, theme and interval of the automatic check in
+        their lists, lists the keyboard shortcuts and shows the version and the folder
+        in which the application keeps its own files.
 
         While the lists are set from code, $Gui.Loading is $true, so the handlers that
         react to a choice of the user do not mistake this for one.
@@ -33,6 +33,7 @@ function Show-WindowSetting {
     try {
         & $select $controls.LanguageBox ([string]$settings.Language)
         & $select $controls.ThemeBox ([string]$settings.Theme)
+        & $select $controls.AutoCheckBox ([string]$settings.AutoCheckMinutes)
     }
     finally {
         $Gui.Loading = $false
@@ -46,6 +47,7 @@ function Show-WindowSetting {
         [PSCustomObject]@{ Name = 'Ctrl+O'; Text = Get-LocalizedText 'Open the HTML report in the browser' }
         [PSCustomObject]@{ Name = 'Ctrl+Shift+C'; Text = Get-LocalizedText 'Copy the summary for a ticket' }
         [PSCustomObject]@{ Name = 'Ctrl+M'; Text = Get-LocalizedText 'Open the Live monitor' }
+        [PSCustomObject]@{ Name = 'Ctrl+,'; Text = Get-LocalizedText 'Open the settings' }
     )
 
     $controls.AboutText.Text = (Get-LocalizedText 'HelpdeskToolkit {0}  |  PowerShell {1}') -f (Get-ToolVersion), $PSVersionTable.PSVersion

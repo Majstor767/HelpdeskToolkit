@@ -12,6 +12,7 @@ function Invoke-WindowShortcut {
         Ctrl+O        open the HTML report in the browser
         Ctrl+Shift+C  copy the summary
         Ctrl+M        open the Live monitor
+        Ctrl+,        open the settings
 
         A shortcut does what the button with the same purpose does, by "clicking" that
         button, and does nothing while the button is disabled.
@@ -90,6 +91,10 @@ function Invoke-WindowShortcut {
         }
         'M' {
             & $open 'Live monitor'
+            return $true
+        }
+        'OemComma' {
+            & $click $controls.SettingsButton
             return $true
         }
         'C' {

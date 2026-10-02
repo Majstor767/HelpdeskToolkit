@@ -12,6 +12,8 @@ function Get-AppSetting {
                                   that is set to Croatian and English everywhere else.
         - Theme:                  "System" (same as Windows), "Light" or "Dark"
         - MonitorIntervalSeconds: how often the Live monitor measures
+        - AutoCheckMinutes:       how often the check is repeated in the background
+                                  after the first one; 0 turns that off
         - WindowWidth, WindowHeight, WindowLeft, WindowTop, WindowMaximized:
                                   where the window was when it was closed
     #>
@@ -23,6 +25,7 @@ function Get-AppSetting {
         Language               = if ((Get-UICulture).Name -like 'hr*') { 'hr' } else { 'en' }
         Theme                  = 'System'
         MonitorIntervalSeconds = 2
+        AutoCheckMinutes       = 5
         WindowWidth            = $null
         WindowHeight           = $null
         WindowLeft             = $null
@@ -55,6 +58,9 @@ function Get-AppSetting {
     }
     if ($settings.MonitorIntervalSeconds -notin 2, 5, 10, 30) {
         $settings.MonitorIntervalSeconds = 2
+    }
+    if ($settings.AutoCheckMinutes -notin 0, 5, 15, 30, 60) {
+        $settings.AutoCheckMinutes = 5
     }
 
     $settings

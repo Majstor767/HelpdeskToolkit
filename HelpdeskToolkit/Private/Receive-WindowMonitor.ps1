@@ -10,6 +10,9 @@ function Receive-WindowMonitor {
 
         While a recording runs, every new measurement is also written to its file
         (see Add-WindowRecordingRow).
+
+        The same timer picks up the finished measurements of what takes up the space
+        of the drives (see Receive-WindowDiskUsage).
     #>
     [CmdletBinding()]
     param(
@@ -17,6 +20,8 @@ function Receive-WindowMonitor {
         [Parameter(Mandatory)]
         [hashtable]$Gui
     )
+
+    Receive-WindowDiskUsage -Gui $Gui
 
     $monitor = $Gui.Monitor
     if (-not $monitor) {

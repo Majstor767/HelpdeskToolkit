@@ -14,7 +14,7 @@ function Show-WindowMonitor {
         the highest rate in the history, which the caption of the graph names.
 
         The same histories decide about the warnings at the top of the page (see
-        Get-MonitorAlert).
+        Get-MonitorAlert) and about the status dots of the tiles (see Get-MonitorStatus).
     #>
     [CmdletBinding()]
     param(
@@ -228,22 +228,8 @@ function Show-WindowMonitor {
     $busiestDisk = if ($disks.Count -gt 0) { ($disks | Measure-Object -Property Percent -Maximum).Maximum } else { 0 }
     & $drawGraph 'Disk' $busiestDisk
 
-    # Space on every drive letter. The meter takes the colors of the disk space check:
-    # the same limits from Config\Thresholds.psd1 decide between normal, warning and critical.
-    $diskLimits = (Get-HealthThreshold).Disk
-    $controls.MonitorVolumes.ItemsSource = @(
-        $Snapshot.Volumes | Where-Object { $_ } | ForEach-Object {
-            $freePercent = 100 - $_.Percent
-            $level = if ($freePercent -lt $diskLimits.CriticalFreePercent) { 'Critical' } elseif ($freePercent -lt $diskLimits.WarningFreePercent) { 'Warning' } else { 'Normal' }
-            [PSCustomObject]@{
-                Name    = if ($_.Label) { '{0} {1}' -f $_.Name, $_.Label } else { $_.Name }
-                Percent = [double]$_.Percent
-                Level   = $level
-                Text    = ((Get-LocalizedText '{0} % used') -f $_.Percent) + $separator +
-                    ((Get-LocalizedText '{0} free of {1}') -f (Format-Gigabyte -Bytes $_.FreeBytes), (Format-Gigabyte -Bytes $_.TotalBytes))
-            }
-        }
-    )
+    # Space on every drive letter, and what takes it up
+    Show-WindowVolume -Gui $Gui -Volume @($Snapshot.Volumes | Where-Object { $_ })
 
     # --- Network -----------------------------------------------------------------
     $network = @($Snapshot.Network | Where-Object { $_ })
@@ -350,6 +336,9 @@ function Show-WindowMonitor {
     $controls.MonitorAlerts.ItemsSource = @(
         Get-MonitorAlert -History $Gui.MonitorHistory -Snapshot $Snapshot | ForEach-Object { [PSCustomObject]@{ Text = $_ } }
     )
+
+    # --- Status dots of the tiles ------------------------------------------------
+    Show-WindowAdvice -Gui $Gui -Status @(Get-MonitorStatus -History $Gui.MonitorHistory -Snapshot $Snapshot)
 
     $interval = if ($Gui.Monitor) { [int]$Gui.Monitor.Shared.IntervalSeconds } else { [int]$Gui.Settings.MonitorIntervalSeconds }
     $controls.PageSubtitle.Text = (Get-LocalizedText 'What the computer is doing right now. Updated {0:HH:mm:ss}; refreshes about every {1} seconds.') -f $Snapshot.TakenAt, $interval

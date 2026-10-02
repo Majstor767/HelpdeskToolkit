@@ -66,6 +66,8 @@ function ConvertTo-WindowItem {
             RecommendationLabel = Get-LocalizedText $label
             ActionLabel         = $actionLabel
             SourceCheck         = $Result.Check
+            # "Yes" frames the card; set for the result a notice has led to.
+            Highlight           = ''
             SourceCategory      = $Result.Category
         }
     }

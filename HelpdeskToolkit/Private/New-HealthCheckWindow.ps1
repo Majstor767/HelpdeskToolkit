@@ -11,9 +11,16 @@ function New-HealthCheckWindow {
         - Controls:     every element that has an x:Name in the XAML, by that name
         - ManifestPath: where the module is, for the background runspaces
         - Settings, Theme: the settings of the window and the theme it was built with
+        - Page:         name of the page that is shown
         - Report, PreviousReport, Worker, Handle, Timer: state of the health check
+        - Background, LastCheckAt, AutoTimer, Notices, HighlightCheck, TrayIcon:
+                        state of the automatic check and of what it announces
         - Monitor, MonitorTimer, MonitorHistory, MonitorUserPaused, Recorder:
                         state of the Live monitor page
+        - MonitorStatus, MonitorAdvice: the status dots of its tiles and the advice
+                        that is open
+        - MonitorVolumes, VolumeSignature, DiskUsage: the drives and what takes up
+                        their space
 
         Before the XAML becomes a window, two things are changed in it:
 
@@ -22,8 +29,8 @@ function New-HealthCheckWindow {
         - Language: every text written in the XAML is replaced with its translation
                     (see Get-LocalizedText). The language is the one in $script:Language.
 
-        The page list starts with the pages that need no health check: Overview, Live
-        monitor and Settings.
+        The page list starts with the pages that need no health check: Overview and
+        Live monitor. The settings have a button of their own below the list.
     .PARAMETER Theme
         "Light" (the default) or "Dark".
     .PARAMETER Setting
@@ -38,7 +45,7 @@ function New-HealthCheckWindow {
         [ValidateSet('Light', 'Dark')]
         [string]$Theme = 'Light',
 
-        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2 }
+        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5 }
     )
 
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
@@ -97,7 +104,6 @@ function New-HealthCheckWindow {
     $controls.CategoryList.ItemsSource = @(
         ConvertTo-WindowNavigationItem -Name 'Overview'
         ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
-        ConvertTo-WindowNavigationItem -Name 'Settings'
     )
 
     $newHistory = { New-Object -TypeName 'System.Collections.Generic.List[double]' }
@@ -108,11 +114,24 @@ function New-HealthCheckWindow {
         ManifestPath      = Join-Path -Path $script:ModuleRoot -ChildPath 'HelpdeskToolkit.psd1'
         Settings          = $Setting
         Theme             = $Theme
+        Page              = 'Overview'
         Report            = $null
         PreviousReport    = $null
         Worker            = $null
         Handle            = $null
         Timer             = $null
+        # The running check was started by the application itself (see Invoke-WindowAutoCheck).
+        Background        = $false
+        # When the last check ended; the automatic check counts from here.
+        LastCheckAt       = $null
+        AutoTimer         = $null
+        # Problems found by an automatic check that the user has not dismissed yet,
+        # by "category|check", oldest first.
+        Notices           = [ordered]@{}
+        # Name of the check whose card gets a frame when its page is shown the next time.
+        HighlightCheck    = ''
+        # The icon in the notification area; created with the first Windows notification.
+        TrayIcon          = $null
         Monitor           = $null
         MonitorTimer      = $null
         # The user pressed Pause; opening the page again must not resume by itself.
@@ -128,6 +147,14 @@ function New-HealthCheckWindow {
             NetworkDown  = & $newHistory
             NetworkUp    = & $newHistory
         }
+        # The judgements behind the status dots of the tiles, and the tile whose advice is open.
+        MonitorStatus     = @()
+        MonitorAdvice     = ''
+        # The drives of the last measurement, what is drawn for them, and per drive
+        # letter what takes up its space (see Switch-WindowVolume).
+        MonitorVolumes    = @()
+        VolumeSignature   = ''
+        DiskUsage         = @{}
         # Set while the code itself changes a selection, so the event handlers do not react.
         Loading           = $false
     }

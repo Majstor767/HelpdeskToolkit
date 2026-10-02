@@ -70,7 +70,7 @@
         <ControlTemplate x:Key="ButtonTemplate" TargetType="Button">
             <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center">
                     <TextBlock x:Name="Glyph" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
                                FontFamily="Segoe MDL2 Assets" FontSize="13" VerticalAlignment="Center" Margin="0,1,8,0"/>
                     <ContentPresenter VerticalAlignment="Center"/>
@@ -145,6 +145,37 @@
         <!-- A small button inside a card or a tool bar -->
         <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
             <Setter Property="Padding" Value="10,5"/>
+        </Style>
+
+        <!-- A button that looks like an entry of the page list: no border, text on the left -->
+        <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,7"/>
+        </Style>
+
+        <!-- The warning triangle on a tile of the Live monitor; a click opens the advice -->
+        <Style x:Key="WarningToggle" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="4" Padding="4,2">
+                            <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource CriticalBrush}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource CriticalBackBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- "Show 5 more": a line of text with an arrow that opens and closes a list -->
@@ -476,6 +507,9 @@
                         <Button x:Name="OpenReportButton" Content="Open HTML report" Tag="&#xE8A7;" Style="{StaticResource AccentButton}" IsEnabled="False" Margin="0,0,0,6"/>
                         <Button x:Name="CopySummaryButton" Content="Copy summary" Tag="&#xE8C8;" ToolTip="Copy the problems as text for a ticket or an e-mail (Ctrl+Shift+C)" Style="{StaticResource ActionButton}" IsEnabled="False" Margin="0,0,0,6"/>
                         <Button x:Name="SaveAsButton" Content="Save as..." Tag="&#xE74E;" ToolTip="Save the report as HTML, PDF, JSON or CSV (Ctrl+S)" Style="{StaticResource ActionButton}" IsEnabled="False"/>
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-2,12,-2,0" Padding="0,8,0,0">
+                            <Button x:Name="SettingsButton" Content="Settings" Tag="&#xE713;" ToolTip="Language, theme and the automatic check (Ctrl+,)" Style="{StaticResource NavButton}"/>
+                        </Border>
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="PAGES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="12,2,0,6"/>
                     <ListBox x:Name="CategoryList" BorderThickness="0" Background="Transparent"
@@ -547,11 +581,33 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
+                <!-- Problems that an automatic check has found. A click on one of them opens
+                     its result. Shown on every page until it is dismissed. -->
+                <Border x:Name="NoticeBorder" Grid.Row="0" Background="{StaticResource WarningBackBrush}" BorderBrush="{StaticResource WarningDotBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,9,8,9" Margin="0,0,6,12" Visibility="Collapsed">
+                    <DockPanel>
+                        <Button x:Name="NoticeCloseButton" DockPanel.Dock="Right" Tag="&#xE711;" ToolTip="Dismiss" Style="{StaticResource NavButton}" Padding="8,5,0,5" VerticalAlignment="Top"/>
+                        <StackPanel>
+                            <TextBlock x:Name="NoticeTitle" FontWeight="SemiBold" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap"/>
+                            <ItemsControl x:Name="NoticeItems" Margin="0,4,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Style="{StaticResource ClickableRow}" Margin="0,1,0,0">
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding Link}" Foreground="{StaticResource InfoBrush}" FontWeight="SemiBold" Margin="12,2,4,2"/>
+                                            <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,2"/>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
                 <!-- Title of the page; on pages with results also the search field and the status filter -->
-                <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                <DockPanel Grid.Row="1" Margin="0,0,0,12">
                     <StackPanel x:Name="FilterPanel" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,2,6,0" Visibility="Collapsed">
                         <Grid Width="220">
                             <TextBox x:Name="SearchBox" Style="{StaticResource InputBox}" ToolTip="Search all results (Ctrl+F)"/>
@@ -574,7 +630,7 @@
 
                 <!-- Shown on the Overview page only: verdict, score and count per status,
                      and what changed since the last check -->
-                <StackPanel x:Name="OverviewPanel" Grid.Row="1">
+                <StackPanel x:Name="OverviewPanel" Grid.Row="2">
                     <Border x:Name="VerdictBorder" CornerRadius="6" Padding="14,9" Margin="0,0,0,12" BorderThickness="4,0,0,0" Visibility="Collapsed">
                         <TextBlock x:Name="VerdictText" FontSize="14" TextWrapping="Wrap"/>
                     </Border>
@@ -655,12 +711,24 @@
                 </StackPanel>
 
                 <!-- The results of the page, one card per check -->
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="3">
                     <ScrollViewer x:Name="ResultScroll" VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="ResultItems" Margin="0,0,6,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6" Padding="14,10" Margin="0,0,0,8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Highlight}" Value="Yes">
+                                                        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="2"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="92"/>
@@ -856,21 +924,33 @@
                             <UniformGrid Columns="4" Margin="0,0,-10,10">
                                 <Border Style="{StaticResource MonitorTile}">
                                     <StackPanel>
-                                        <TextBlock Text="PROCESSOR" Style="{StaticResource TileLabel}"/>
+                                        <DockPanel>
+                                            <ToggleButton x:Name="MonitorCpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
+                                            <Ellipse x:Name="MonitorCpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="PROCESSOR" Style="{StaticResource TileLabel}"/>
+                                        </DockPanel>
                                         <TextBlock x:Name="MonitorTileCpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource CpuBrush}"/>
                                         <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource MonitorTile}">
                                     <StackPanel>
-                                        <TextBlock Text="MEMORY" Style="{StaticResource TileLabel}"/>
+                                        <DockPanel>
+                                            <ToggleButton x:Name="MonitorMemoryAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
+                                            <Ellipse x:Name="MonitorMemoryDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="MEMORY" Style="{StaticResource TileLabel}"/>
+                                        </DockPanel>
                                         <TextBlock x:Name="MonitorTileMemory" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource MemoryBrush}"/>
                                         <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource MonitorTile}">
                                     <StackPanel>
-                                        <TextBlock Text="GRAPHICS" Style="{StaticResource TileLabel}"/>
+                                        <DockPanel>
+                                            <ToggleButton x:Name="MonitorGpuAdviceButton" DockPanel.Dock="Right" Style="{StaticResource WarningToggle}" ToolTip="What to do about it" Visibility="Collapsed" Margin="4,-4,-6,-4"/>
+                                            <Ellipse x:Name="MonitorGpuDot" DockPanel.Dock="Right" Width="10" Height="10" Fill="{StaticResource NeutralBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="GRAPHICS" Style="{StaticResource TileLabel}"/>
+                                        </DockPanel>
                                         <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{StaticResource GpuBrush}"/>
                                         <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
                                     </StackPanel>
@@ -883,6 +963,25 @@
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
+
+                            <!-- What to do about a value that is above its limit. Opened with the
+                                 triangle on the tile of that value. -->
+                            <Border x:Name="MonitorAdviceCard" Background="{StaticResource CriticalBackBrush}" BorderBrush="{StaticResource CriticalBrush}" BorderThickness="4,0,0,0" CornerRadius="6" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock x:Name="MonitorAdviceTitle" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap"/>
+                                    <ItemsControl x:Name="MonitorAdviceItems" Margin="0,6,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Margin="0,0,0,4">
+                                                    <Ellipse DockPanel.Dock="Left" Width="4" Height="4" Fill="{StaticResource TextBrush}" VerticalAlignment="Top" Margin="2,7,8,0"/>
+                                                    <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button x:Name="MonitorAdviceAction" Content="Open Task Manager" Tag="&#xE8A7;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
 
                             <!-- Processor: history, details, then one meter per logical processor -->
                             <Border Style="{StaticResource SectionCard}">
@@ -1039,6 +1138,81 @@
                                                             </Style>
                                                         </ProgressBar.Style>
                                                     </ProgressBar>
+
+                                                    <!-- What takes up the space: measured when the line is opened -->
+                                                    <ToggleButton x:Name="VolumeToggle" Content="{Binding ToggleText}" IsChecked="{Binding Expanded, Mode=OneWay}" Style="{StaticResource LinkToggle}" Margin="0,6,0,0"/>
+                                                    <Border Background="{StaticResource GraphBackBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12,10" Margin="0,6,0,4">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Details}" Value="">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding State}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"/>
+                                                            <Grid Margin="0,10,0,0">
+                                                                <Grid.Style>
+                                                                    <Style TargetType="Grid">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Lists}" Value="">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Grid.Style>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="28"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0">
+                                                                    <TextBlock Text="LARGEST PROGRAMS" Style="{StaticResource TileLabel}" Margin="0,0,0,5"/>
+                                                                    <ItemsControl ItemsSource="{Binding Programs}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <DockPanel Margin="0,0,0,3">
+                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                                </DockPanel>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Column="2">
+                                                                    <TextBlock Text="LARGEST FOLDERS" Style="{StaticResource TileLabel}" Margin="0,0,0,5"/>
+                                                                    <ItemsControl ItemsSource="{Binding Folders}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <DockPanel Margin="0,0,0,3">
+                                                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Text}" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,0"/>
+                                                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                                </DockPanel>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                            <TextBlock Text="{Binding Note}" Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Note}" Value="">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                                <Button x:Name="VolumeAppsButton" Content="Open Installed apps" Tag="&#xE8A7;" ToolTip="The page of Windows where a program is removed" Style="{StaticResource SmallButton}" Margin="0,0,8,0"/>
+                                                                <Button x:Name="VolumeStorageButton" Content="Open Storage settings" Tag="&#xE8A7;" Style="{StaticResource SmallButton}" Margin="0,0,8,0"/>
+                                                                <Button x:Name="VolumeRefreshButton" Content="Measure again" Tag="&#xE72C;" Style="{StaticResource SmallButton}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Border>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -1201,6 +1375,23 @@
                                     </DockPanel>
                                     <TextBlock x:Name="SettingsRestartText" Text="The language and the theme are applied when the application starts the next time." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,8"/>
                                     <Button x:Name="RestartButton" Content="Restart now" Tag="&#xE72C;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Automatic check" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock DockPanel.Dock="Left" Text="Repeat the check" Width="150" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                                        <ComboBox x:Name="AutoCheckBox" Width="220" HorizontalAlignment="Left">
+                                            <ComboBoxItem Content="Every 5 minutes" Tag="5"/>
+                                            <ComboBoxItem Content="Every 15 minutes" Tag="15"/>
+                                            <ComboBoxItem Content="Every 30 minutes" Tag="30"/>
+                                            <ComboBoxItem Content="Every 60 minutes" Tag="60"/>
+                                            <ComboBoxItem Content="Never" Tag="0"/>
+                                        </ComboBox>
+                                    </DockPanel>
+                                    <TextBlock Text="After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 

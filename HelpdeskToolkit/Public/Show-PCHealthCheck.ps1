@@ -12,8 +12,17 @@ function Show-PCHealthCheck {
           checks, each with an explanation, the allowed range and the typical value.
         - Live monitor: what the computer is doing right now (processor, memory,
           graphics, disks, network, sensors and the busiest programs). It needs no
-          check, can be paused, and can record its measurements into a CSV file.
-        - Settings: language (English or Croatian) and theme (light or dark).
+          check, can be paused, and can record its measurements into a CSV file. A dot
+          on the tiles of processor, memory and graphics turns orange and red as the
+          value approaches and passes its limit, with advice on what to do. Every
+          drive can list the programs and folders that take up its space.
+        - Settings: language (English or Croatian), theme (light or dark) and how
+          often the check is repeated by itself.
+
+        After the first check the application repeats it in the background and
+        replaces the results without interrupting. A problem that is new is announced
+        at the top of the window and, while the window is not in front, with a Windows
+        notification; a click leads to the result.
 
         The results can be searched and filtered by status. The report can be opened
         in the browser, saved as HTML, PDF, JSON or CSV, or copied as a short text for
@@ -97,6 +106,21 @@ function Show-PCHealthCheck {
     $gui.Timer.Add_Tick({ Receive-WindowCheck -Gui $script:HealthCheckWindow })
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
+
+    # Looks every few seconds whether it is time to repeat the check (see Invoke-WindowAutoCheck).
+    $gui.AutoTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
+    $gui.AutoTimer.Interval = [timespan]::FromSeconds(15)
+    $gui.AutoTimer.Add_Tick({ [void](Invoke-WindowAutoCheck -Gui $script:HealthCheckWindow) })
+    $gui.AutoTimer.Start()
+
+    # A click on a notice opens its result; the button next to them dismisses them all.
+    $controls.NoticeItems.AddHandler([System.Windows.UIElement]::MouseLeftButtonUpEvent, [System.Windows.Input.MouseButtonEventHandler] {
+            $item = $args[1].OriginalSource.DataContext
+            if ($item -and $item.PSObject.Properties['Check']) {
+                [void](Show-WindowResult -Gui $script:HealthCheckWindow -Category $item.Category -Check $item.Check)
+            }
+        })
+    $controls.NoticeCloseButton.Add_Click({ Show-WindowNotice -Gui $script:HealthCheckWindow -Clear })
 
     # Shows new measurements on the Live monitor page (see Receive-WindowMonitor). The
     # timer only runs while that page is open or a recording is under way.
@@ -226,7 +250,44 @@ function Show-PCHealthCheck {
         $list.AddHandler([System.Windows.UIElement]::MouseLeftButtonUpEvent, $showProgram)
     }
 
+    # The warning triangle on a tile opens the advice for that value; the button below
+    # the advice opens Task Manager.
+    $controls.MonitorCpuAdviceButton.Add_Click({ Switch-WindowAdvice -Gui $script:HealthCheckWindow -Name 'Cpu' })
+    $controls.MonitorMemoryAdviceButton.Add_Click({ Switch-WindowAdvice -Gui $script:HealthCheckWindow -Name 'Memory' })
+    $controls.MonitorGpuAdviceButton.Add_Click({ Switch-WindowAdvice -Gui $script:HealthCheckWindow -Name 'Gpu' })
+    $controls.MonitorAdviceAction.Add_Click({
+            $state = $script:HealthCheckWindow
+            $entry = @($state.MonitorStatus) | Where-Object { $_.Name -eq $state.MonitorAdvice } | Select-Object -First 1
+            if ($entry -and -not (Invoke-CheckAction -Check $entry.ActionCheck -Category 'Hardware')) {
+                $state.Controls.StatusText.Text = Get-LocalizedText 'Windows could not open that place.'
+            }
+        })
+
+    # The drives: the line below a meter opens what takes up the space, and the buttons
+    # in that box open the pages of Windows where programs and files are removed. Like
+    # the result cards they come from a template, so the click is caught on the list.
+    $controls.MonitorVolumes.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler] {
+            $clicked = $args[1].OriginalSource
+            $state = $script:HealthCheckWindow
+            $item = $clicked.DataContext
+            if (-not $item -or -not $item.PSObject.Properties['Drive']) {
+                return
+            }
+            $opened = $true
+            switch ($clicked.Name) {
+                'VolumeToggle' { Switch-WindowVolume -Gui $state -Drive $item.Drive }
+                'VolumeRefreshButton' { Switch-WindowVolume -Gui $state -Drive $item.Drive -Refresh }
+                'VolumeAppsButton' { $opened = Invoke-CheckAction -Check 'Installed programs' -Category 'Software' }
+                'VolumeStorageButton' { $opened = Invoke-CheckAction -Check 'Disk' -Category 'Hardware' }
+            }
+            if (-not $opened) {
+                $state.Controls.StatusText.Text = Get-LocalizedText 'Windows could not open that place.'
+            }
+        })
+
     # --- Settings ----------------------------------------------------------------
+    $controls.SettingsButton.Add_Click({ Show-WindowPage -Gui $script:HealthCheckWindow -Name 'Settings' })
+
     # Language and theme are stored at once and applied by the next start.
     $changeSetting = {
         $state = $script:HealthCheckWindow
@@ -241,6 +302,16 @@ function Show-PCHealthCheck {
     $controls.LanguageBox.Add_SelectionChanged($changeSetting)
     $controls.ThemeBox.Add_SelectionChanged($changeSetting)
     $controls.RestartButton.Add_Click({ [void](Invoke-AppRestart -Gui $script:HealthCheckWindow) })
+
+    # The interval of the automatic check applies at once.
+    $controls.AutoCheckBox.Add_SelectionChanged({
+            $state = $script:HealthCheckWindow
+            if ($state.Loading -or -not $state.Controls.AutoCheckBox.SelectedItem) {
+                return
+            }
+            $state.Settings.AutoCheckMinutes = [int]$state.Controls.AutoCheckBox.SelectedItem.Tag
+            [void](Save-AppSetting -Setting $state.Settings)
+        })
 
     $controls.OpenDataFolderButton.Add_Click({
             $folder = Get-AppDataPath
@@ -278,9 +349,20 @@ function Show-PCHealthCheck {
     $window.Add_Closed({
             $state = $script:HealthCheckWindow
             $state.Timer.Stop()
+            $state.AutoTimer.Stop()
             Disable-WindowMonitor -Gui $state -Stop
             if ($state.Worker) {
                 [void]$state.Worker.BeginStop($null, $null)
+            }
+            foreach ($usage in @($state.DiskUsage.Values)) {
+                if ($usage.Worker) {
+                    [void]$usage.Worker.BeginStop($null, $null)
+                }
+            }
+            # Takes the icon out of the notification area.
+            if ($state.TrayIcon) {
+                $state.TrayIcon.Visible = $false
+                $state.TrayIcon.Dispose()
             }
         })
 

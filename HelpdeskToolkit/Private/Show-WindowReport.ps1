@@ -10,6 +10,11 @@ function Show-WindowReport {
 
         With -Previous, the report of the check before this one, the Overview also
         shows what changed since then (see Compare-PCHealthReport).
+
+        With -KeepPage the user is not interrupted: the page that is open, the search
+        text, the status filter and the place the list is scrolled to stay as they
+        are, only the content is replaced. That is how the results of an automatic
+        check arrive.
     #>
     [CmdletBinding()]
     param(
@@ -21,7 +26,9 @@ function Show-WindowReport {
         [PSCustomObject]$Report,
 
         # The report of the previous check of the same computer, if there is one.
-        [PSCustomObject]$Previous
+        [PSCustomObject]$Previous,
+
+        [switch]$KeepPage
     )
 
     $controls = $Gui.Controls
@@ -70,7 +77,12 @@ function Show-WindowReport {
 
     $controls.ComputerText.Text = (Get-LocalizedText 'Computer: {0}  |  checked {1}  |  {2} s') -f $Report.ComputerName, $Report.GeneratedAt, [string]$Report.DurationSeconds
 
-    $status = (Get-LocalizedText 'Check finished: {0} results.') -f $results.Count
+    $status = if ($KeepPage) {
+        (Get-LocalizedText 'Updated automatically: {0} results, checked {1}.') -f $results.Count, $Report.GeneratedAt
+    }
+    else {
+        (Get-LocalizedText 'Check finished: {0} results.') -f $results.Count
+    }
     if (-not $Report.IsElevated) {
         $status += ' ' + (Get-LocalizedText 'Run without administrator rights: checks marked "Requires admin" were skipped.')
     }
@@ -110,8 +122,7 @@ function Show-WindowReport {
         $controls.ChangesBorder.Visibility = $collapsed
     }
 
-    # Page list: Overview and Live monitor first, then the categories in the order they
-    # ran, and the settings at the end.
+    # Page list: Overview and Live monitor first, then the categories in the order they ran.
     $entries = @(
         ConvertTo-WindowNavigationItem -Name 'Overview' -Result $results
         ConvertTo-WindowNavigationItem -Name 'Live monitor' -EmptyStatus 'Info'
@@ -119,19 +130,38 @@ function Show-WindowReport {
     foreach ($category in @($results | ForEach-Object { $_.Category } | Select-Object -Unique)) {
         $entries += ConvertTo-WindowNavigationItem -Name $category -Result @($results | Where-Object { $_.Category -eq $category })
     }
-    $entries += ConvertTo-WindowNavigationItem -Name 'Settings'
 
-    # A new report starts without a filter.
+    # The page to show: the Overview, or with -KeepPage the one that is open.
+    $page = if ($KeepPage -and $Gui.Page) { [string]$Gui.Page } else { 'Overview' }
+    $index = -1
+    for ($position = 0; $position -lt $entries.Count; $position++) {
+        if ($entries[$position].Name -eq $page) {
+            $index = $position
+        }
+    }
+    if ($index -lt 0 -and $page -ne 'Settings') {
+        $page = 'Overview'
+        $index = 0
+    }
+
     $Gui.Loading = $true
     try {
-        $controls.SearchBox.Text = ''
-        $controls.StatusFilter.SelectedIndex = 0
+        if (-not $KeepPage) {
+            # A report the user asked for starts without a filter.
+            $controls.SearchBox.Text = ''
+            $controls.StatusFilter.SelectedIndex = 0
+        }
         $controls.CategoryList.ItemsSource = $entries
-        $controls.CategoryList.SelectedIndex = 0
+        $controls.CategoryList.SelectedIndex = $index
     }
     finally {
         $Gui.Loading = $false
     }
 
-    Show-WindowPage -Gui $Gui -Name 'Overview'
+    # The Live monitor and the settings show nothing of the report.
+    if ($KeepPage -and $page -in 'Live monitor', 'Settings') {
+        return
+    }
+
+    Show-WindowPage -Gui $Gui -Name $page -KeepScroll:$KeepPage
 }

@@ -3,16 +3,18 @@ function Show-WindowPage {
     .SYNOPSIS
         Shows one page of the window: the Overview, the Live monitor, the settings or one category.
     .DESCRIPTION
-        Called when an entry of the page list is selected, and again when the search
-        text or the status filter changes.
+        Called when an entry of the page list or the Settings button is clicked, and
+        again when the search text or the status filter changes. The name of the page
+        that is shown is kept in $Gui.Page.
 
         - Overview: the verdict, the score, the count per status, what changed since the
           last check, and every problem of the whole report, critical ones first, each
           with its recommended fix.
         - Live monitor: what the computer is doing right now. It needs no health check
           and measures only while it is shown (or while a recording runs).
-        - Settings: language, theme, keyboard shortcuts and where the application
-          keeps its files.
+        - Settings: language, theme, the automatic check, keyboard shortcuts and where
+          the application keeps its files. It is opened with the button below the page
+          list, so no entry of the list is selected while it is shown.
         - A category (System, Network, ...): every check of that category in the
           order it ran.
 
@@ -29,7 +31,11 @@ function Show-WindowPage {
         [hashtable]$Gui,
 
         # Page to show. Defaults to the entry selected in the page list.
-        [string]$Name
+        [string]$Name,
+
+        # Leave the list of results where it is scrolled to. Used when the results are
+        # replaced by newer ones while the user is reading them.
+        [switch]$KeepScroll
     )
 
     $controls = $Gui.Controls
@@ -39,7 +45,26 @@ function Show-WindowPage {
 
     if (-not $Name) {
         $selected = $controls.CategoryList.SelectedItem
-        $Name = if ($selected) { $selected.Name } else { 'Overview' }
+        $Name = if ($selected) { $selected.Name } elseif ($Gui.Page -eq 'Settings') { 'Settings' } else { 'Overview' }
+    }
+    $Gui.Page = $Name
+
+    # The Settings button is drawn like the selected entry of the list while its page is open.
+    if ($Name -eq 'Settings') {
+        $controls.SettingsButton.Background = $Gui.Window.FindResource('SelectedBrush')
+        if ($controls.CategoryList.SelectedIndex -ne -1) {
+            $wasLoading = $Gui.Loading
+            $Gui.Loading = $true
+            try {
+                $controls.CategoryList.SelectedIndex = -1
+            }
+            finally {
+                $Gui.Loading = $wasLoading
+            }
+        }
+    }
+    else {
+        $controls.SettingsButton.ClearValue([System.Windows.Controls.Control]::BackgroundProperty)
     }
 
     if ($Name -eq 'Live monitor') {
@@ -75,13 +100,20 @@ function Show-WindowPage {
     $controls.ResultScroll.Visibility = $visible
 
     if (-not $report) {
-        # No health check has run yet: the Overview shows the hint to start one.
+        # No health check has finished yet: the Overview says that the first one is
+        # running, or shows the hint to start it.
         $controls.PageTitle.Text = Get-LocalizedText 'Overview'
-        $controls.PageSubtitle.Text = Get-LocalizedText 'Click Run check to examine this computer.'
         $controls.OverviewPanel.Visibility = $visible
         $controls.FilterPanel.Visibility = $collapsed
         $controls.ResultItems.ItemsSource = @()
-        $controls.EmptyText.Text = Get-LocalizedText 'No results yet. Click Run check.'
+        if ($Gui.Worker) {
+            $controls.PageSubtitle.Text = Get-LocalizedText 'The check is running. It takes about half a minute.'
+            $controls.EmptyText.Text = Get-LocalizedText 'Checking the computer ... The results appear here as soon as the check is finished.'
+        }
+        else {
+            $controls.PageSubtitle.Text = Get-LocalizedText 'Click Run check to examine this computer.'
+            $controls.EmptyText.Text = Get-LocalizedText 'No results yet. Click Run check.'
+        }
         $controls.EmptyText.Visibility = $visible
         return
     }
@@ -155,8 +187,24 @@ function Show-WindowPage {
         $emptyText = if ($statusFilter) { Get-LocalizedText 'No result has the chosen status.' } else { Get-LocalizedText 'No results in this category.' }
     }
 
+    # The result a notice has led to gets a frame, once.
+    if ($Gui.HighlightCheck) {
+        foreach ($item in $items) {
+            if ($item.SourceCheck -eq $Gui.HighlightCheck) {
+                $item.Highlight = 'Yes'
+            }
+        }
+        $Gui.HighlightCheck = ''
+    }
+
+    $offset = $controls.ResultScroll.VerticalOffset
     $controls.ResultItems.ItemsSource = $items
-    $controls.ResultScroll.ScrollToTop()
+    if ($KeepScroll) {
+        $controls.ResultScroll.ScrollToVerticalOffset($offset)
+    }
+    else {
+        $controls.ResultScroll.ScrollToTop()
+    }
 
     if ($items.Count -eq 0) {
         $controls.EmptyText.Text = $emptyText
