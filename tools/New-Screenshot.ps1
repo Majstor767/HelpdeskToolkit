@@ -6,6 +6,7 @@
 
     - screenshot-report.png:          the top of docs\sample-report.html, rendered by
                                       Microsoft Edge in headless mode
+    - screenshot-start.png:           the question about administrator rights at the start
     - screenshot-window.png:          the Overview page of the application window
     - screenshot-category.png:        the page of one category, reached through the notice
                                       of an automatic check
@@ -87,6 +88,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 $module = Import-Module -Name (Join-Path -Path $root -ChildPath 'HelpdeskToolkit\HelpdeskToolkit.psd1') -Force -PassThru
 $pictures = @{
+    Start          = Join-Path -Path $outputFolder -ChildPath 'screenshot-start.png'
     Window         = Join-Path -Path $outputFolder -ChildPath 'screenshot-window.png'
     Category       = Join-Path -Path $outputFolder -ChildPath 'screenshot-category.png'
     Monitor        = Join-Path -Path $outputFolder -ChildPath 'screenshot-monitor.png'
@@ -238,6 +240,15 @@ $pictures = @{
     $gui = & $newWindow 'Light'
     try {
         $controls = $gui.Controls
+
+        # The question at the start. It is shown by hand: whether the application would
+        # ask depends on the rights of this session and on the settings of the user.
+        $controls.ComputerText.Text = 'Computer: FIN-LT-014'
+        $controls.MainLayout.IsEnabled = $false
+        $controls.StartupOverlay.Visibility = $visible
+        & $savePicture $gui.Window $Pictures.Start
+        $controls.StartupOverlay.Visibility = $collapsed
+        $controls.MainLayout.IsEnabled = $true
 
         # The Overview page: verdict, score, changes and the problems with their fixes.
         Show-WindowReport -Gui $gui -Report $report -Previous $previous
@@ -440,7 +451,7 @@ $pictures = @{
     }
 } $sampleJson $pictures
 
-foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Component', 'MonitorDetails', 'Dark') {
+foreach ($name in 'Start', 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Component', 'MonitorDetails', 'Dark') {
     Write-Output $pictures[$name]
 }
 
@@ -449,7 +460,7 @@ foreach ($name in 'Window', 'Category', 'Monitor', 'MonitorDisks', 'Component', 
 # but not the two things that make it an animation: how long each picture is shown and
 # that it starts over at the end. Both are added to the file afterwards.
 
-$frames = $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.Component, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
+$frames = $pictures.Start, $pictures.Window, $pictures.Category, $pictures.Search, $pictures.Monitor, $pictures.Component, $pictures.MonitorDisks, $pictures.MonitorDetails, $pictures.Dark
 $encoder = New-Object -TypeName System.Windows.Media.Imaging.GifBitmapEncoder
 foreach ($frame in $frames) {
     $bitmap = New-Object -TypeName System.Windows.Media.Imaging.BitmapImage

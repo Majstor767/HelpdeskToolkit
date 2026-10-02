@@ -45,8 +45,21 @@ usporedbu.
 
 ![Stranica Overview](docs/screenshot-window.png)
 
-Klikni **Run check**; traka napretka pokazuje koja se kategorija upravo provjerava.
-Nakon te prve provjere aplikacija sama održava rezultate ažurnima.
+Pri pokretanju aplikacija postavi jedno pitanje: pokrenuti s administratorskim pravima
+ili bez njih? Nakon odgovora provjera se pokreće sama; traka napretka pokazuje koja se
+kategorija upravo provjerava.
+
+- **Yes** ponovno pokreće aplikaciju s administratorskim pravima (Windows prvo traži
+  potvrdu) i ondje pokreće provjeru, uključujući sve što Windows prikazuje samo
+  administratorima.
+- **No** odmah pokreće provjeru sa standardnim pravima; provjere kojima treba više
+  označene su s "Requires admin".
+
+Odgovor se može zapamtiti i kasnije promijeniti na stranici Settings. Nakon te prve
+provjere aplikacija sama održava rezultate ažurnima; **Run check** (F5) pokreće je
+ponovno u bilo kojem trenutku.
+
+![Pitanje pri pokretanju](docs/screenshot-start.png)
 
 - **Overview** prikazuje sve probleme s preporučenim rješenjem. Uz rješenje stoji gumb
   koji otvara mjesto u Windowsu gdje se ono provodi (**Open Storage settings**,
@@ -183,8 +196,9 @@ Odakle dolaze vrijednosti senzora i što namjerno nedostaje:
 Alat radi bez administratorskih prava. Dio podataka Windows prikazuje samo
 administratorima; te se provjere tada preskaču i označavaju s "Requires admin".
 
-Da ih uključiš, u prozoru klikni **Restart as administrator** ili pokreni PowerShell s
-"Pokreni kao administrator" prije korištenja naredbi. Windows traži potvrdu (User
+Da ih uključiš, odgovori **Yes** kad prozor pita pri pokretanju, kasnije klikni
+**Restart as administrator**, ili pokreni PowerShell s "Pokreni kao administrator"
+prije korištenja naredbi. Windows traži potvrdu (User
 Account Control); alat sam sebi ne može dati ta prava. I s administratorskim pravima
 alat samo čita.
 
@@ -253,7 +267,8 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 ## Korištenje iz naredbenog retka
 
-`Show-PCHealthCheck` otvara gore opisani prozor. Sve ostalo radi i bez njega.
+`Show-PCHealthCheck` otvara gore opisani prozor (`-NoQuestion` ga otvara bez pitanja i
+bez provjere). Sve ostalo radi i bez njega.
 
 ```powershell
 # Pokreni sve provjere, spremi HTML izvještaj u Documents\HelpdeskToolkit i otvori ga

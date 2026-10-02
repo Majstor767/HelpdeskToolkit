@@ -42,8 +42,21 @@ comparison.
 
 ![The Overview page](docs/screenshot-window.png)
 
-Click **Run check**; a progress bar shows which category is being checked.
-After that first check the application keeps the results up to date by itself.
+When the application starts, it asks one question: run with administrator rights or
+without? After the answer the check starts by itself; a progress bar shows which
+category is being checked.
+
+- **Yes** starts the application again with administrator rights (Windows asks for
+  confirmation first) and runs the check there, including everything that Windows
+  only shows to administrators.
+- **No** runs the check at once with standard rights; the checks that need more are
+  marked "Requires admin".
+
+The answer can be remembered, and changed later on the Settings page. After that first
+check the application keeps the results up to date by itself; **Run check** (F5) runs
+it again at any time.
+
+![The question at the start](docs/screenshot-start.png)
 
 - **Overview** lists every problem with its recommended fix. Next to a fix there is a
   button that opens the place in Windows where it is done (**Open Storage settings**,
@@ -185,8 +198,9 @@ Where the sensor values come from, and what is missing on purpose:
 The tool works without administrator rights. Windows only shows some information to
 administrators; those checks are then skipped and marked "Requires admin".
 
-To include them, click **Restart as administrator** in the window, or start PowerShell
-with "Run as administrator" before using the commands. Windows asks for confirmation
+To include them, answer **Yes** when the window asks at the start, click **Restart as
+administrator** later, or start PowerShell with "Run as administrator" before using
+the commands. Windows asks for confirmation
 (User Account Control); the tool cannot elevate itself. With administrator rights it is
 still read-only.
 
@@ -255,7 +269,8 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 ## Usage from the command line
 
-`Show-PCHealthCheck` opens the window described above. Everything else works without it.
+`Show-PCHealthCheck` opens the window described above (`-NoQuestion` opens it without
+the question and without a check). Everything else works without it.
 
 ```powershell
 # Run all checks, save an HTML report to Documents\HelpdeskToolkit and open it

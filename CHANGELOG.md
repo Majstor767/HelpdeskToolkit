@@ -32,6 +32,8 @@ The first public version. It will be released as 1.0.0.
 
 ### The window
 
+- At the start the window asks whether to run with administrator rights and then
+  starts the check by itself; the answer can be remembered.
 - Overview with the problems and their fixes, a health score from 0 to 100 and the
   changes since the previous check of the same computer.
 - A button next to a fix opens the page of Windows where the fix is made.
