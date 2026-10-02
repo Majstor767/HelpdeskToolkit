@@ -107,8 +107,11 @@ povijesti) također se pamte do sljedećeg pokretanja.
   rušenja, neuspjela ažuriranja, plavi ekrani i neočekivana gašenja. Većina traženja
   kvara počinje s "prošli tjedan je radilo"; promjena koja je došla neposredno prije
   prvog kvara obično je uzrok. Filtar ostavlja samo probleme ili samo promjene.
-- **Kategorije** lijevo (System, Hardware, Network, ...) prikazuju sve što je
-  provjereno; točka i broj uz svaku pokazuju gdje su problemi.
+- **Bočna traka:** složena kao navigacija u Windowsu 11. Prvo dolaze stranice
+  aplikacije (Overview, Live monitor, Timeline), zatim kategorije provjere pod naslovom
+  *Checks*, svaka sa svojom ikonom; broj uz kategoriju je broj problema u njoj, crven
+  kad je neki od njih kritičan. Ispod su radnje za izvještaj, a na dnu administratorska
+  prava i postavke, koje u niskom prozoru ostaju vidljive dok se ostatak pomiče.
 - **Četiri stupca:** stranica kategorije prikazuje rezultate jedan do drugoga, po
   jedan stupac za svaki status: Info, OK, Warning, Critical. Svaka vrsta stoji za sebe,
   pa se problem ne može previdjeti među ostalim. Kartica prikazuje naziv provjere i

@@ -55,6 +55,9 @@ The first public version. It will be released as 1.0.0.
 - Overview with the problems and their fixes, a health score from 0 to 100 and the
   changes since the previous check of the same computer.
 - A button next to a fix opens the page of Windows where the fix is made.
+- A side bar in the manner of Windows 11: an icon for every page, the check categories
+  under a heading of their own, a bar that marks the open page, the number of problems
+  per category, and the report actions, the rights and the settings below.
 - One page per category with its results in four columns, one per status (Info, OK,
   Warning, Critical); a click on a card opens its details. Search over all results
   and a filter by status. In every list, and in the report, the most severe results

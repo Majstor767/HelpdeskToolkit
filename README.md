@@ -106,8 +106,12 @@ number of days of history) are remembered for the next start as well.
   week" is where most troubleshooting starts; the change that came just before the
   first failure is usually the cause. A filter leaves only the problems or only the
   changes.
-- **Categories** on the left (System, Hardware, Network, ...) show everything that was
-  checked; the dot and the number next to each one show where the problems are.
+- **Side bar:** laid out like the navigation of Windows 11. The pages of the
+  application come first (Overview, Live monitor, Timeline), the check categories
+  under the heading *Checks*, each with an icon; the number next to a category is how
+  many problems it has, red when one of them is critical. Below them are the actions
+  for the report, and at the bottom the administrator rights and the settings, which
+  stay in view in a low window while the rest scrolls.
 - **Four columns:** the page of a category shows its results side by side, one column
   per status: Info, OK, Warning, Critical. Each kind stands by itself, so a problem
   cannot be overlooked among the rest. A card shows the name of the check and its
