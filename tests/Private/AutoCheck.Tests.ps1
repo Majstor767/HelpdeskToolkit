@@ -470,7 +470,7 @@ Describe 'Show-WindowResult' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResult -Gui $Gui -Category 'Hardware' -Check 'Disk (C:)' } | Should -BeTrue
 
         $gui.Controls.SettingsPanel.Visibility | Should -Be 'Collapsed'
-        $gui.Controls.ResultScroll.Visibility | Should -Be 'Visible'
+        $gui.Controls.ColumnsPanel.Visibility | Should -Be 'Visible'
     }
 
     It 'frames the card only once: the next time the page is drawn it is an ordinary card again' {

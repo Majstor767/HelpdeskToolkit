@@ -378,7 +378,8 @@ Describe 'Show-WindowPage: search, filter and settings' -Skip:(-not $isSta) {
 
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'System' }
         $gui.Controls.SettingsPanel.Visibility | Should -Be 'Collapsed'
-        $gui.Controls.ResultScroll.Visibility | Should -Be 'Visible'
+        # The page of a category shows its results in columns.
+        $gui.Controls.ColumnsPanel.Visibility | Should -Be 'Visible'
     }
 }
 
