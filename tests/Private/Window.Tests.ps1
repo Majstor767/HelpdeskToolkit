@@ -77,7 +77,7 @@ Describe 'New-HealthCheckWindow' -Skip:(-not $isSta) {
     }
 
     It 'gives the buttons of the side bar the look of the page list, each with an icon' {
-        foreach ($name in 'OpenReportButton', 'CopySummaryButton', 'SaveAsButton', 'ElevateButton', 'SettingsButton') {
+        foreach ($name in 'OpenReportButton', 'CopySummaryButton', 'SaveAsButton', 'BackgroundButton', 'ElevateButton', 'SettingsButton') {
             $button = $gui.Controls[$name]
             $button.Style | Should -Be $gui.Window.FindResource('NavActionButton') -Because "$name belongs to the side bar"
             ([string]$button.Tag).Length | Should -Be 1
@@ -234,7 +234,7 @@ Describe 'Show-WindowPage' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'System' }
 
         $gui.Controls.PageTitle.Text | Should -Be 'System'
-        $gui.Controls.PageSubtitle.Text | Should -Be '1 Warning, 1 OK'
+        $gui.Controls.PageSubtitle.Text | Should -Be '1 of 2 checks need attention.'
         # The warning comes before the result that is fine.
         @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be @('Startup programs', 'Uptime')
     }

@@ -14,9 +14,10 @@ function Show-PCHealthCheck {
           button that opens the place in Windows where it is fixed, and what changed
           since the last check of this computer.
         - A page per category (System, Hardware, Network and so on) with all of its
-          checks in four columns, one per status (Info, OK, Warning, Critical). A
-          click on a card shows the explanation, the allowed range, the typical value
-          and the recommendation.
+          checks: the problems first, each with its fix next to it, then everything
+          else as tiles. The count per status at the top filters the page. A click on
+          a tile shows the explanation, the allowed range, the typical value and the
+          recommendation.
         - Live monitor: what the computer is doing right now (processor, memory,
           graphics, disks, network, sensors and the busiest programs). It needs no
           check, can be paused, and can record its measurements into a CSV file. A dot
@@ -210,6 +211,10 @@ function Show-PCHealthCheck {
     }
     $controls.ElevateButton.Add_Click({ [void](Invoke-ElevatedRestart -Gui $script:HealthCheckWindow -RunCheck) })
 
+    # "Run in background": the window goes away, the application stays next to the clock
+    # and keeps checking, whatever the setting for the close button says.
+    $controls.BackgroundButton.Add_Click({ Hide-WindowToTray -Gui $script:HealthCheckWindow })
+
     # The question at the start and its two answers. The window decides what to do once
     # it has been drawn for the first time (see Invoke-WindowStartup).
     $controls.StartupYesButton.Add_Click({ [void](Invoke-WindowElevationChoice -Gui $script:HealthCheckWindow -Elevate) })
@@ -270,14 +275,19 @@ function Show-PCHealthCheck {
     # The button inside a card opens the place in Windows where the problem is fixed.
     # The cards are created from a template, so the click is caught on the list that
     # contains them; the card it came from is the "data context" of the button.
-    # The same goes for the compact cards in the columns of a category page, where a
-    # click on the card itself opens and closes its details (see Invoke-WindowCardClick).
+    # The same goes for the cards and tiles of a category page, where a click on a tile
+    # itself opens and closes its details (see Invoke-WindowCardClick).
     $cardClick = [System.Windows.RoutedEventHandler] {
         # An event handler receives the sender and the details of the event.
         Invoke-WindowCardClick -Gui $script:HealthCheckWindow -Source $args[1].OriginalSource
     }
     $controls.ResultItems.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $cardClick)
-    $controls.ColumnsPanel.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $cardClick)
+    $controls.CategoryPanel.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $cardClick)
+
+    # A status chip at the top of a category page leaves only the results of its status.
+    $controls.CategoryChips.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler] {
+            [void](Invoke-WindowChipClick -Gui $script:HealthCheckWindow -Source $args[1].OriginalSource)
+        })
 
     # Saves the report as HTML in the output folder and opens it in the browser.
     $controls.OpenReportButton.Add_Click({

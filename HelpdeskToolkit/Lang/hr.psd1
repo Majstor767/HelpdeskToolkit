@@ -1004,6 +1004,15 @@
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
 
+        # --- The page of a category -------------------------------------------------
+        'NEEDS ATTENTION'                                      = 'TRAŽI PAŽNJU'
+        'EVERYTHING ELSE'                                      = 'SVE OSTALO'
+        'RESULTS'                                              = 'REZULTATI'
+        '{0} of {1} checks need attention.'                    = 'Pažnju traži {0} od {1} provjera.'
+        'Nothing needs attention among these {0} checks.'      = 'Među ovih {0} provjera ništa ne traži pažnju.'
+        'Run in background'                                    = 'Nastavi u pozadini'
+        'Close the window and keep checking: the application stays as an icon next to the clock and announces new problems.' = 'Zatvori prozor i nastavi provjeravati: aplikacija ostaje kao ikona pokraj sata i javlja nove probleme.'
+
         # --- In the background ------------------------------------------------------
         'In the background'                                    = 'U pozadini'
         'Keep running when the window is closed'               = 'Nastavi raditi kad se prozor zatvori'
