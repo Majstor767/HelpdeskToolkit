@@ -5,7 +5,7 @@ function Show-WindowResult {
     .DESCRIPTION
         Where a click on a notice leads. The page of the category is opened without
         search and filter, so the result is certainly on it; its card is opened, gets
-        a frame in the accent color and is scrolled into view in the column of its status.
+        a frame in the accent color and is scrolled into view.
 
         Returns $true when the result was found.
     #>
@@ -59,13 +59,15 @@ function Show-WindowResult {
         return $false
     }
 
-    # The card is in the column of its status on the page of a category, and in the
-    # one list of the page otherwise.
-    $list = if ($controls.ColumnsPanel.Visibility -eq [System.Windows.Visibility]::Visible) {
-        $controls["Column$($found.Status)Items"]
-    }
-    else {
-        $controls.ResultItems
+    # On the page of a category the card is among the problems or in one of the three
+    # columns of tiles; otherwise it is in the one list of the page.
+    $list = $controls.ResultItems
+    if ($controls.CategoryPanel.Visibility -eq [System.Windows.Visibility]::Visible) {
+        foreach ($candidate in $controls.ProblemItems, $controls.TileColumn1, $controls.TileColumn2, $controls.TileColumn3) {
+            if (@($candidate.ItemsSource) | Where-Object { $_.SourceCheck -eq $Check }) {
+                $list = $candidate
+            }
+        }
     }
 
     $cards = @($list.ItemsSource)

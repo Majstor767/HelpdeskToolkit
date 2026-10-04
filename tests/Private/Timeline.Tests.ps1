@@ -88,7 +88,7 @@ Describe 'The Timeline page' -Skip:(-not $isSta) {
             $gui.Controls.PageTitle.Text | Should -Be 'Timeline'
             $gui.Controls.TimelinePanel.Visibility | Should -Be 'Visible'
             $gui.Controls.ResultScroll.Visibility | Should -Be 'Collapsed'
-            $gui.Controls.ColumnsPanel.Visibility | Should -Be 'Collapsed'
+            $gui.Controls.CategoryPanel.Visibility | Should -Be 'Collapsed'
             $gui.Controls.OverviewPanel.Visibility | Should -Be 'Collapsed'
             $gui.Controls.FilterPanel.Visibility | Should -Be 'Collapsed'
             $gui.Controls.EmptyText.Visibility | Should -Be 'Collapsed'

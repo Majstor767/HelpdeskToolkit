@@ -17,28 +17,31 @@ function Show-WindowPage {
         - Settings: language, theme, the automatic check, keyboard shortcuts and where
           the application keeps its files. It is opened with the button below the page
           list, so no entry of the list is selected while it is shown.
-        - A category (System, Network, ...): every check of that category, side by
-          side in four columns, one per status: Info, OK, Warning, Critical. Each kind
-          of result stands by itself, so a problem cannot be overlooked among the rest.
-          The cards of the columns are compact: the name of the check and its value. A
-          click opens the explanation, the allowed range and the recommendation. The
-          problems are open from the start, and what the user opens or closes is
-          remembered ($Gui.CardState) until the next check the user starts.
+        - A category (System, Network, ...): every check of that category. At the top
+          the count per status, as chips; a click on a chip leaves only that status
+          (see Invoke-WindowChipClick). Then the problems, each across the whole
+          width: what was found and why it matters on the left, what to do about it
+          on the right. Below them everything that needs no attention, as tiles in
+          three columns: a dot in the color of the status, the name of the check and
+          one line of its value. A click on a tile opens the explanation, the allowed
+          range and the recommendation; what the user opens or closes is remembered
+          ($Gui.CardState) until the next check the user starts.
 
         Order: wherever results are listed below each other (Overview, search results,
-        inside a column), the most severe come first: Critical, then Warning, then OK,
+        the problems of a category), the most severe come first: Critical, then Warning, then OK,
         then Info. Results with the same status keep the order in which the checks ran.
 
         The cards of the page are always in ResultItems, as one list; on the page of a
-        category the same cards are also handed to the four columns, which are shown
-        in place of the list.
+        category the same cards are also handed to the list of problems and to the
+        three columns of tiles, which are shown in place of that list.
 
         Search and filter (on pages with results):
         - A search text looks through all results of the report, whatever page is
           open; the cards then also name their category.
         - The status filter narrows down what the page shows. On the Overview, which
           normally lists the problems, it shows every result with the chosen status.
-          On the page of a category it hides the columns of the other statuses.
+          On the page of a category it leaves only the results of that status; the
+          chips there are the same filter.
     #>
     [CmdletBinding()]
     param(
@@ -89,7 +92,7 @@ function Show-WindowPage {
         $controls.PageSubtitle.Text = Get-LocalizedText 'Measuring ...'
         $controls.OverviewPanel.Visibility = $collapsed
         $controls.ResultScroll.Visibility = $collapsed
-        $controls.ColumnsPanel.Visibility = $collapsed
+        $controls.CategoryPanel.Visibility = $collapsed
         $controls.EmptyText.Visibility = $collapsed
         $controls.SettingsPanel.Visibility = $collapsed
         $controls.FilterPanel.Visibility = $collapsed
@@ -112,7 +115,7 @@ function Show-WindowPage {
         $controls.PageSubtitle.Text = Get-LocalizedText 'How the application looks, and where it keeps its own files.'
         $controls.OverviewPanel.Visibility = $collapsed
         $controls.ResultScroll.Visibility = $collapsed
-        $controls.ColumnsPanel.Visibility = $collapsed
+        $controls.CategoryPanel.Visibility = $collapsed
         $controls.EmptyText.Visibility = $collapsed
         $controls.FilterPanel.Visibility = $collapsed
         $controls.SettingsPanel.Visibility = $visible
@@ -121,7 +124,7 @@ function Show-WindowPage {
     }
 
     $controls.SettingsPanel.Visibility = $collapsed
-    $controls.ColumnsPanel.Visibility = $collapsed
+    $controls.CategoryPanel.Visibility = $collapsed
     $controls.ResultScroll.Visibility = $visible
 
     if ($Name -eq 'Timeline' -and $report) {
@@ -216,16 +219,18 @@ function Show-WindowPage {
         $pageResults = @($results | Where-Object { $_.Category -eq $Name })
         $items = @($pageResults | Where-Object { & $hasStatus $_ } | ConvertTo-WindowItem)
 
-        # For example "1 Critical, 2 Warning, 5 OK"
-        $counts = foreach ($status in 'Critical', 'Warning', 'OK', 'Info') {
-            $count = @($pageResults | Where-Object { $_.Status -eq $status }).Count
-            if ($count -gt 0) {
-                '{0} {1}' -f $count, (Get-LocalizedText $status)
-            }
+        # The counts per status are on the chips of the page; the line below the title
+        # says the one thing that matters most.
+        $attention = @($pageResults | Where-Object { $_.Status -in 'Critical', 'Warning' }).Count
+        $subtitle = if ($attention -gt 0) {
+            (Get-LocalizedText '{0} of {1} checks need attention.') -f $attention, $pageResults.Count
+        }
+        else {
+            (Get-LocalizedText 'Nothing needs attention among these {0} checks.') -f $pageResults.Count
         }
 
         $controls.PageTitle.Text = Get-LocalizedText $Name
-        $controls.PageSubtitle.Text = @($counts) -join ', '
+        $controls.PageSubtitle.Text = $subtitle
         $controls.OverviewPanel.Visibility = $collapsed
         $emptyText = if ($statusFilter) { Get-LocalizedText 'No result has the chosen status.' } else { Get-LocalizedText 'No results in this category.' }
     }
@@ -251,36 +256,49 @@ function Show-WindowPage {
     $controls.EmptyText.Text = $emptyText
 
     if (-not $search -and $Name -ne 'Overview') {
-        # The page of a category: one column per status. A status filter leaves only
-        # the columns it names.
-        $statuses = 'Critical', 'Warning', 'OK', 'Info'
-        $shown = switch ($statusFilter) {
-            '' { $statuses }
-            'Problems' { 'Critical', 'Warning' }
-            default { $statusFilter }
+        # The page of a category. The chips at the top count all results of the
+        # category, whatever the filter leaves of them, and show which status is chosen.
+        foreach ($status in 'Critical', 'Warning', 'OK', 'Info') {
+            $count = @($pageResults | Where-Object { $_.Status -eq $status }).Count
+            $chosen = $statusFilter -eq $status -or ($statusFilter -eq 'Problems' -and $status -in 'Critical', 'Warning')
+            $controls["Chip${status}Count"].Text = [string]$count
+            $controls["Chip$status"].IsChecked = $chosen
+            # A chip without results cannot be chosen, but one that is chosen can always be let go.
+            $controls["Chip$status"].IsEnabled = $count -gt 0 -or $chosen
         }
 
-        foreach ($status in $statuses) {
-            $cards = @($items | Where-Object { $_.Status -eq $status })
-            $scroll = $controls["Column${status}Scroll"]
-            $columnOffset = $scroll.VerticalOffset
+        # The dot between the name of a group and its count (a character outside ASCII,
+        # written as a number so this file stays plain ASCII)
+        $separator = [char]0x00B7
 
-            $controls["Column${status}Items"].ItemsSource = $cards
-            $controls["Column${status}Count"].Text = [string]$cards.Count
-            $controls["Column${status}Empty"].Visibility = if ($cards.Count -eq 0) { $visible } else { $collapsed }
-            $controls["Column$status"].Visibility = if ($status -in $shown) { $visible } else { $collapsed }
+        # The problems across the whole width, each with its fix next to it.
+        $problems = @($items | Where-Object { $_.Status -in 'Critical', 'Warning' })
+        $controls.ProblemItems.ItemsSource = $problems
+        $controls.ProblemTitle.Text = '{0}  {1}  {2}' -f (Get-LocalizedText 'NEEDS ATTENTION'), $separator, $problems.Count
+        $controls.ProblemSection.Visibility = if ($problems.Count -gt 0) { $visible } else { $collapsed }
 
-            if ($KeepScroll) {
-                $scroll.ScrollToVerticalOffset($columnOffset)
-            }
-            else {
-                $scroll.ScrollToTop()
-            }
+        # Everything else as tiles in three columns, filled row by row: the first tile
+        # goes into the first column, the second into the second, and so on.
+        $tiles = @($items | Where-Object { $_.Status -notin 'Critical', 'Warning' })
+        foreach ($column in 0..2) {
+            $controls["TileColumn$($column + 1)"].ItemsSource = @(
+                for ($position = $column; $position -lt $tiles.Count; $position += 3) {
+                    $tiles[$position]
+                }
+            )
+        }
+        $tileTitle = if ($problems.Count -gt 0) { 'EVERYTHING ELSE' } else { 'RESULTS' }
+        $controls.TileTitle.Text = '{0}  {1}  {2}' -f (Get-LocalizedText $tileTitle), $separator, $tiles.Count
+        $controls.TileSection.Visibility = if ($tiles.Count -gt 0) { $visible } else { $collapsed }
+
+        if (-not $KeepScroll) {
+            $controls.CategoryPanel.ScrollToTop()
         }
 
         $controls.ResultScroll.Visibility = $collapsed
-        $controls.EmptyText.Visibility = $collapsed
-        $controls.ColumnsPanel.Visibility = $visible
+        # The chips stay in view when the filter leaves nothing, so it can be taken back.
+        $controls.EmptyText.Visibility = if ($items.Count -eq 0) { $visible } else { $collapsed }
+        $controls.CategoryPanel.Visibility = $visible
         return
     }
 

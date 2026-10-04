@@ -288,7 +288,7 @@ $pictures = @{
         $controls.CategoryList.SelectedIndex = 1
         $gui.Page = 'Live monitor'
         $controls.PageTitle.Text = 'Live monitor'
-        foreach ($name in 'OverviewPanel', 'ResultScroll', 'EmptyText', 'FilterPanel', 'SettingsPanel', 'TimelinePanel', 'ColumnsPanel') {
+        foreach ($name in 'OverviewPanel', 'ResultScroll', 'EmptyText', 'FilterPanel', 'SettingsPanel', 'TimelinePanel', 'CategoryPanel') {
             $controls[$name].Visibility = $collapsed
         }
         $controls.MonitorPanel.Visibility = $visible

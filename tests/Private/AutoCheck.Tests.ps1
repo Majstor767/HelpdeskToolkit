@@ -278,7 +278,7 @@ Describe 'Show-WindowReport -KeepPage' -Skip:(-not $isSta) {
         $gui.Page | Should -Be 'Hardware'
         $gui.Controls.PageTitle.Text | Should -Be 'Hardware'
         $gui.Controls.CategoryList.SelectedItem.Name | Should -Be 'Hardware'
-        $gui.Controls.PageSubtitle.Text | Should -Be '1 Critical, 1 Warning, 1 OK'
+        $gui.Controls.PageSubtitle.Text | Should -Be '2 of 3 checks need attention.'
         $gui.Loading | Should -BeFalse
     }
 
@@ -470,7 +470,7 @@ Describe 'Show-WindowResult' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowResult -Gui $Gui -Category 'Hardware' -Check 'Disk (C:)' } | Should -BeTrue
 
         $gui.Controls.SettingsPanel.Visibility | Should -Be 'Collapsed'
-        $gui.Controls.ColumnsPanel.Visibility | Should -Be 'Visible'
+        $gui.Controls.CategoryPanel.Visibility | Should -Be 'Visible'
     }
 
     It 'frames the card only once: the next time the page is drawn it is an ordinary card again' {

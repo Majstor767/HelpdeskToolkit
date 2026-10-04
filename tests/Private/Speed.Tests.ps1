@@ -668,7 +668,7 @@ Describe 'The last report at the start of the window' -Skip:(-not $isSta) {
         $gui.Report.GeneratedAt | Should -Be $fresh.GeneratedAt
         $gui.StaleReport | Should -BeFalse
         $gui.Page | Should -Be 'Hardware'
-        @($gui.Controls.ColumnCriticalItems.ItemsSource).SourceCheck | Should -Be 'Disk (C:)'
+        @($gui.Controls.ProblemItems.ItemsSource | Where-Object Status -eq 'Critical').SourceCheck | Should -Be 'Disk (C:)'
         # It was a check of its own, not one of the repeated ones: it says so and is kept.
         $gui.Controls.StatusText.Text | Should -Match '^Check finished: 2 results\.'
         Should -Invoke -ModuleName HelpdeskToolkit Save-HealthReportHistory -Times 1 -Exactly

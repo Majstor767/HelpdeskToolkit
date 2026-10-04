@@ -336,8 +336,10 @@ Describe 'Show-WindowPage: search, filter and settings' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'Hardware' }
 
         @($gui.Controls.ResultItems.ItemsSource).Check | Should -Be 'Battery'
-        # The subtitle still counts the whole category.
-        $gui.Controls.PageSubtitle.Text | Should -Be '1 Critical, 1 OK'
+        # The subtitle and the chips still count the whole category.
+        $gui.Controls.PageSubtitle.Text | Should -Be '1 of 2 checks need attention.'
+        $gui.Controls.ChipCriticalCount.Text | Should -Be '1'
+        $gui.Controls.ChipOKCount.Text | Should -Be '1'
     }
 
     It 'shows every result with the chosen status on the Overview, not only the problems' {
@@ -378,8 +380,8 @@ Describe 'Show-WindowPage: search, filter and settings' -Skip:(-not $isSta) {
 
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'System' }
         $gui.Controls.SettingsPanel.Visibility | Should -Be 'Collapsed'
-        # The page of a category shows its results in columns.
-        $gui.Controls.ColumnsPanel.Visibility | Should -Be 'Visible'
+        # The page of a category has a panel of its own.
+        $gui.Controls.CategoryPanel.Visibility | Should -Be 'Visible'
     }
 }
 

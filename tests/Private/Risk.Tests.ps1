@@ -190,12 +190,13 @@ Describe 'The window: why a problem matters' -Skip:(-not $isSta) {
         $cards[1].Risk | Should -Be $risks['Memory usage']
     }
 
-    It 'hands the compact cards of a category page the same texts, and none to a result that is fine' {
+    It 'hands the cards and tiles of a category page the same texts, and none to a result that is fine' {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowPage -Gui $Gui -Name 'Hardware' }
 
-        @($gui.Controls.ColumnCriticalItems.ItemsSource)[0].Risk | Should -Be $risks['Disk']
-        @($gui.Controls.ColumnWarningItems.ItemsSource)[0].Risk | Should -Be $risks['Memory usage']
-        @($gui.Controls.ColumnOKItems.ItemsSource)[0].Risk | Should -Be ''
+        # The problems, most severe first, and then the first tile
+        @($gui.Controls.ProblemItems.ItemsSource)[0].Risk | Should -Be $risks['Disk']
+        @($gui.Controls.ProblemItems.ItemsSource)[1].Risk | Should -Be $risks['Memory usage']
+        @($gui.Controls.TileColumn1.ItemsSource)[0].Risk | Should -Be ''
     }
 
     It 'does not find a result by the text about consequences: a search for "disk" finds the disk, not the memory' {
