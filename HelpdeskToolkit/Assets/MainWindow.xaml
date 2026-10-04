@@ -416,6 +416,24 @@
             <Setter Property="Margin" Value="0,0,10,0"/>
         </Style>
 
+        <!-- The small arrow in the lower right corner of a tile that can be clicked: the
+             sign Windows uses for "there is more behind this". It is grey until the mouse
+             is over the tile. -->
+        <Style x:Key="TileChevron" TargetType="TextBlock">
+            <Setter Property="Text" Value="&#xE76C;"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="8,1,-4,0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- A tile that opens the detail page of its component when it is clicked -->
         <Style x:Key="MonitorTileLink" TargetType="Border" BasedOn="{StaticResource MonitorTile}">
             <Setter Property="Cursor" Value="Hand"/>
@@ -1629,7 +1647,10 @@
                                             <TextBlock Text="PROCESSOR" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
                                         <TextBlock x:Name="MonitorTileCpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource CpuBrush}"/>
-                                        <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                        <DockPanel>
+                                            <TextBlock x:Name="MonitorCpuChevron" DockPanel.Dock="Right" Style="{StaticResource TileChevron}"/>
+                                            <TextBlock x:Name="MonitorTileCpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                        </DockPanel>
                                     </StackPanel>
                                 </Border>
                                 <Border x:Name="MonitorMemoryTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the memory">
@@ -1640,7 +1661,10 @@
                                             <TextBlock Text="MEMORY" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
                                         <TextBlock x:Name="MonitorTileMemory" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource MemoryBrush}"/>
-                                        <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
+                                        <DockPanel>
+                                            <TextBlock x:Name="MonitorMemoryChevron" DockPanel.Dock="Right" Style="{StaticResource TileChevron}"/>
+                                            <TextBlock x:Name="MonitorTileMemorySub" Style="{StaticResource MonitorTileSub}"/>
+                                        </DockPanel>
                                     </StackPanel>
                                 </Border>
                                 <Border x:Name="MonitorGpuTile" Style="{StaticResource MonitorTileLink}" ToolTip="Click to see everything about the graphics card">
@@ -1651,7 +1675,10 @@
                                             <TextBlock Text="GRAPHICS" Style="{StaticResource TileLabel}"/>
                                         </DockPanel>
                                         <TextBlock x:Name="MonitorTileGpu" Text="-" Style="{StaticResource MonitorTileValue}" Foreground="{DynamicResource GpuBrush}"/>
-                                        <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                        <DockPanel>
+                                            <TextBlock x:Name="MonitorGpuChevron" DockPanel.Dock="Right" Style="{StaticResource TileChevron}"/>
+                                            <TextBlock x:Name="MonitorTileGpuSub" Style="{StaticResource MonitorTileSub}"/>
+                                        </DockPanel>
                                     </StackPanel>
                                 </Border>
                                 <Border x:Name="MonitorLatencyTile" Style="{StaticResource MonitorTile}">

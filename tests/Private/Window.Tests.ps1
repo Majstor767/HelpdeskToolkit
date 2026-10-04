@@ -949,3 +949,25 @@ Describe 'Invoke-WindowCheck' -Skip:(-not $isSta) {
         }
     }
 }
+
+Describe 'The tiles of the Live monitor that can be clicked' -Skip:(-not $isSta) {
+    BeforeAll {
+        $gui = InModuleScope HelpdeskToolkit { New-HealthCheckWindow }
+    }
+
+    It 'marks the <_> tile with a small arrow, the sign for "there is more behind this"' -ForEach 'Cpu', 'Memory', 'Gpu' {
+        $arrow = $gui.Controls["Monitor${_}Chevron"]
+        $arrow | Should -Not -BeNullOrEmpty
+        # One character of the icon font: the arrow that points to the right.
+        [int][char]$arrow.Text | Should -Be 0xE76C
+        $arrow.FontFamily.Source | Should -Be 'Segoe MDL2 Assets'
+        # The arrow must not take the click away from the tile it sits in.
+        $arrow.IsHitTestVisible | Should -BeFalse
+        $gui.Controls["Monitor${_}Tile"].Cursor | Should -Be ([System.Windows.Input.Cursors]::Hand)
+    }
+
+    It 'leaves the tiles without a detail page unmarked' {
+        $gui.Controls.ContainsKey('MonitorLatencyChevron') | Should -BeFalse
+        $gui.Controls.MonitorLatencyTile.Cursor | Should -BeNullOrEmpty
+    }
+}
