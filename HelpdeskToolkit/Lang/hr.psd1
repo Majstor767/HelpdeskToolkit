@@ -1004,6 +1004,21 @@
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
 
+        # --- In the background ------------------------------------------------------
+        'In the background'                                    = 'U pozadini'
+        'Keep running when the window is closed'               = 'Nastavi raditi kad se prozor zatvori'
+        'Start with Windows'                                   = 'Pokreni s Windowsima'
+        'Closed, the application stays as an icon next to the clock, repeats the check and announces new problems. A click on the icon opens the window; a right click offers Exit. Started with Windows, it opens there without a window and with standard rights.' = 'Zatvorena aplikacija ostaje kao ikona pokraj sata, ponavlja provjeru i javlja nove probleme. Klik na ikonu otvara prozor, a desni klik nudi Izlaz. Pokrenuta s Windowsima otvara se ondje, bez prozora i sa standardnim pravima.'
+        'Open HelpdeskToolkit'                                 = 'Otvori HelpdeskToolkit'
+        'Run check now'                                        = 'Pokreni provjeru sada'
+        'Exit'                                                 = 'Izlaz'
+        'HelpdeskToolkit keeps running here. Click the icon to open it; right-click it to exit.' = 'HelpdeskToolkit nastavlja raditi ovdje. Klik na ikonu ga otvara, a desni klik nudi izlaz.'
+        'HelpdeskToolkit now starts with Windows, as an icon next to the clock.' = 'HelpdeskToolkit se sada pokreće s Windowsima, kao ikona pokraj sata.'
+        'HelpdeskToolkit no longer starts with Windows.'       = 'HelpdeskToolkit se više ne pokreće s Windowsima.'
+        'The shortcut for starting with Windows could not be created.' = 'Prečac za pokretanje s Windowsima nije se mogao stvoriti.'
+        'Closing the window now leaves the application running next to the clock.' = 'Zatvaranje prozora sada ostavlja aplikaciju da radi pokraj sata.'
+        'Closing the window now ends the application.'         = 'Zatvaranje prozora sada gasi aplikaciju.'
+
         # --- Side bar ---------------------------------------------------------------
         'CHECKS'                                               = 'PROVJERE'
         'REPORT'                                               = 'IZVJEŠTAJ'

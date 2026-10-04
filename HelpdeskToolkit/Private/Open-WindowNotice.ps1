@@ -4,7 +4,9 @@ function Open-WindowNotice {
         Brings the window to the front and opens the result of the newest notice.
     .DESCRIPTION
         The action of a click on the Windows notification (see Show-WindowToast) and
-        on the icon in the notification area. A minimized window is restored first.
+        on the icon in the notification area. A window that is hidden while the
+        application runs in the background is shown again, and a minimized one is
+        restored first.
         Without notices the window is only brought to the front.
 
         Returns $true when a result was opened.
@@ -18,6 +20,7 @@ function Open-WindowNotice {
     )
 
     $window = $Gui.Window
+    Show-WindowFromTray -Gui $Gui
     if ($window.WindowState -eq [System.Windows.WindowState]::Minimized) {
         $window.WindowState = [System.Windows.WindowState]::Normal
     }

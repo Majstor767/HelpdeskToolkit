@@ -18,6 +18,9 @@ function New-HealthCheckWindow {
         - AppLock:      the file that tells the installer the application is running
                         (see Lock-AppFile)
         - Startup:      how the window was asked to start (see Invoke-WindowStartup)
+        - InstanceLock, Hidden, Exiting, Started, TrayHintShown, Frame, SignalTimer:
+                        state of running in the background (see Hide-WindowToTray,
+                        Lock-AppInstance and Show-PCHealthCheck)
         - Report, PreviousReport, Worker, Handle, Timer: state of the health check
         - Background, LastCheckAt, AutoTimer, Notices, HighlightCheck, TrayIcon:
                         state of the automatic check and of what it announces
@@ -55,7 +58,7 @@ function New-HealthCheckWindow {
         [ValidateSet('Light', 'Dark')]
         [string]$Theme = 'Light',
 
-        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask'; SkipNetwork = $false; HistoryDays = 7 }
+        [hashtable]$Setting = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask'; KeepInBackground = $false; SkipNetwork = $false; HistoryDays = 7 }
     )
 
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
@@ -146,6 +149,20 @@ function New-HealthCheckWindow {
         AppLock           = $null
         # RunCheck: start the check at once. NoQuestion: do not ask about administrator rights.
         Startup           = @{ RunCheck = $false; NoQuestion = $false }
+        # The file that makes this the one running window (see Lock-AppInstance).
+        InstanceLock      = $null
+        # The window is off the screen and the application runs next to the clock.
+        Hidden            = $false
+        # The window is closing for good, also when it is set to stay in the background.
+        Exiting           = $false
+        # What a window does when it opens for the first time has been done.
+        Started           = $false
+        # The notification "keeps running here" was shown in this run.
+        TrayHintShown     = $false
+        # The loop that handles the events of the window until it is closed for good,
+        # and the timer that looks for a second start of the application.
+        Frame             = $null
+        SignalTimer       = $null
         Report            = $null
         PreviousReport    = $null
         # The report on the screen is the one of an earlier start of the application,
@@ -166,7 +183,7 @@ function New-HealthCheckWindow {
         Notices           = [ordered]@{}
         # Name of the check whose card gets a frame when its page is shown the next time.
         HighlightCheck    = ''
-        # The icon in the notification area; created with the first Windows notification.
+        # The icon in the notification area (see Enable-WindowTrayIcon).
         TrayIcon          = $null
         Monitor           = $null
         MonitorTimer      = $null

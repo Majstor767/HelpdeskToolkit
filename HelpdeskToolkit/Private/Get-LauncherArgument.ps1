@@ -12,14 +12,18 @@ function Get-LauncherArgument {
 
         -RunCheck makes the new copy start the check at once, without asking about
         administrator rights; -NoQuestion only leaves the question out. Both are
-        passed on to Show-PCHealthCheck.
+        passed on to Show-PCHealthCheck. -Background starts the copy without a window,
+        as an icon next to the clock; it is what the shortcut for starting with
+        Windows uses (see Enable-AppAutoStart).
     #>
     [CmdletBinding()]
     [OutputType([string])]
     param(
         [switch]$RunCheck,
 
-        [switch]$NoQuestion
+        [switch]$NoQuestion,
+
+        [switch]$Background
     )
 
     $switches = ''
@@ -28,6 +32,9 @@ function Get-LauncherArgument {
     }
     if ($NoQuestion) {
         $switches += ' -NoQuestion'
+    }
+    if ($Background) {
+        $switches += ' -Background'
     }
 
     $launcher = Join-Path -Path (Split-Path -Path $script:ModuleRoot -Parent) -ChildPath 'Start-HelpdeskToolkit.ps1'

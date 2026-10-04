@@ -1966,6 +1966,15 @@
 
                             <Border Style="{StaticResource SectionCard}">
                                 <StackPanel>
+                                    <TextBlock Text="In the background" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+                                    <CheckBox x:Name="BackgroundBox" Content="Keep running when the window is closed" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,8"/>
+                                    <CheckBox x:Name="AutoStartBox" Content="Start with Windows" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Closed, the application stays as an icon next to the clock, repeats the check and announces new problems. A click on the icon opens the window; a right click offers Exit. Started with Windows, it opens there without a window and with standard rights." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
                                     <TextBlock Text="Automatic check" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <DockPanel Margin="0,0,0,8">
                                         <TextBlock DockPanel.Dock="Left" Text="Repeat the check" Width="150" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>

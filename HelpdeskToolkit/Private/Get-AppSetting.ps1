@@ -17,6 +17,8 @@ function Get-AppSetting {
         - StartupElevation:       what happens when the application starts: "Ask"
                                   whether to use administrator rights, "Always"
                                   restart with them, or "Never"
+        - KeepInBackground:       whether closing the window leaves the application
+                                  running next to the clock (see Hide-WindowToTray)
         - SkipNetwork:            whether "Skip network tests" is ticked
         - HistoryDays:            the history period of the check: 7, 14, 30 or 90 days
         - WindowWidth, WindowHeight, WindowLeft, WindowTop, WindowMaximized:
@@ -32,6 +34,7 @@ function Get-AppSetting {
         MonitorIntervalSeconds = 2
         AutoCheckMinutes       = 5
         StartupElevation       = 'Ask'
+        KeepInBackground       = $false
         SkipNetwork            = $false
         HistoryDays            = 7
         WindowWidth            = $null
@@ -77,6 +80,7 @@ function Get-AppSetting {
         $settings.HistoryDays = 7
     }
     $settings.SkipNetwork = $settings.SkipNetwork -eq $true
+    $settings.KeepInBackground = $settings.KeepInBackground -eq $true
 
     $settings
 }

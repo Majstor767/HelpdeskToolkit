@@ -4,7 +4,8 @@ function Show-WindowSetting {
         Fills the Settings page of the window.
     .DESCRIPTION
         Selects the current language, theme, start behaviour and interval of the
-        automatic check in their lists, lists the keyboard shortcuts and shows the
+        automatic check in their lists, ticks the two options for running in the
+        background, lists the keyboard shortcuts and shows the
         version and the folder in which the application keeps its own files.
 
         While the lists are set from code, $Gui.Loading is $true, so the handlers that
@@ -35,6 +36,9 @@ function Show-WindowSetting {
         & $select $controls.ThemeBox ([string]$settings.Theme)
         & $select $controls.AutoCheckBox ([string]$settings.AutoCheckMinutes)
         & $select $controls.StartupBox ([string]$settings.StartupElevation)
+        $controls.BackgroundBox.IsChecked = $settings['KeepInBackground'] -eq $true
+        # The shortcut in the Startup folder is the setting; it may have been removed in Windows.
+        $controls.AutoStartBox.IsChecked = Test-AppAutoStart
     }
     finally {
         $Gui.Loading = $false

@@ -24,14 +24,25 @@ function Invoke-AppRestart {
 
     $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
+    # The new copy must find the place of the one running window free (see
+    # Lock-AppInstance); this copy takes it back when the new one does not start.
+    $hadLock = [bool]$Gui.InstanceLock
+    if ($Gui.InstanceLock) {
+        $Gui.InstanceLock.Dispose()
+        $Gui.InstanceLock = $null
+    }
     try {
         Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument -RunCheck) -WindowStyle Hidden -ErrorAction Stop
     }
     catch {
+        if ($hadLock) {
+            $Gui.InstanceLock = Lock-AppInstance
+        }
         $Gui.Controls.StatusText.Text = (Get-LocalizedText 'The application could not be restarted: {0}') -f $_.Exception.Message
         return $false
     }
 
-    $Gui.Window.Close()
+    # Closes for good, also when the window is set to stay in the background.
+    Exit-WindowApplication -Gui $Gui
     $true
 }

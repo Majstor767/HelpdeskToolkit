@@ -68,6 +68,12 @@ Type: filesandordirs; Name: "{app}\HelpdeskToolkit"
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
+; The shortcut that starts the application with Windows is written by the application
+; itself when the user ticks that option (see Private\Enable-AppAutoStart.ps1). It goes
+; with the application.
+[UninstallDelete]
+Type: files; Name: "{userstartup}\HelpdeskToolkit.lnk"
+
 ; The shortcuts start the window through the launcher script. Windows PowerShell is
 ; part of every supported Windows version, so nothing else has to be installed. In this
 ; file a double quote inside a quoted value is written as two double quotes.
@@ -106,7 +112,7 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   if IsApplicationRunning() then
-    Result := '{#AppName} is running. Close its window, then run Setup again.';
+    Result := '{#AppName} is running. Close it, then run Setup again. When it runs in the background: right-click its icon next to the clock and choose Exit.';
 end;
 
 function InitializeUninstall(): Boolean;
@@ -114,7 +120,7 @@ begin
   Result := True;
   if IsApplicationRunning() then
   begin
-    MsgBox('{#AppName} is running. Close its window, then uninstall it again.', mbError, MB_OK);
+    MsgBox('{#AppName} is running. Close it, then uninstall it again. When it runs in the background: right-click its icon next to the clock and choose Exit.', mbError, MB_OK);
     Result := False;
   end;
 end;

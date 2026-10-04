@@ -52,6 +52,9 @@ $script:Language = 'en'
 $script:Translations = $null
 # Replaces the folder for the files of the application itself; used by the tests.
 $script:AppDataRoot = $null
+# Replaces the Startup folder of the user, where the shortcut for starting with Windows
+# goes (see Get-AutoStartPath); used by the tests.
+$script:AutoStartFolder = $null
 # Replaces the number of check categories that run at the same time (see
 # Get-PCHealthReport); used by the tests, whose mocks only exist in their own session.
 $script:CheckThrottleLimit = $null

@@ -50,7 +50,17 @@ function Show-PCHealthCheck {
         admin"; the "Restart as administrator" button starts the window again
         elevated, after the user has confirmed the Windows prompt, and then includes them.
 
-        The command returns when the window is closed.
+        With "Keep running when the window is closed" ticked on the Settings page,
+        closing the window only hides it: the application stays as an icon next to the
+        clock, repeats the check and announces new problems. A click on the icon opens
+        the window again; "Exit" in the menu of the icon ends the application. "Start
+        with Windows" on the same page puts a shortcut into the Startup folder of the
+        user, which starts the application that way when the user signs in.
+
+        Only one window runs at a time. Starting the application again while it runs
+        brings its window to the front.
+
+        The command returns when the window is closed for good.
     .PARAMETER OutputPath
         Folder used by the "Open HTML report" button and for recordings of the Live
         monitor. It is created when needed. Defaults to a HelpdeskToolkit folder
@@ -61,6 +71,9 @@ function Show-PCHealthCheck {
     .PARAMETER NoQuestion
         Do not ask about administrator rights. Without -RunCheck the window then
         waits for a click on "Run check".
+    .PARAMETER Background
+        Start without a window, as an icon next to the clock, and run the check with
+        the rights the session has. This is how the application starts with Windows.
     .EXAMPLE
         Show-PCHealthCheck
 
@@ -83,7 +96,9 @@ function Show-PCHealthCheck {
 
         [switch]$RunCheck,
 
-        [switch]$NoQuestion
+        [switch]$NoQuestion,
+
+        [switch]$Background
     )
 
     # WPF windows can only be created on a single-threaded apartment (STA) thread.
@@ -92,12 +107,25 @@ function Show-PCHealthCheck {
         throw 'Show-PCHealthCheck needs a single-threaded (STA) PowerShell session. Start PowerShell without the -MTA switch.'
     }
 
+    # Only one window of the application runs at a time; it may be sitting next to the
+    # clock (see Lock-AppInstance). A second start asks the first one to show its
+    # window and ends. Windows starting the application has nothing to show.
+    $instance = Lock-AppInstance
+    if (-not $instance) {
+        if (-not $Background) {
+            [void](Send-AppShowRequest)
+        }
+        Write-Verbose 'HelpdeskToolkit is already running; its window was asked to come to the front.'
+        return
+    }
+
     # Language and theme are fixed when the window is created.
     $settings = Get-AppSetting
     $script:Language = $settings.Language
     $gui = New-HealthCheckWindow -Theme (Get-WindowTheme -Setting $settings.Theme) -Setting $settings
     $gui.OutputFolder = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputPath)
     $gui.Startup = @{ RunCheck = [bool]$RunCheck; NoQuestion = [bool]$NoQuestion }
+    $gui.InstanceLock = $instance
 
     # The event handlers below run later, when a button is clicked. They reach the
     # window through this module-level variable.
@@ -190,6 +218,12 @@ function Show-PCHealthCheck {
     # something to read while the new check runs.
     $window.Add_ContentRendered({
             $state = $script:HealthCheckWindow
+            # Once per run: a window that started in the background has done this
+            # already when it is opened for the first time.
+            if ($state.Started) {
+                return
+            }
+            $state.Started = $true
             [void](Show-WindowLastReport -Gui $state)
             [void](Invoke-WindowStartup -Gui $state)
         })
@@ -426,6 +460,43 @@ function Show-PCHealthCheck {
             [void](Save-AppSetting -Setting $state.Settings)
         })
 
+    # Closing the window ends the application, or leaves it running next to the clock.
+    $controls.BackgroundBox.Add_Click({
+            $state = $script:HealthCheckWindow
+            $state.Settings.KeepInBackground = $state.Controls.BackgroundBox.IsChecked -eq $true
+            [void](Save-AppSetting -Setting $state.Settings)
+            if ($state.Settings.KeepInBackground) {
+                Enable-WindowTrayIcon -Gui $state
+                $state.Controls.StatusText.Text = Get-LocalizedText 'Closing the window now leaves the application running next to the clock.'
+            }
+            else {
+                $state.Controls.StatusText.Text = Get-LocalizedText 'Closing the window now ends the application.'
+            }
+        })
+
+    # Starting with Windows is of use only to an application that stays in the
+    # background, so ticking it ticks the option above as well.
+    $controls.AutoStartBox.Add_Click({
+            $state = $script:HealthCheckWindow
+            if ($state.Controls.AutoStartBox.IsChecked -eq $true) {
+                if (Enable-AppAutoStart) {
+                    $state.Settings.KeepInBackground = $true
+                    $state.Controls.BackgroundBox.IsChecked = $true
+                    [void](Save-AppSetting -Setting $state.Settings)
+                    Enable-WindowTrayIcon -Gui $state
+                    $state.Controls.StatusText.Text = Get-LocalizedText 'HelpdeskToolkit now starts with Windows, as an icon next to the clock.'
+                }
+                else {
+                    $state.Controls.AutoStartBox.IsChecked = $false
+                    $state.Controls.StatusText.Text = Get-LocalizedText 'The shortcut for starting with Windows could not be created.'
+                }
+            }
+            else {
+                [void](Disable-AppAutoStart)
+                $state.Controls.StatusText.Text = Get-LocalizedText 'HelpdeskToolkit no longer starts with Windows.'
+            }
+        })
+
     $controls.OpenDataFolderButton.Add_Click({
             $folder = Get-AppDataPath
             if (-not (Test-Path -LiteralPath $folder)) {
@@ -456,7 +527,10 @@ function Show-PCHealthCheck {
             }
         })
 
-    # Closing the window stops the background work and remembers where the window was.
+    # Closing the window remembers where the window was. With "Keep running when the
+    # window is closed" the window is then only hidden and the application goes on next
+    # to the clock; otherwise, and after "Exit", the window closes and the background
+    # work stops.
     $window.Add_Closing({
             $state = $script:HealthCheckWindow
             $bounds = $state.Window.RestoreBounds
@@ -468,11 +542,17 @@ function Show-PCHealthCheck {
             }
             $state.Settings.WindowMaximized = $state.Window.WindowState -eq [System.Windows.WindowState]::Maximized
             [void](Save-AppSetting -Setting $state.Settings)
+
+            if ($state.Settings['KeepInBackground'] -and -not $state.Exiting) {
+                $args[1].Cancel = $true
+                Hide-WindowToTray -Gui $state
+            }
         })
     $window.Add_Closed({
             $state = $script:HealthCheckWindow
             $state.Timer.Stop()
             $state.AutoTimer.Stop()
+            $state.SignalTimer.Stop()
             Disable-WindowMonitor -Gui $state -Stop
             if ($state.Worker) {
                 [void]$state.Worker.BeginStop($null, $null)
@@ -486,18 +566,55 @@ function Show-PCHealthCheck {
             if ($state.TrayIcon) {
                 $state.TrayIcon.Visible = $false
                 $state.TrayIcon.Dispose()
+                $state.TrayIcon = $null
             }
+            # Ends the loop at the end of this function.
+            $state.Frame.Continue = $false
         })
+
+    # Looks once a second whether the application was started a second time, which
+    # asks this window to come to the front (see Receive-AppShowRequest).
+    $gui.SignalTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
+    $gui.SignalTimer.Interval = [timespan]::FromSeconds(1)
+    $gui.SignalTimer.Add_Tick({ [void](Receive-AppShowRequest -Gui $script:HealthCheckWindow) })
+    $gui.SignalTimer.Start()
 
     # While the window exists, the installer must not replace the files of the application.
     $gui.AppLock = Lock-AppFile
 
+    # The window is shown as an ordinary window, not as a dialog: a dialog ends when it
+    # is hidden, and this window is hidden while the application runs in the
+    # background. The loop below handles its events until it is closed for good.
+    $gui.Frame = New-Object -TypeName System.Windows.Threading.DispatcherFrame
     try {
-        [void]$window.ShowDialog()
+        if ($settings.KeepInBackground -or $Background) {
+            Enable-WindowTrayIcon -Gui $gui
+        }
+        if ($Background) {
+            # Started with Windows: no window and no question. The last results are
+            # put in place and the check runs with the rights the application has.
+            $gui.Started = $true
+            Hide-WindowToTray -Gui $gui -Quiet
+            [void](Show-WindowLastReport -Gui $gui)
+            Invoke-WindowCheck -Gui $gui
+        }
+        else {
+            $window.Show()
+            [void]$window.Activate()
+        }
+        [System.Windows.Threading.Dispatcher]::PushFrame($gui.Frame)
     }
     finally {
+        if ($gui.TrayIcon) {
+            $gui.TrayIcon.Visible = $false
+            $gui.TrayIcon.Dispose()
+            $gui.TrayIcon = $null
+        }
         if ($gui.AppLock) {
             $gui.AppLock.Dispose()
+        }
+        if ($gui.InstanceLock) {
+            $gui.InstanceLock.Dispose()
         }
         $script:HealthCheckWindow = $null
     }

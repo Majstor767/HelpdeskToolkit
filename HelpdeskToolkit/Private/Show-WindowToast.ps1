@@ -9,9 +9,10 @@ function Show-WindowToast {
         This needs nothing but what Windows has: no registration of the application
         and nothing to install.
 
-        The icon is created with the first notification and stays until the window is
-        closed. A click on the notification or on the icon brings the window to the
-        front and opens the result (Open-WindowNotice).
+        The icon is created with the first notification, unless it is there already
+        (Enable-WindowTrayIcon), and stays until the window is closed for good. A
+        click on the notification or on the icon brings the window to the front and
+        opens the result (Open-WindowNotice).
 
         Windows decides whether a notification is displayed: with "Do not disturb"
         turned on it only goes to the notification center.
@@ -29,31 +30,7 @@ function Show-WindowToast {
         [string]$Text
     )
 
-    if (-not $Gui.TrayIcon) {
-        Add-Type -AssemblyName System.Windows.Forms, System.Drawing
-
-        $icon = New-Object -TypeName System.Windows.Forms.NotifyIcon
-        $iconPath = Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\HelpdeskToolkit.ico'
-        $icon.Icon = if (Test-Path -LiteralPath $iconPath) {
-            New-Object -TypeName System.Drawing.Icon -ArgumentList $iconPath
-        }
-        else {
-            [System.Drawing.SystemIcons]::Information
-        }
-        $icon.Text = 'HelpdeskToolkit'
-        $icon.Visible = $true
-
-        # The handlers run later; they reach the window through the module-level variable.
-        $open = {
-            if ($script:HealthCheckWindow) {
-                [void](Open-WindowNotice -Gui $script:HealthCheckWindow)
-            }
-        }
-        $icon.Add_BalloonTipClicked($open)
-        $icon.Add_Click($open)
-
-        $Gui.TrayIcon = $icon
-    }
+    Enable-WindowTrayIcon -Gui $Gui
 
     # Windows cuts the title after 63 and the text after 255 characters.
     $shortTitle = if ($Title.Length -gt 63) { $Title.Substring(0, 60) + '...' } else { $Title }

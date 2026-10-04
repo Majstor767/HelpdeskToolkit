@@ -14,6 +14,9 @@
     rights. The window uses it when it starts itself again.
 .PARAMETER NoQuestion
     Do not ask about administrator rights.
+.PARAMETER Background
+    Start without a window, as an icon next to the clock, and run the check with
+    standard rights. Used by the shortcut that starts the application with Windows.
 .EXAMPLE
     .\Start-HelpdeskToolkit.ps1
 
@@ -23,13 +26,15 @@
 param(
     [switch]$RunCheck,
 
-    [switch]$NoQuestion
+    [switch]$NoQuestion,
+
+    [switch]$Background
 )
 
 try {
     $manifest = Join-Path -Path $PSScriptRoot -ChildPath 'HelpdeskToolkit\HelpdeskToolkit.psd1'
     Import-Module -Name $manifest -ErrorAction Stop
-    Show-PCHealthCheck -RunCheck:$RunCheck -NoQuestion:$NoQuestion
+    Show-PCHealthCheck -RunCheck:$RunCheck -NoQuestion:$NoQuestion -Background:$Background
 }
 catch {
     Add-Type -AssemblyName PresentationFramework

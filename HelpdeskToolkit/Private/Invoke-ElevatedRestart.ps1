@@ -29,15 +29,26 @@ function Invoke-ElevatedRestart {
 
     $powershell = Join-Path -Path $env:WINDIR -ChildPath 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
+    # The new copy must find the place of the one running window free (see
+    # Lock-AppInstance); this copy takes it back when the new one does not start.
+    $hadLock = [bool]$Gui.InstanceLock
+    if ($Gui.InstanceLock) {
+        $Gui.InstanceLock.Dispose()
+        $Gui.InstanceLock = $null
+    }
     try {
         Start-Process -FilePath $powershell -ArgumentList (Get-LauncherArgument -RunCheck:$RunCheck) -Verb RunAs -WindowStyle Hidden -ErrorAction Stop
     }
     catch {
         # Thrown when the user answers "No" in the User Account Control prompt.
+        if ($hadLock) {
+            $Gui.InstanceLock = Lock-AppInstance
+        }
         $Gui.Controls.StatusText.Text = Get-LocalizedText 'Administrator rights were not granted; the window keeps running with standard rights.'
         return $false
     }
 
-    $Gui.Window.Close()
+    # Closes for good, also when the window is set to stay in the background.
+    Exit-WindowApplication -Gui $Gui
     $true
 }
