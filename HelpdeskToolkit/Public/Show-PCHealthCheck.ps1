@@ -120,6 +120,11 @@ function Show-PCHealthCheck {
         return
     }
 
+    # From here on Windows knows this process as HelpdeskToolkit, not as PowerShell:
+    # the taskbar shows the icon of the application. It has to happen before the
+    # window is created.
+    [void](Initialize-AppIdentity)
+
     # Language and theme are fixed when the window is created.
     $settings = Get-AppSetting
     $script:Language = $settings.Language

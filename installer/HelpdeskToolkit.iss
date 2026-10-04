@@ -21,6 +21,8 @@
 ; the application. The shortcuts therefore start PowerShell through the Windows
 ; console host in headless mode, which provides the console without any window.
 #define ConsoleHost "{sys}\conhost.exe"
+; Must be the same text as $script:AppUserModelId in HelpdeskToolkit\HelpdeskToolkit.psm1.
+#define AppUserModelId "Majstor767.HelpdeskToolkit"
 
 [Setup]
 ; AppId identifies the application for updates and uninstall. Never change it.
@@ -74,12 +76,17 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 [UninstallDelete]
 Type: files; Name: "{userstartup}\HelpdeskToolkit.lnk"
 
+; The shortcuts carry the application ID the window gives itself (see
+; Private\Initialize-AppIdentity.ps1 and $script:AppUserModelId in the module). With it
+; the taskbar knows that the running window belongs to these shortcuts: it shows their
+; icon, and a window that is pinned to the taskbar is started through them.
+;
 ; The shortcuts start the window through the launcher script. Windows PowerShell is
 ; part of every supported Windows version, so nothing else has to be installed. In this
 ; file a double quote inside a quoted value is written as two double quotes.
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"
-Name: "{autodesktop}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; Tasks: desktopicon
+Name: "{autoprograms}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; AppUserModelID: "{#AppUserModelId}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{#ConsoleHost}"; Parameters: "--headless ""{sys}\WindowsPowerShell\v1.0\powershell.exe"" -NoProfile -ExecutionPolicy Bypass -File ""{app}\Start-HelpdeskToolkit.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\{#AppIcon}"; Comment: "Check the health of this PC"; AppUserModelID: "{#AppUserModelId}"; Tasks: desktopicon
 
 ; Setup must not replace the files of an application that is running: it could not
 ; replace the files that are in use, would stop halfway and leave a copy behind that no

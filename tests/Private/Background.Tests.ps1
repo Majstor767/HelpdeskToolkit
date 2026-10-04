@@ -322,3 +322,27 @@ Describe 'The texts of the background mode' {
         }
     }
 }
+
+Describe 'The identity of the application in the taskbar' {
+    It 'gives the process a name of its own, so the taskbar does not take the window for PowerShell' {
+        InModuleScope HelpdeskToolkit { Initialize-AppIdentity } | Should -BeTrue
+        # A second window in the same session asks again; that must work too.
+        InModuleScope HelpdeskToolkit { Initialize-AppIdentity } | Should -BeTrue
+    }
+
+    It 'uses the same name as the shortcuts of the installer, so a pinned window starts through them' {
+        $id = InModuleScope HelpdeskToolkit { $script:AppUserModelId }
+        $id | Should -Match '^[A-Za-z0-9]+\.[A-Za-z0-9]+$'
+
+        $installer = [System.IO.File]::ReadAllText((Join-Path -Path $moduleRoot -ChildPath '..\installer\HelpdeskToolkit.iss'))
+        $installer | Should -Match ('#define AppUserModelId "{0}"' -f [regex]::Escape($id))
+        # Both shortcuts, the one in the Start menu and the one on the desktop
+        [regex]::Matches($installer, 'AppUserModelID: "\{#AppUserModelId\}"').Count | Should -Be 2
+    }
+
+    It 'is set before the window is created' {
+        $source = [System.IO.File]::ReadAllText((Join-Path -Path $moduleRoot -ChildPath 'Public\Show-PCHealthCheck.ps1'))
+        $source.IndexOf('Initialize-AppIdentity') | Should -BeGreaterThan 0
+        $source.IndexOf('Initialize-AppIdentity') | Should -BeLessThan $source.IndexOf('New-HealthCheckWindow -Theme')
+    }
+}

@@ -81,6 +81,8 @@ The first public version. It will be released as 1.0.0.
   at once and without a restart.
 - Settings: English or Croatian, light or dark theme, the interval of the automatic
   check, remembered window size.
+- The taskbar shows the icon of the application, not that of PowerShell, which the
+  window runs in.
 - Keyboard shortcuts for the common actions. Print Screen copies a picture of the
   window, which also works while the window runs with administrator rights and the
   shortcut of a screenshot tool does not.

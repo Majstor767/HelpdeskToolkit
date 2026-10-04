@@ -52,6 +52,11 @@ $script:Language = 'en'
 $script:Translations = $null
 # Replaces the folder for the files of the application itself; used by the tests.
 $script:AppDataRoot = $null
+# The name under which Windows knows the window of the application: it makes the taskbar
+# show the icon of the application instead of that of PowerShell (see
+# Initialize-AppIdentity). The shortcuts of the installer carry the same name.
+$script:AppUserModelId = 'Majstor767.HelpdeskToolkit'
+$script:AppIdentityType = $null
 # Replaces the Startup folder of the user, where the shortcut for starting with Windows
 # goes (see Get-AutoStartPath); used by the tests.
 $script:AutoStartFolder = $null
