@@ -114,11 +114,12 @@ number of days of history) are remembered for the next start as well.
   many problems it has, red when one of them is critical. Below them are the actions
   for the report, and at the bottom the administrator rights and the settings, which
   stay in view in a low window while the rest scrolls.
-- **Four columns:** the page of a category shows its results side by side, one column
-  per status: Info, OK, Warning, Critical. Each kind stands by itself, so a problem
-  cannot be overlooked among the rest. A card shows the name of the check and its
-  value; a click opens the explanation, the allowed range and the fix. The problems
-  are open from the start.
+- **The page of a category:** the problems come first, each across the whole width:
+  what was found and why it matters on the left, the fix with its button on the
+  right. Everything that needs no attention follows as tiles in three columns, with a
+  dot in the color of its status; a click on a tile opens the explanation and the
+  allowed range. The chips at the top count the results per status, and a click on
+  one leaves only that status on the page.
 - **Most severe first:** wherever results are listed below each other (Overview,
   search, the report), they come as Critical, Warning, OK, Info.
 - **Search** looks through all results at once, and the status filter narrows the
@@ -174,7 +175,8 @@ Two options on the **Settings** page, both off at first:
   The application stays as an icon next to the clock, repeats the check and announces
   a new problem with a Windows notification. A click on the icon opens the window
   again; a right click offers *Open*, *Run check now* and *Exit*, which is how the
-  application is really ended.
+  application is really ended. **Run in background** at the bottom of the side bar
+  does the same at once, whatever this option says.
 - **Start with Windows.** Puts a shortcut into the Startup folder of your user (it
   appears under *Startup apps* in Windows, where it can be turned off like any other).
   The application then starts when you sign in, without a window, as the icon next to

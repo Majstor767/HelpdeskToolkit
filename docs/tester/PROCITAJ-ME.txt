@@ -47,9 +47,10 @@ B) Bez instalacije
 3. Hrvatski jezik: zupčanik "Settings" dolje lijevo > Language > Hrvatski >
    "Restart now".
 4. Tamna tema: prekidač sa suncem/mjesecom gore desno (ili Ctrl+T). Mijenja se odmah.
-5. Rad u pozadini: Settings > "In the background". Uz prvu opciju aplikacija nakon
-   zatvaranja prozora ostaje kao ikona pokraj sata (desni klik > Exit je gasi), uz
-   drugu se tako pokreće s Windowsima. Obje su na početku isključene.
+5. Rad u pozadini: gumb "Run in background" dolje lijevo sakrije prozor i ostavi
+   aplikaciju kao ikonu pokraj sata (desni klik na ikonu > Exit je gasi). Trajno:
+   Settings > "In the background". Uz prvu opciju prozor se tako sakrije i na X,
+   uz drugu se aplikacija tako pokreće s Windowsima. Obje su na početku isključene.
 6. Slika prozora: tipka PrtSc kopira sliku prozora, zalijepiš je s Ctrl+V (npr. u
    Discord ili e-mail). Zgodno kad mi želiš pokazati što ne valja.
 
@@ -59,8 +60,9 @@ B) Bez instalacije
 
 - Overview: popis problema. Uz svaki piše zašto je to problem i što učiniti, a gumb
   otvara mjesto u Windowsu gdje se to rješava.
-- Sekcije lijevo (System, Hardware, Security ...): rezultati u četiri stupca.
-  Klik na karticu otvara detalje.
+- Sekcije lijevo (System, Hardware, Security ...): problemi su na vrhu, svaki s
+  rješenjem pokraj; ostalo su pločice, klik na pločicu otvara detalje. Brojači na
+  vrhu (Critical, Warning, OK, Info) filtriraju stranicu.
 - Timeline: što se na računalu događalo zadnjih tjedana (instalacije, ažuriranja,
   rušenja), po danima. Crvena točka je kvar, plava promjena.
 - Software: programi za koje postoji novija verzija i programi bez podrške.

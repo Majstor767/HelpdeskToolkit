@@ -58,10 +58,11 @@ The first public version. It will be released as 1.0.0.
 - A side bar in the manner of Windows 11: an icon for every page, the check categories
   under a heading of their own, a bar that marks the open page, the number of problems
   per category, and the report actions, the rights and the settings below.
-- One page per category with its results in four columns, one per status (Info, OK,
-  Warning, Critical); a click on a card opens its details. Search over all results
-  and a filter by status. In every list, and in the report, the most severe results
-  come first.
+- One page per category: the problems first, each across the whole width with its
+  fix next to it, then everything else as tiles that open on a click. Chips at the
+  top count the results per status and filter the page. Search over all results and
+  a filter by status. In every list, and in the report, the most severe results come
+  first.
 - A Timeline page with the changes and failures of the last weeks, grouped by day,
   to find the change that came just before the first failure.
 - Below the score: which category cost how many points.
@@ -74,7 +75,8 @@ The first public version. It will be released as 1.0.0.
 - Optional: closing the window leaves the application running as an icon next to
   the clock (open, run the check, exit from its menu), and it can start with Windows
   that way, through a shortcut in the Startup folder of the user. Only one copy runs
-  at a time; a second start brings the window of the first one back.
+  at a time; a second start brings the window of the first one back. "Run in
+  background" in the side bar sends the window there at once.
 - A switch in the header (Ctrl+T) turns the light theme into the dark one and back,
   at once and without a restart.
 - Settings: English or Croatian, light or dark theme, the interval of the automatic

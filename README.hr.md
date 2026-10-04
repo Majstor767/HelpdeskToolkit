@@ -114,11 +114,11 @@ povijesti) također se pamte do sljedećeg pokretanja.
   *Checks*, svaka sa svojom ikonom; broj uz kategoriju je broj problema u njoj, crven
   kad je neki od njih kritičan. Ispod su radnje za izvještaj, a na dnu administratorska
   prava i postavke, koje u niskom prozoru ostaju vidljive dok se ostatak pomiče.
-- **Četiri stupca:** stranica kategorije prikazuje rezultate jedan do drugoga, po
-  jedan stupac za svaki status: Info, OK, Warning, Critical. Svaka vrsta stoji za sebe,
-  pa se problem ne može previdjeti među ostalim. Kartica prikazuje naziv provjere i
-  vrijednost; klik otvara objašnjenje, dopušteni raspon i rješenje. Problemi su
-  otvoreni od početka.
+- **Stranica kategorije:** prvo dolaze problemi, svaki preko cijele širine: lijevo što
+  je nađeno i zašto je to važno, desno rješenje sa svojim gumbom. Sve što ne traži
+  pažnju slijedi kao pločice u tri stupca, s točkom u boji statusa; klik na pločicu
+  otvara objašnjenje i dopušteni raspon. Brojači na vrhu pokazuju koliko rezultata
+  ima koji status, a klik na jedan ostavlja na stranici samo taj status.
 - **Najteže prvo:** gdje god su rezultati poredani jedan ispod drugoga (Overview,
   pretraga, izvještaj), idu redom Critical, Warning, OK, Info.
 - **Pretraga** traži po svim rezultatima odjednom, a filtar statusa sužava popis, na
@@ -170,7 +170,8 @@ Dvije opcije na stranici **Settings**, obje isključene na početku:
 - **Keep running when the window is closed.** Zatvaranje prozora ga tada samo sakrije.
   Aplikacija ostaje kao ikona pokraj sata, ponavlja provjeru i novi problem javlja
   Windows obavijesti. Klik na ikonu ponovno otvara prozor; desni klik nudi *Open*,
-  *Run check now* i *Exit*, kojim se aplikacija stvarno gasi.
+  *Run check now* i *Exit*, kojim se aplikacija stvarno gasi. Gumb **Run in
+  background** na dnu bočne trake radi isto odmah, bez obzira na ovu opciju.
 - **Start with Windows.** Stavlja prečac u mapu Startup tvog korisnika (vidi se pod
   *Startup apps* u Windowsima, gdje se može isključiti kao i svaki drugi). Aplikacija
   se tada pokreće pri prijavi, bez prozora, kao ikona pokraj sata, i provjeru radi sa
