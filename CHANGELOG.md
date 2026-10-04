@@ -71,6 +71,10 @@ The first public version. It will be released as 1.0.0.
 - After the first check the application repeats it in the background and replaces the
   results without interrupting. A problem that is new is announced at the top of the
   window and with a Windows notification; a click leads to the result.
+- Optional: closing the window leaves the application running as an icon next to
+  the clock (open, run the check, exit from its menu), and it can start with Windows
+  that way, through a shortcut in the Startup folder of the user. Only one copy runs
+  at a time; a second start brings the window of the first one back.
 - A switch in the header (Ctrl+T) turns the light theme into the dark one and back,
   at once and without a restart.
 - Settings: English or Croatian, light or dark theme, the interval of the automatic

@@ -11,6 +11,8 @@ one command checks the state of the computer and produces a clear report with th
 problems it found and what to do about them.
 
 - **Read-only.** It only reads information and never changes anything on the system.
+  What it writes is its own: its settings, the reports and, when you tick "Start with
+  Windows", one shortcut in your Startup folder.
 - **No administrator rights needed.** Checks that need them are skipped and marked "Requires admin".
 - **Nothing to install besides the tool.** It is written in PowerShell and uses what Windows already has.
 
@@ -163,6 +165,26 @@ Windows then keeps the keys pressed in its window away from programs without tho
 rights, so the shortcut of a screenshot tool does nothing while the window is in
 front. The window takes the picture itself; it shows the window only, not what else
 is on the screen.
+
+### In the background and with Windows
+
+Two options on the **Settings** page, both off at first:
+
+- **Keep running when the window is closed.** Closing the window then only hides it.
+  The application stays as an icon next to the clock, repeats the check and announces
+  a new problem with a Windows notification. A click on the icon opens the window
+  again; a right click offers *Open*, *Run check now* and *Exit*, which is how the
+  application is really ended.
+- **Start with Windows.** Puts a shortcut into the Startup folder of your user (it
+  appears under *Startup apps* in Windows, where it can be turned off like any other).
+  The application then starts when you sign in, without a window, as the icon next to
+  the clock, and runs the check with standard rights; nothing asks for administrator
+  rights while Windows is starting. Unticking the option, or uninstalling, removes the
+  shortcut.
+
+Only one copy runs at a time: starting the application while it sits next to the clock
+brings its window back instead of opening a second one. A copy in the background needs
+a few hundred megabytes of memory, like the open window.
 
 ### Language and theme
 

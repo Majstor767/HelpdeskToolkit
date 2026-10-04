@@ -10,7 +10,9 @@ Dijagnostički alat za Windows računala, namijenjen radu u helpdesku i IT podr�
 klikom ili jednom naredbom provjeri stanje računala i napravi pregledan izvještaj s
 pronađenim problemima i preporukama što učiniti.
 
-- **Samo čita.** Alat samo čita podatke i nikad ništa ne mijenja na sustavu.
+- **Samo čita.** Alat samo čita podatke i nikad ništa ne mijenja na sustavu. Zapisuje
+  samo svoje: postavke, izvještaje i, ako označiš "Start with Windows", jedan prečac u
+  tvojoj mapi Startup.
 - **Ne traži administratorska prava.** Provjere kojima trebaju preskače i označava s "Requires admin".
 - **Ne traži ništa osim samog alata.** Napisan je u PowerShellu i koristi ono što Windows već ima.
 
@@ -160,6 +162,24 @@ Tipkovni prečaci:
 tada tipke pritisnute u njezinu prozoru ne prosljeđuje programima bez tih prava, pa
 prečac alata za snimanje zaslona ne radi dok je prozor u prvom planu. Prozor zato sam
 napravi sliku; na njoj je samo prozor, a ne ostatak zaslona.
+
+### U pozadini i s Windowsima
+
+Dvije opcije na stranici **Settings**, obje isključene na početku:
+
+- **Keep running when the window is closed.** Zatvaranje prozora ga tada samo sakrije.
+  Aplikacija ostaje kao ikona pokraj sata, ponavlja provjeru i novi problem javlja
+  Windows obavijesti. Klik na ikonu ponovno otvara prozor; desni klik nudi *Open*,
+  *Run check now* i *Exit*, kojim se aplikacija stvarno gasi.
+- **Start with Windows.** Stavlja prečac u mapu Startup tvog korisnika (vidi se pod
+  *Startup apps* u Windowsima, gdje se može isključiti kao i svaki drugi). Aplikacija
+  se tada pokreće pri prijavi, bez prozora, kao ikona pokraj sata, i provjeru radi sa
+  standardnim pravima; dok se Windows pokreće, ništa ne traži administratorska prava.
+  Kad opciju isključiš ili aplikaciju deinstaliraš, prečac se uklanja.
+
+Istovremeno radi samo jedna kopija: pokretanje aplikacije dok je pokraj sata vraća
+njezin prozor umjesto da otvori drugi. Kopija u pozadini treba nekoliko stotina
+megabajta memorije, kao i otvoren prozor.
 
 ### Jezik i tema
 
