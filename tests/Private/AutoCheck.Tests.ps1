@@ -173,6 +173,8 @@ Describe 'The Overview before and during the first check' -Skip:(-not $isSta) {
 Describe 'Invoke-WindowAutoCheck' -Skip:(-not $isSta) {
     BeforeAll {
         Mock -ModuleName HelpdeskToolkit Invoke-WindowCheck { }
+        # A desktop computer, also when the tests run on a laptop without its charger.
+        Mock -ModuleName HelpdeskToolkit Test-OnBattery { $false }
     }
 
     BeforeEach {
@@ -214,6 +216,47 @@ Describe 'Invoke-WindowAutoCheck' -Skip:(-not $isSta) {
         $gui.Worker = 'a check is already running'
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowAutoCheck -Gui $Gui } | Should -BeFalse
         Should -Invoke -ModuleName HelpdeskToolkit Invoke-WindowCheck -Times 0 -Exactly
+    }
+
+    It 'waits longer while the window is hidden next to the clock' {
+        $gui.Hidden = $true
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowAutoCheck -Gui $Gui } | Should -BeFalse
+        $gui.LastCheckAt = (Get-Date).AddMinutes(-31)
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowAutoCheck -Gui $Gui } | Should -BeTrue
+    }
+}
+
+Describe 'Get-AutoCheckInterval' -Skip:(-not $isSta) {
+    BeforeAll {
+        $gui = New-TestWindow
+        $gui.Settings = @{ Language = 'en'; Theme = 'System'; MonitorIntervalSeconds = 2; AutoCheckMinutes = 5; StartupElevation = 'Ask' }
+    }
+
+    It 'is <Expected> minutes with a setting of <Setting>, hidden: <Hidden>, on battery: <Battery>' -ForEach @(
+        @{ Setting = 5; Hidden = $false; Battery = $false; Expected = 5 }
+        @{ Setting = 5; Hidden = $false; Battery = $true; Expected = 15 }
+        @{ Setting = 5; Hidden = $true; Battery = $false; Expected = 30 }
+        @{ Setting = 5; Hidden = $true; Battery = $true; Expected = 60 }
+        @{ Setting = 15; Hidden = $false; Battery = $true; Expected = 15 }
+        @{ Setting = 60; Hidden = $true; Battery = $false; Expected = 60 }
+        @{ Setting = 60; Hidden = $false; Battery = $true; Expected = 60 }
+        @{ Setting = 0; Hidden = $true; Battery = $true; Expected = 0 }
+    ) {
+        if ($Battery) {
+            Mock -ModuleName HelpdeskToolkit Test-OnBattery { $true }
+        }
+        else {
+            Mock -ModuleName HelpdeskToolkit Test-OnBattery { $false }
+        }
+        $gui.Settings.AutoCheckMinutes = $Setting
+        $gui.Hidden = $Hidden
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Get-AutoCheckInterval -Gui $Gui } | Should -Be $Expected
+    }
+}
+
+Describe 'Test-OnBattery' {
+    It 'answers with yes or no' {
+        InModuleScope HelpdeskToolkit { Test-OnBattery } | Should -BeOfType [bool]
     }
 }
 
