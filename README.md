@@ -27,7 +27,7 @@ problems it found and what to do about them.
 | System | Computer name, Windows version and build, whether that version is still supported by Microsoft, install date, manufacturer and model, domain or workgroup, signed-in user, time zone, uptime, stability index, Windows activation, startup programs, scheduled tasks that are not part of Windows, power plan, Fast Startup, last startup duration\*, size of the user profiles\*, Windows 11 readiness (on Windows 10, with every requirement), the last System File Checker result, what Windows blamed for a slow startup\* |
 | Specifications | Processor with cache sizes and virtualization state, memory layout and free slots, every memory module (slot, speed, manufacturer, part number), graphics adapters with memory and driver date, displays, physical drives with firmware version, optical drives, audio devices, keyboards and pointing devices, motherboard, BIOS/UEFI, serial number, advice for an old BIOS, where the warranty is looked up |
 | Hardware | CPU load, memory usage and the top memory consumers, health of every physical drive, free space per disk (the drive Windows is installed on is marked, and a full data drive gets other advice than a full Windows drive), the largest folders of a disk that is running full, space that can be freed (temporary files, Downloads, Recycle Bin), hibernation file, page file, devices without a working driver, unsigned drivers, old drivers, battery charge and battery health (capacity left compared to a new battery), drive details (temperature, wear, power-on hours, uncorrected errors)\*, drives flagged for a disk check\*, temporary files of Windows\*, result of the last memory test |
-| Software | Installed programs with versions, recently installed programs, application crashes per program, browser extensions, default browser, programs that no longer get security updates, programs with a newer version (asked from winget), Microsoft Office with its update channel, size of the Outlook mailbox files |
+| Software | Installed programs with versions, recently installed programs, application crashes per program, browser extensions, default browser, programs that no longer get security updates, programs that are still listed although their uninstaller is gone, programs with a newer version (asked from winget), Microsoft Office with its update channel, size of the Outlook mailbox files |
 | Event Log | Unexpected shutdowns, blue screens, disk errors, hardware errors (WHEA), critical events and errors in the System and Application logs for the last N days, top sources |
 | Windows Update | Last installed update, updates waiting to be installed, updates that failed to install, pending restart, paused updates |
 | Security | Microsoft Defender real-time protection, definition age, tamper protection, last scan and threat history, firewall profiles, User Account Control, Remote Desktop, account type, members of the Administrators group, automatic sign-in, local accounts and the Guest account, shared folders, ports open to the network and the programs behind them, backup (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker on every drive\*, failed sign-ins\*, account lockouts\*, restore points\*, SmartScreen, memory integrity (Core isolation), LSA protection, SMB 1.0, automatic screen lock, programs that used the camera, the microphone and the location, USB storage devices that have been connected |
@@ -101,6 +101,8 @@ number of days of history) are remembered for the next start as well.
 - **Health score** from 0 to 100 sums the check up in one number: every Critical
   result takes 15 points off, every Warning 4. The line below the tiles says where the
   points went ("Points lost: Security -19, Software -8"), so the number can be read.
+- **Health score over time** draws the score of the last checks as a line, so it shows
+  at a glance whether the computer is getting better or worse.
 - **Since the last check** shows what is new, worse, better or resolved compared with
   the previous check of the same computer. The application keeps the last 30 reports
   for this.
@@ -151,6 +153,11 @@ are. A repeated check takes only a few seconds: the one thing that is slow to me
 and changes slowly, the sizes of the largest folders, is measured again every half
 hour instead of every time.
 
+Where a check costs more than it brings, it is repeated less often: every 30 minutes
+at most while the window is hidden next to the clock, every 15 on battery, and every 60
+when both apply. A slower setting stays as it is, and **Run check** always checks at
+once.
+
 A problem that was not there before is announced in a bar at the top of the window, and
 with a Windows notification while the window is not in front. A click leads straight to
 the result, which is framed so it is easy to find. A notice disappears when it is
@@ -198,8 +205,17 @@ Two options on the **Settings** page, both off at first:
   shortcut.
 
 Only one copy runs at a time: starting the application while it sits next to the clock
-brings its window back instead of opening a second one. A copy in the background needs
-a few hundred megabytes of memory, like the open window.
+brings its window back instead of opening a second one.
+
+The application is built to stay open without weighing on the computer. Every check
+runs in a short-lived process of its own, so its memory goes back to Windows when it
+is done. The open window uses about 200 MB (about 250 MB with the Live monitor
+running); hidden next to the clock it hands back what it does not need and stays at
+about 15 to 35 MB of working memory. See [Memory](#memory) for how.
+
+Should something go wrong inside the window, it stays open: the error is written to
+`app.log` in the folder of the application (**Settings > About > Open the folder**),
+and the status line says so.
 
 ### Language and theme
 
@@ -349,8 +365,10 @@ Other formats:
 3. Start **HelpdeskToolkit** from the Start menu.
 
 The installer is not digitally signed, so Windows SmartScreen shows "Windows protected
-your PC" the first time. Choose **More info** and then **Run anyway**. You can verify
-the download against `SHA256SUMS.txt` from the same release:
+your PC" the first time. Choose **More info** and then **Run anyway**. The message
+only says that Windows does not know the publisher of the file yet (a certificate for
+signing costs money every year); it says nothing about what the file does. You can
+verify the download against `SHA256SUMS.txt` from the same release:
 
 ```powershell
 Get-FileHash .\HelpdeskToolkit-Setup-<version>.exe -Algorithm SHA256
@@ -585,7 +603,7 @@ GitHub Actions runs the same script on Windows PowerShell 5.1 and PowerShell 7 f
 
 What keeps the application quick, and where to look when it is not:
 
-- The module has about 190 files with one function each. They are read into one text
+- The module has about 230 files with one function each. They are read into one text
   and loaded as one block, which takes a third of the time of loading them one by
   one. With the environment variable `HELPDESKTOOLKIT_LOAD_FILES` set to `1` they are
   loaded file by file again, so an error names its file and line; the tests do that.
@@ -599,6 +617,35 @@ What keeps the application quick, and where to look when it is not:
   eight threads no faster than one until the loop was written that way.
 - The Live monitor asks for the performance classes of Windows all at once
   (`Get-CimInstanceBatch`): one measurement takes about half a second instead of two.
+
+### Memory
+
+What keeps the window small, measured on the development computer with Windows
+PowerShell 5.1:
+
+| | Before | Now |
+|---|---|---|
+| Window open, first check done | about 470 MB | about 215 MB |
+| After several repeated checks, Live monitor open | 500 to 650 MB | about 250 MB |
+| Hidden next to the clock | as above | 15 to 35 MB working set |
+
+- A check loads a dozen Windows modules, and PowerShell never returns that memory
+  while the process lives. Every check therefore runs in a process of its own
+  (`HelpdeskToolkit\Invoke-CheckWorker.ps1`), which ends with the check. A runspace of
+  the window starts it, turns the lines it writes into progress records and reads the
+  report it leaves as JSON (`Invoke-WindowCheck`, `Receive-WindowCheck`).
+- The folder sizes a repeated check may reuse are kept in a file in the folder of the
+  application, because the process that measured them is gone (`Get-ProcessCache`).
+- After a check, and when the window is hidden, the memory .NET no longer uses is
+  collected and handed back to Windows (`Optimize-ProcessMemory`).
+- A hidden window gives up the runspace of the Live monitor and the connections it
+  measures with. The loop is told to end, and the runspace is released once it has
+  (`Clear-WindowWorker`).
+
+`Write-AppLog` writes what went wrong to `app.log` in the folder of the application.
+Every timer of the window catches its own errors: a timer whose handler fails is
+never called again by Windows, which would leave a window that looks alive and no
+longer updates.
 
 ### Building a release
 

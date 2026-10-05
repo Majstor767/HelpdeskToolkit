@@ -87,6 +87,11 @@ B) Bez instalacije
 ------------------
 
 - Je li se pokrenula iz prve? Ako nije: što je pisalo (slika ekrana pomaže).
+- Ako se nešto pokvari dok radi: aplikacija ostaje otvorena, a u statusnom retku
+  piše da je greška zapisana u app.log. Ta mi datoteka najviše pomaže; do nje
+  vodi Settings > About > Open the folder.
+- Koliko memorije troši nakon sat-dva rada (Task Manager > Details >
+  powershell.exe)? Otvorena bi trebala ostati oko 200-250 MB.
 - Je li nešto prikazano krivo za tvoje računalo, ili nešto nedostaje?
 - Je li jasno što koji rezultat znači i što treba napraviti?
 - Je li negdje sporo, zbunjujuće ili ružno?

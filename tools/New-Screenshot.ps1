@@ -105,6 +105,27 @@ $pictures = @{
 & $module {
     param($SampleJson, $Pictures)
 
+    # Invented scores of the checks of the weeks before, so the Overview shows how the
+    # score changed. The line is drawn for the size of its area, which the window only
+    # knows after it has laid the card out: hence the second call.
+    $showTrend = {
+        param($Gui, $Report)
+
+        $first = [datetime]'2026-09-10 08:57:10'
+        $day = 0
+        $points = @(
+            foreach ($score in 92, 92, 88, 88, 84, 77, 77, 81, 73, 73, 69, 77) {
+                [PSCustomObject]@{ Time = $first.AddDays($day); Score = $score }
+                $day += 2
+            }
+        )
+        $points += [PSCustomObject]@{ Time = [datetime]$Report.GeneratedAt; Score = [int]$Report.Score }
+        $Gui.ScoreHistory = $points
+        Show-WindowTrend -Gui $Gui
+        $Gui.Window.UpdateLayout()
+        Show-WindowTrend -Gui $Gui
+    }
+
     # Draws the content of the window into a PNG file.
     $savePicture = {
         param($Window, $Path)
@@ -257,6 +278,7 @@ $pictures = @{
 
         # The Overview page: verdict, score, changes and the problems with their fixes.
         Show-WindowReport -Gui $gui -Report $report -Previous $previous
+        & $showTrend $gui $report
         & $savePicture $gui.Window $Pictures.Window
 
         # One category, reached through a notice: an automatic check has found that the
@@ -449,6 +471,7 @@ $pictures = @{
         $gui = & $newWindow 'Dark'
         try {
             Show-WindowReport -Gui $gui -Report $report -Previous $previous
+            & $showTrend $gui $report
             & $savePicture $gui.Window $Pictures.Dark
         }
         finally {

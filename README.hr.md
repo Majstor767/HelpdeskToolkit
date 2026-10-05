@@ -30,7 +30,7 @@ engleskom, pa su i nazivi u ovom dokumentu navedeni onako kako pišu na englesko
 | System | Ime računala, verzija i build Windowsa, ima li ta verzija još Microsoftovu podršku, datum instalacije, proizvođač i model, domena ili radna grupa, prijavljeni korisnik, vremenska zona, uptime, indeks stabilnosti, aktivacija Windowsa, programi koji se pokreću sa sustavom, zakazani zadaci koji nisu dio Windowsa, plan napajanja, Fast Startup, trajanje zadnjeg pokretanja\*, veličina korisničkih profila\*, spremnost za Windows 11 (na Windowsu 10, sa svakim zahtjevom posebno), zadnji rezultat System File Checkera, što je Windows okrivio za sporo pokretanje\* |
 | Specifications | Procesor s veličinom cache memorije i stanjem virtualizacije, raspored memorije i slobodni utori, svaki memorijski modul (utor, brzina, proizvođač, kataloški broj), grafičke kartice s memorijom i datumom drivera, monitori, fizički diskovi s verzijom firmwarea, optički pogoni, audio uređaji, tipkovnice i pokazivački uređaji, matična ploča, BIOS/UEFI, serijski broj, savjet za stari BIOS, gdje se provjerava jamstvo |
 | Hardware | Opterećenje CPU-a, zauzeće RAM-a i najveći potrošači memorije, zdravlje svakog fizičkog diska, slobodan prostor po disku (disk na kojem je Windows je označen, a pun podatkovni disk dobiva drugačiji savjet nego pun disk s Windowsom), najveće mape na disku koji se puni, prostor koji se može osloboditi (privremene datoteke, Downloads, koš za smeće), datoteka hibernacije, page file, uređaji bez ispravnog drivera, nepotpisani driveri, stari driveri, napunjenost i zdravlje baterije (preostali kapacitet u odnosu na novu bateriju), detalji diska (temperatura, istrošenost, sati rada, neispravljene greške)\*, diskovi označeni za provjeru\*, privremene datoteke Windowsa\*, rezultat zadnjeg testa memorije |
-| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, proširenja preglednika, zadani preglednik, programi koji više ne dobivaju sigurnosna ažuriranja, programi za koje postoji novija verzija (pita se winget), Microsoft Office s kanalom ažuriranja, veličina Outlook datoteka s poštom |
+| Software | Instalirani programi s verzijama, nedavno instalirani programi, rušenja aplikacija po programu, proširenja preglednika, zadani preglednik, programi koji više ne dobivaju sigurnosna ažuriranja, programi koji su još na popisu iako im je program za deinstalaciju nestao, programi za koje postoji novija verzija (pita se winget), Microsoft Office s kanalom ažuriranja, veličina Outlook datoteka s poštom |
 | Event Log | Neočekivana gašenja, plavi ekrani, greške diska, greške hardvera (WHEA), kritični događaji i greške u System i Application logu u zadnjih N dana, najčešći izvori |
 | Windows Update | Zadnje instalirano ažuriranje, ažuriranja koja čekaju instalaciju, ažuriranja koja se nisu uspjela instalirati, čeka li se restart, jesu li ažuriranja pauzirana |
 | Security | Zaštita u stvarnom vremenu, starost definicija, zaštita od neovlaštenih izmjena, zadnje skeniranje i povijest prijetnji Microsoft Defendera, firewall profili, User Account Control, Remote Desktop, vrsta računa, članovi grupe Administrators, automatska prijava, lokalni računi i račun Guest, dijeljene mape, portovi otvoreni prema mreži i programi koji na njima slušaju, sigurnosne kopije (File History, OneDrive, System Restore), Secure Boot, TPM\*, BitLocker na svakom disku\*, neuspjele prijave\*, zaključani računi\*, točke vraćanja\*, SmartScreen, integritet memorije (Core isolation), LSA zaštita, SMB 1.0, automatsko zaključavanje zaslona, programi koji su koristili kameru, mikrofon i lokaciju, USB memorije koje su bile spojene |
@@ -104,6 +104,8 @@ povijesti) također se pamte do sljedećeg pokretanja.
 - **Health score** od 0 do 100 sažima provjeru u jedan broj: svaki rezultat Critical
   oduzima 15 bodova, a svaki Warning 4. Redak ispod pločica kaže kamo su bodovi otišli
   ("Points lost: Security -19, Software -8"), pa se broj može pročitati.
+- **Health score over time** crta ocjenu zadnjih provjera kao liniju, pa se na prvi
+  pogled vidi ide li računalu na bolje ili na gore.
 - **Since the last check** pokazuje što je novo, gore, bolje ili riješeno u odnosu na
   prethodnu provjeru istog računala. Aplikacija za to čuva zadnjih 30 izvještaja.
 - **Timeline** prikazuje što se na računalu događalo zadnjih tjedana, grupirano po
@@ -149,6 +151,10 @@ stranica, pretraga i mjesto do kojeg si listao ostaju kakvi jesu. Ponovljena pro
 traje samo nekoliko sekundi: jedino što se sporo mjeri, a sporo se i mijenja, veličine
 najvećih mapa, mjeri se ponovno svakih pola sata umjesto svaki put.
 
+Gdje provjera košta više nego što donosi, ponavlja se rjeđe: najviše svakih 30 minuta
+dok je prozor skriven pokraj sata, svakih 15 na bateriji, a svakih 60 kad vrijedi
+oboje. Sporija postavka ostaje kakva jest, a **Run check** uvijek provjerava odmah.
+
 Problem kojeg prije nije bilo najavljuje se u traci na vrhu prozora, a dok prozor nije
 u prvom planu i Windows obavijesti. Klik vodi ravno na rezultat, koji je uokviren da ga
 je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
@@ -192,8 +198,16 @@ Dvije opcije na stranici **Settings**, obje isključene na početku:
   Kad opciju isključiš ili aplikaciju deinstaliraš, prečac se uklanja.
 
 Istovremeno radi samo jedna kopija: pokretanje aplikacije dok je pokraj sata vraća
-njezin prozor umjesto da otvori drugi. Kopija u pozadini treba nekoliko stotina
-megabajta memorije, kao i otvoren prozor.
+njezin prozor umjesto da otvori drugi.
+
+Aplikacija je napravljena da može ostati otvorena, a da ne opterećuje računalo. Svaka
+provjera radi u vlastitom kratkotrajnom procesu, pa se njezina memorija vraća
+Windowsima čim završi. Otvoren prozor troši oko 200 MB (oko 250 MB dok radi Live
+monitor); skriven pokraj sata vraća ono što mu ne treba i ostaje na oko 15 do 35 MB
+radne memorije. Kako, piše pod [Memorija](#memorija).
+
+Ako nešto u prozoru pođe po zlu, prozor ostaje otvoren: greška se zapiše u `app.log`
+u mapi aplikacije (**Settings > About > Open the folder**), a statusni redak to kaže.
 
 ### Jezik i tema
 
@@ -343,6 +357,8 @@ Ostali formati:
 
 Instalacijski program nije digitalno potpisan, pa Windows SmartScreen pri prvom
 pokretanju prikaže "Windows protected your PC". Odaberi **More info** pa **Run anyway**.
+Poruka kaže samo da Windows još ne poznaje izdavača datoteke (certifikat za
+potpisivanje plaća se svake godine); o tome što datoteka radi ne govori ništa.
 Preuzetu datoteku možeš provjeriti prema `SHA256SUMS.txt` iz istog izdanja:
 
 ```powershell
@@ -575,7 +591,7 @@ GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 
 
 Što aplikaciju čini brzom i gdje gledati kad nije:
 
-- Modul ima oko 190 datoteka s po jednom funkcijom. Čitaju se u jedan tekst i učitavaju
+- Modul ima oko 230 datoteka s po jednom funkcijom. Čitaju se u jedan tekst i učitavaju
   kao jedan blok, što traje trećinu vremena učitavanja jedne po jedne. S varijablom
   okruženja `HELPDESKTOOLKIT_LOAD_FILES` postavljenom na `1` opet se učitavaju datoteku
   po datoteku, pa greška navodi svoju datoteku i redak; testovi rade upravo tako.
@@ -589,6 +605,34 @@ GitHub Actions pokreće istu skriptu na Windows PowerShellu 5.1 i PowerShellu 7 
   izmjenjivati, pa osam niti nije bilo brže od jedne dok petlja nije tako napisana.
 - Live monitor traži Windowsove klase s podacima o performansama sve odjednom
   (`Get-CimInstanceBatch`): jedno mjerenje traje oko pola sekunde umjesto dvije.
+
+### Memorija
+
+Što prozor drži malim, izmjereno na razvojnom računalu s Windows PowerShellom 5.1:
+
+| | Prije | Sada |
+|---|---|---|
+| Prozor otvoren, prva provjera gotova | oko 470 MB | oko 215 MB |
+| Nakon više ponovljenih provjera, Live monitor otvoren | 500 do 650 MB | oko 250 MB |
+| Skriven pokraj sata | kao gore | 15 do 35 MB radnog skupa |
+
+- Provjera učita desetak Windowsovih modula, a PowerShell tu memoriju ne vraća dok
+  proces živi. Zato svaka provjera radi u vlastitom procesu
+  (`HelpdeskToolkit\Invoke-CheckWorker.ps1`), koji završava s provjerom. Pokreće ga
+  runspace prozora, koji retke što ih proces ispisuje pretvara u zapise o napretku i
+  čita izvještaj koji proces ostavi kao JSON (`Invoke-WindowCheck`,
+  `Receive-WindowCheck`).
+- Veličine mapa koje ponovljena provjera smije ponovno upotrijebiti čuvaju se u
+  datoteci u mapi aplikacije, jer procesa koji ih je izmjerio više nema
+  (`Get-ProcessCache`).
+- Nakon provjere, i kad se prozor sakrije, memorija koju .NET više ne koristi skuplja
+  se i vraća Windowsima (`Optimize-ProcessMemory`).
+- Skriven prozor odriče se runspacea Live monitora i veza kojima mjeri. Petlji se
+  kaže da završi, a runspace se otpušta kad završi (`Clear-WindowWorker`).
+
+`Write-AppLog` zapisuje što je pošlo po zlu u `app.log` u mapi aplikacije. Svaki timer
+prozora sam hvata svoje greške: timer čiji rukovatelj padne Windows više nikad ne
+poziva, pa bi ostao prozor koji izgleda živ, a više se ne osvježava.
 
 ### Slaganje izdanja
 

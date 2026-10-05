@@ -42,11 +42,23 @@ The first public version. It will be released as 1.0.0.
     System File Checker result, and what Windows blamed for a slow startup.
   - Hardware: the result of the last memory test.
   - Software: programs that no longer get security updates, programs for which
-    winget knows a newer version, Microsoft Office with its update channel, and the
-    size of the Outlook mailbox files.
+    winget knows a newer version, Microsoft Office with its update channel, the
+    size of the Outlook mailbox files, and programs that are still listed as
+    installed although their uninstaller is gone.
   - Specifications: advice for an old BIOS, and where the warranty is looked up.
 - `Get-ChangeTimeline`: the installations, updates, crashes and failures of the last
   weeks on one time line, from what Windows records for Reliability Monitor.
+
+### Memory and reliability
+
+- The Overview draws the health score of the last checks as a line.
+- Every check runs in a short-lived process of its own, so its memory goes back to
+  Windows when it is done. The open window stays at about 200 to 250 MB instead of
+  growing to 500 MB and more; hidden next to the clock it uses 15 to 35 MB.
+- The automatic check is repeated less often while the window is hidden (every 30
+  minutes at most) or the computer runs on battery (15, and 60 when both apply).
+- An unexpected error no longer ends the application without a trace: it is written
+  to `app.log` in the folder of the application and the window stays open.
 
 ### The window
 
