@@ -10,9 +10,11 @@ A diagnostic tool for Windows PCs, built for helpdesk and IT support work. One c
 one command checks the state of the computer and produces a clear report with the
 problems it found and what to do about them.
 
-- **Read-only.** It only reads information and never changes anything on the system.
-  What it writes is its own: its settings, the reports and, when you tick "Start with
-  Windows", one shortcut in your Startup folder.
+- **Read-only.** The checks only read information and never change anything on the
+  system. What the tool writes is its own: its settings, the reports and, when you
+  tick "Start with Windows", one shortcut in your Startup folder. The one thing it can
+  start that changes the computer is the uninstaller of a program you click in the
+  disk usage list, and only after you have confirmed it.
 - **No administrator rights needed.** Checks that need them are skipped and marked "Requires admin".
 - **Nothing to install besides the tool.** It is written in PowerShell and uses what Windows already has.
 
@@ -124,6 +126,14 @@ number of days of history) are remembered for the next start as well.
   search, the report), they come as Critical, Warning, OK, Info.
 - **Search** looks through all results at once, and the status filter narrows the
   list down, for example to the problems only.
+- **What this means and how to fix it:** below the recommended fix of every Warning
+  and Critical result is a link to the page of Microsoft that explains the problem
+  (free up drive space, troubleshoot Windows Update, blue screens, firewall, printers
+  and so on); a problem without such a page gets a web search for its name.
+- **Events with their numbers:** the results of the event log list every kind of
+  error under "Show more", with its source, its event number and how often it
+  happened ("Event 10016: DistributedCOM (45x)"). A click on a line searches the web
+  for exactly that event, which is how one finds out what it means and how it is fixed.
 - **Copy summary** puts a short text version of the result on the clipboard, ready to
   paste into a ticket or an e-mail.
 - **Open HTML report** saves the report and opens it in the browser; **Save as...**
@@ -231,9 +241,11 @@ computer is doing right now:
   every physical disk, and the used space of every drive letter (the meter turns orange
   and red by the same limits as the disk space check)
 - **What takes up the space:** every drive letter can be opened to see its largest
-  installed programs and folders. A click on a program opens the *Installed apps* page
-  of Windows, where it is uninstalled, and copies its name for the search field there;
-  a button opens the page where files are cleaned up
+  installed programs and folders. A click on a program asks whether to uninstall it
+  and then starts the program's own uninstaller, the one Windows starts from
+  *Installed apps*; a program without one (an app from the Store) opens that page
+  instead, with its name copied for the search field. A button opens the page where
+  files are cleaned up
 - **Network:** download and upload rate with a history graph, the link speed of every
   adapter, and how quickly the router and the internet answer a ping. The **Internet**
   tile at the top shows the answer time, its average and the share of lost answers,
@@ -261,8 +273,12 @@ Tools at the top of the page:
   several measurements in a row, or a graphics card gets hotter than 85 °C. A single
   peak is normal and raises no alert.
 
-There is deliberately no button that ends or uninstalls a program: the tool only reads.
-It shows what to remove and opens the place in Windows where that is done.
+There is deliberately no button that ends a program, and nothing is removed by the tool
+itself: it shows what takes up the space, and for a program it starts the uninstaller
+the maker of the program provided, after a question. That uninstaller asks again, and
+asks Windows for administrator rights where it needs them. A program that is installed
+for one user only is never started from a window that runs with administrator rights;
+its page in Windows is opened instead.
 
 ![The Live monitor page with the advice for a full memory](docs/screenshot-monitor.png)
 
@@ -485,7 +501,7 @@ real connection between two computers.
 
 ## Configuration
 
-Five data files control the behaviour; no code has to be changed:
+Six data files control the behaviour; no code has to be changed:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   the limits for Warning and Critical (for example free disk space below 15 % and 5 %),
@@ -504,6 +520,11 @@ Five data files control the behaviour; no code has to be changed:
   the programs whose maker no longer releases security updates, with the date their
   support ended (taken from the lifecycle pages of the makers; add a line when another
   version runs out).
+
+- [`HelpdeskToolkit/Config/Help.psd1`](HelpdeskToolkit/Config/Help.psd1):
+  the page that explains each problem, and the address of the web search used for
+  everything else. Only the name of a check, or the source and number of an event,
+  ever becomes part of an address; the value of a result never does.
 
 The "Typical" values are rules of thumb for a healthy office PC. They are shown for
 comparison only and never affect the status.
@@ -595,6 +616,7 @@ The steps for a release, the PowerShell Gallery and winget are written down in
 .\tools\New-SampleReport.ps1        # docs\sample-report.html and .json (fictional data)
 .\tools\New-Screenshot.ps1          # docs\screenshot-*.png and docs\demo.gif
 .\tools\New-AppIcon.ps1             # the application icon
+.\tools\Test-HelpLink.ps1           # asks every page in Config\Help.psd1 whether it still exists
 ```
 
 ## License

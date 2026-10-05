@@ -63,6 +63,11 @@ B) Bez instalacije
 - Sekcije lijevo (System, Hardware, Security ...): problemi su na vrhu, svaki s
   rješenjem pokraj; ostalo su pločice, klik na pločicu otvara detalje. Brojači na
   vrhu (Critical, Warning, OK, Info) filtriraju stranicu.
+- Uz svaki problem je link "What this means and how to fix it" koji otvara stranicu s
+  objašnjenjem. U Event Logu "Show more" lista svaku grešku s brojem događaja; klik
+  na nju pretražuje web za taj događaj.
+- Live monitor > disk > "What takes up the space": klik na program pita želiš li ga
+  deinstalirati i pokreće njegovu deinstalaciju. Bez tvoje potvrde ne pokreće ništa.
 - Timeline: što se na računalu događalo zadnjih tjedana (instalacije, ažuriranja,
   rušenja), po danima. Crvena točka je kvar, plava promjena.
 - Software: programi za koje postoji novija verzija i programi bez podrške.

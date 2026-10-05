@@ -82,8 +82,9 @@ function ConvertTo-WindowItem {
             }
         )
 
-        # The details, line by line. An event reads "Event 10016: DistributedCOM, 45
-        # times" and opens the search for that event; any other line is plain text.
+        # The details, line by line. An event reads "Event 10016: DistributedCOM (45x)",
+        # with how often it happened, and opens the search for that event; any other
+        # line is plain text.
         $eventLinks = @{}
         foreach ($link in $help | Where-Object { $_.Kind -eq 'Event' }) {
             $eventLinks[$link.Line] = $link
@@ -93,7 +94,7 @@ function ConvertTo-WindowItem {
                 if ($eventLinks.ContainsKey($line)) {
                     $link = $eventLinks[$line]
                     [PSCustomObject]@{
-                        Text = (Get-LocalizedText 'Event {0}: {1}, {2} times') -f $link.Id, $link.Source, $link.Count
+                        Text = (Get-LocalizedText 'Event {0}: {1} ({2}x)') -f $link.Id, $link.Source, $link.Count
                         Url  = $link.Url
                     }
                 }

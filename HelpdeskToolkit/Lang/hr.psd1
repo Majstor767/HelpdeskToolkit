@@ -356,8 +356,6 @@
         'Temperature' = 'Temperatura'
         'Fan' = 'Ventilator'
         'Power draw' = 'Potrošnja'
-        'Click to open Installed apps of Windows, where this program is removed' = 'Klikni da otvoriš Instalirane aplikacije u Windowsu, gdje se ovaj program uklanja'
-        'To remove a program, click it: Installed apps of Windows opens, where you choose it and click Uninstall. This application itself removes nothing.' = 'Da ukloniš program, klikni ga: otvorit će se Instalirane aplikacije u Windowsu, gdje ga odabereš i klikneš Deinstaliraj. Ova aplikacija sama ništa ne uklanja.'
         'Installed apps is open. The name "{0}" was copied: paste it into the search field there (Ctrl+V), then choose Uninstall.' = 'Instalirane aplikacije su otvorene. Naziv "{0}" je kopiran: zalijepi ga ondje u polje za pretragu (Ctrl+V), pa odaberi Deinstaliraj.'
         'Installed apps is open. Look for "{0}" there and choose Uninstall.' = 'Instalirane aplikacije su otvorene. Potraži ondje "{0}" i odaberi Deinstaliraj.'
         'Name' = 'Naziv'
@@ -1004,9 +1002,20 @@
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
 
+        # --- Uninstalling a program -------------------------------------------------
+        'Click to uninstall this program: its own uninstaller starts after you confirm' = 'Klikni za deinstalaciju ovog programa: nakon tvoje potvrde pokreće se njegov vlastiti program za deinstalaciju'
+        'To remove a program, click it: after you confirm, its own uninstaller starts, the same one Windows starts from Installed apps. Nothing is removed before you confirm there too.' = 'Da ukloniš program, klikni ga: nakon tvoje potvrde pokreće se njegov vlastiti program za deinstalaciju, isti koji Windows pokreće iz Instaliranih aplikacija. Ništa se ne uklanja dok i ondje ne potvrdiš.'
+        'Uninstall a program'                                  = 'Deinstalacija programa'
+        'Start the uninstaller of "{0}"?'                      = 'Pokrenuti deinstalaciju programa "{0}"?'
+        'The uninstaller of the program opens, the same one Windows starts from Installed apps. Follow its window; it can ask for administrator rights.' = 'Otvorit će se program za deinstalaciju, isti koji Windows pokreće iz Instaliranih aplikacija. Prati njegov prozor; može zatražiti administratorska prava.'
+        'Nothing was started.'                                 = 'Ništa nije pokrenuto.'
+        'The uninstaller of "{0}" was started. Follow its window, and measure the drive again when it is done.' = 'Deinstalacija programa "{0}" je pokrenuta. Prati njezin prozor, a kad završi, ponovno izmjeri disk.'
+        'The uninstaller of "{0}" did not start.'              = 'Deinstalacija programa "{0}" nije se pokrenula.'
+        '"{0}" is installed for one user only, so its uninstaller is not started with administrator rights.' = '"{0}" je instaliran samo za jednog korisnika, pa se njegova deinstalacija ne pokreće s administratorskim pravima.'
+
         # --- Where a problem is explained -------------------------------------------
         'What this means and how to fix it'                    = 'Što ovo znači i kako se popravlja'
-        'Event {0}: {1}, {2} times'                            = 'Događaj {0}: {1}, {2} puta'
+        'Event {0}: {1} ({2}x)'                                = 'Događaj {0}: {1} ({2}x)'
         'Look up what this event means and how it is fixed'    = 'Potraži što ovaj događaj znači i kako se popravlja'
         'Search the web for this problem'                      = 'Potraži ovaj problem na webu'
         'The page was opened in the browser.'                  = 'Stranica je otvorena u pregledniku.'

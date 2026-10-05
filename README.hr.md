@@ -10,9 +10,11 @@ Dijagnostički alat za Windows računala, namijenjen radu u helpdesku i IT podr�
 klikom ili jednom naredbom provjeri stanje računala i napravi pregledan izvještaj s
 pronađenim problemima i preporukama što učiniti.
 
-- **Samo čita.** Alat samo čita podatke i nikad ništa ne mijenja na sustavu. Zapisuje
-  samo svoje: postavke, izvještaje i, ako označiš "Start with Windows", jedan prečac u
-  tvojoj mapi Startup.
+- **Samo čita.** Provjere samo čitaju podatke i nikad ništa ne mijenjaju na sustavu.
+  Alat zapisuje samo svoje: postavke, izvještaje i, ako označiš "Start with Windows",
+  jedan prečac u tvojoj mapi Startup. Jedino što može pokrenuti, a da mijenja računalo,
+  jest deinstalacija programa koji klikneš u popisu zauzeća diska, i to tek nakon tvoje
+  potvrde.
 - **Ne traži administratorska prava.** Provjere kojima trebaju preskače i označava s "Requires admin".
 - **Ne traži ništa osim samog alata.** Napisan je u PowerShellu i koristi ono što Windows već ima.
 
@@ -123,6 +125,14 @@ povijesti) također se pamte do sljedećeg pokretanja.
   pretraga, izvještaj), idu redom Critical, Warning, OK, Info.
 - **Pretraga** traži po svim rezultatima odjednom, a filtar statusa sužava popis, na
   primjer samo na probleme.
+- **Što ovo znači i kako se popravlja:** ispod preporučenog rješenja svakog rezultata
+  Warning i Critical nalazi se link na Microsoftovu stranicu koja objašnjava problem
+  (oslobađanje prostora, problemi s Windows Updateom, plavi ekran, vatrozid, pisači
+  i tako dalje); problem bez takve stranice dobije web pretragu svog naziva.
+- **Događaji s brojevima:** rezultati dnevnika događaja pod "Show more" listaju svaku
+  vrstu greške s izvorom, brojem događaja i koliko se puta dogodila ("Event 10016:
+  DistributedCOM (45x)"). Klik na redak pretražuje web točno za taj događaj; tako se
+  sazna što znači i kako se popravlja.
 - **Copy summary** stavlja kratak tekstualni sažetak u međuspremnik, spreman za
   lijepljenje u ticket ili e-mail.
 - **Open HTML report** sprema izvještaj i otvara ga u pregledniku, a **Save as...** ga
@@ -225,9 +235,11 @@ ovom trenutku:
   svakog fizičkog diska, i zauzeti prostor svakog slova diska (mjerač postaje narančast
   i crven prema istim pragovima kao provjera prostora na disku)
 - **Što zauzima prostor:** svako slovo diska može se otvoriti da se vide njegovi najveći
-  instalirani programi i mape. Klik na program otvara Windowsovu stranicu *Installed
-  apps*, na kojoj se deinstalira, i kopira njegov naziv za polje pretrage na toj
-  stranici; gumb otvara stranicu na kojoj se čiste datoteke
+  instalirani programi i mape. Klik na program pita želiš li ga deinstalirati i zatim
+  pokreće vlastitu deinstalaciju tog programa, istu koju Windows pokreće iz *Installed
+  apps*; za program koji je nema (aplikacija iz Storea) otvara se ta stranica, s
+  njegovim nazivom kopiranim za polje pretrage. Gumb otvara stranicu na kojoj se čiste
+  datoteke
 - **Mreža:** brzina preuzimanja i slanja s grafom povijesti, brzina veze svakog adaptera
   te koliko brzo router i internet odgovaraju na ping. Pločica **Internet** na vrhu
   prikazuje vrijeme odgovora, prosjek i udio izgubljenih odgovora, s vlastitom
@@ -255,8 +267,12 @@ Alati na vrhu stranice:
   mjerenja zaredom, ili kad se grafička kartica zagrije iznad 85 °C. Jedan kratki skok
   je normalan i ne izaziva upozorenje.
 
-Gumba koji gasi ili deinstalira program namjerno nema: alat samo čita. Pokaže što
-ukloniti i otvori mjesto u Windowsu gdje se to radi.
+Gumba koji gasi program namjerno nema, a alat sam ništa ne uklanja: pokaže što zauzima
+prostor, a za program nakon pitanja pokrene deinstalaciju koju je dao proizvođač tog
+programa. Ta deinstalacija pita još jednom i, gdje joj trebaju, od Windowsa traži
+administratorska prava. Program instaliran samo za jednog korisnika nikad se ne pokreće
+iz prozora koji radi s administratorskim pravima; umjesto toga otvara se njegova
+stranica u Windowsu.
 
 ![Stranica Live monitor sa savjetima za punu memoriju](docs/screenshot-monitor.png)
 
@@ -477,7 +493,7 @@ preko stvarne veze između dva računala.
 
 ## Konfiguracija
 
-Ponašanje određuje pet podatkovnih datoteka; kod se ne mora mijenjati:
+Ponašanje određuje šest podatkovnih datoteka; kod se ne mora mijenjati:
 
 - [`HelpdeskToolkit/Config/Thresholds.psd1`](HelpdeskToolkit/Config/Thresholds.psd1):
   pragovi za Warning i Critical (npr. slobodan prostor na disku ispod 15 % i 5 %),
@@ -496,6 +512,10 @@ Ponašanje određuje pet podatkovnih datoteka; kod se ne mora mijenjati:
   programi za koje proizvođač više ne izdaje sigurnosna ažuriranja, s datumom kraja
   podrške (preuzeto sa stranica proizvođača o životnom ciklusu; kad istekne još jedna
   verzija, dodaje se jedan redak).
+- [`HelpdeskToolkit/Config/Help.psd1`](HelpdeskToolkit/Config/Help.psd1):
+  stranica koja objašnjava pojedini problem i adresa web pretrage za sve ostalo. U
+  adresu ulazi samo naziv provjere, ili izvor i broj događaja; vrijednost rezultata
+  nikad.
 
 Vrijednosti "Typical" su iskustvene, okvirne vrijednosti za zdravo uredsko računalo.
 Služe samo za usporedbu i nikad ne utječu na status.
@@ -585,6 +605,7 @@ izdanje, PowerShell Gallery i winget zapisani su u [docs/publishing.md](docs/pub
 .\tools\New-SampleReport.ps1        # docs\sample-report.html i .json (izmišljeni podaci)
 .\tools\New-Screenshot.ps1          # docs\screenshot-*.png i docs\demo.gif
 .\tools\New-AppIcon.ps1             # ikona aplikacije
+.\tools\Test-HelpLink.ps1           # pita svaku stranicu iz Config\Help.psd1 postoji li još
 ```
 
 ## Licenca

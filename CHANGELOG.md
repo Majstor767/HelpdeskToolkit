@@ -55,6 +55,11 @@ The first public version. It will be released as 1.0.0.
 - Overview with the problems and their fixes, a health score from 0 to 100 and the
   changes since the previous check of the same computer.
 - A button next to a fix opens the page of Windows where the fix is made.
+- Below the fix of every problem, a link to the page of Microsoft that explains it,
+  or a web search for its name. The results of the event log list every kind of
+  event with its event number under "Show more"; a click looks that event up.
+- A click on a program in "What takes up the space" starts the program's own
+  uninstaller, after a question; a program without one opens Installed apps.
 - A side bar in the manner of Windows 11: an icon for every page, the check categories
   under a heading of their own, a bar that marks the open page, the number of problems
   per category, and the report actions, the rights and the settings below.

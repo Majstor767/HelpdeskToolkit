@@ -147,9 +147,9 @@ Describe 'The links of a result card' {
         $item = Get-TestItem -Result $result
 
         @($item.MoreItems).Count | Should -Be 2
-        $item.MoreItems[0].Text | Should -Be 'Event 10016: DistributedCOM, 45 times'
+        $item.MoreItems[0].Text | Should -Be 'Event 10016: DistributedCOM (45x)'
         $item.MoreItems[0].Url | Should -Match 'event%20ID%2010016'
-        $item.MoreItems[1].Text | Should -Be 'Event 7031: Service Control Manager, 16 times'
+        $item.MoreItems[1].Text | Should -Be 'Event 7031: Service Control Manager (16x)'
         # The search already is the explanation; no second, vaguer link below the fix.
         @($item.Links).Count | Should -Be 0
         # The one text the search field looks through stays as it was.
@@ -261,7 +261,7 @@ Describe 'The texts of the links' {
         foreach ($table in $croatian.Values | Where-Object { $_ -is [hashtable] }) {
             foreach ($key in $table.Keys) { $texts[$key] = $table[$key] }
         }
-        foreach ($text in 'What this means and how to fix it', 'Search the web for this problem', 'Event {0}: {1}, {2} times',
+        foreach ($text in 'What this means and how to fix it', 'Search the web for this problem', 'Event {0}: {1} ({2}x)',
             'Look up what this event means and how it is fixed', 'The page was opened in the browser.', 'The page could not be opened: {0}') {
             $texts[$text] | Should -Not -BeNullOrEmpty -Because "'$text' is shown to the user"
         }
