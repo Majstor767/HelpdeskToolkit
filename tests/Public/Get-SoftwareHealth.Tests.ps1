@@ -30,8 +30,8 @@ Describe 'Get-SoftwareHealth' {
             $results = Get-SoftwareHealth
         }
 
-        It 'returns seven results in the Software category' {
-            @($results).Count | Should -Be 7
+        It 'returns eight results in the Software category' {
+            @($results).Count | Should -Be 8
             $results.Category | Sort-Object -Unique | Should -Be 'Software'
         }
 
@@ -52,6 +52,12 @@ Describe 'Get-SoftwareHealth' {
             $crashes.Value | Should -Be '0 in the last 7 days'
             $crashes.Allowed | Should -Be '0 - 5'
             $crashes.Typical | Should -Be 'typical crashes'
+        }
+
+        It 'finds no leftover entries where every program can still be removed' {
+            $leftover = $results | Where-Object Check -eq 'Leftover program entries'
+            $leftover.Status | Should -Be 'OK'
+            $leftover.Value | Should -Be 'None found'
         }
 
         It 'reports the default browser by its product name' {
@@ -125,6 +131,37 @@ Describe 'Get-SoftwareHealth' {
         It 'is reported as unavailable when the event log cannot be read' {
             Mock -ModuleName HelpdeskToolkit Get-WinEvent { throw 'The event log service is not running' }
             (Get-SoftwareHealth | Where-Object Check -eq 'Application crashes').Value | Should -Be 'Unavailable'
+        }
+    }
+
+    Context 'when programs are listed whose uninstaller is gone' {
+        BeforeAll {
+            Mock -ModuleName HelpdeskToolkit Get-InstalledProgram {
+                foreach ($name in 'Old Game', 'Contoso Office', 'Archive Tool', 'Photo Viewer', 'Backup Agent', 'Chat Client') {
+                    [PSCustomObject]@{ Name = $name; Version = '1.0'; InstallDate = $null; UninstallString = "C:\Programs\$name\unins000.exe"; ProductCode = '' }
+                }
+            }
+            # Only what is left of these three is the entry in the list.
+            Mock -ModuleName HelpdeskToolkit Test-UninstallerMissing { $Program.Name -in 'Old Game', 'Photo Viewer', 'Chat Client' }
+        }
+
+        It 'names them, as information and with what can be done about them' {
+            $leftover = Get-SoftwareHealth | Where-Object Check -eq 'Leftover program entries'
+            $leftover.Status | Should -Be 'Info' -Because 'a leftover entry does no harm'
+            $leftover.Value | Should -Be '3 entries whose uninstaller is gone: Chat Client, Old Game, Photo Viewer'
+            $leftover.Recommendation | Should -Match 'install the program again and then uninstall it properly'
+        }
+
+        It 'writes "entry" for a single one' {
+            Mock -ModuleName HelpdeskToolkit Test-UninstallerMissing { $Program.Name -eq 'Old Game' }
+            (Get-SoftwareHealth | Where-Object Check -eq 'Leftover program entries').Value | Should -Be '1 entry whose uninstaller is gone: Old Game'
+        }
+
+        It 'puts the names that do not fit behind "Show more"' {
+            Mock -ModuleName HelpdeskToolkit Test-UninstallerMissing { $true }
+            $leftover = Get-SoftwareHealth | Where-Object Check -eq 'Leftover program entries'
+            $leftover.Value | Should -Be '6 entries whose uninstaller is gone: Archive Tool, Backup Agent, Chat Client, Contoso Office and 2 more'
+            $leftover.Details | Should -Be @('Old Game', 'Photo Viewer')
         }
     }
 

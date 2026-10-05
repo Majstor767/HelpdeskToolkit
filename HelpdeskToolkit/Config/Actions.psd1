@@ -77,6 +77,7 @@
     'Application crashes'               = @{ Label = 'Open Event Viewer'; Target = 'eventvwr.msc' }
     'Default browser'                   = @{ Label = 'Open Default apps'; Target = 'ms-settings:defaultapps' }
     'Unsupported programs'              = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
+    'Leftover program entries'          = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
     'Program updates'                   = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
     'Microsoft Office'                  = @{ Label = 'Open Installed apps'; Target = 'ms-settings:appsfeatures' }
 

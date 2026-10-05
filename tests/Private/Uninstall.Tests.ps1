@@ -130,6 +130,89 @@ Describe 'Get-UninstallCommand' {
     }
 }
 
+Describe 'Split-UninstallString' {
+    It 'takes a quoted file apart from its arguments' {
+        $command = InModuleScope HelpdeskToolkit { Split-UninstallString -Text '"C:\Program Files\Contoso\unins000.exe" /SILENT /NORESTART' }
+        $command.FilePath | Should -Be 'C:\Program Files\Contoso\unins000.exe'
+        $command.Arguments | Should -Be '/SILENT /NORESTART'
+    }
+
+    It 'ends an unquoted file at the first .exe' {
+        $command = InModuleScope HelpdeskToolkit { Split-UninstallString -Text 'C:\Program Files\Contoso\uninstall.exe /S' }
+        $command.FilePath | Should -Be 'C:\Program Files\Contoso\uninstall.exe'
+        $command.Arguments | Should -Be '/S'
+    }
+
+    It 'puts the folder in place of a variable' {
+        $command = InModuleScope HelpdeskToolkit { Split-UninstallString -Text '"%WINDIR%\Contoso\remove.exe"' }
+        $command.FilePath | Should -Be (Join-Path -Path $env:WINDIR -ChildPath 'Contoso\remove.exe')
+        $command.Arguments | Should -Be ''
+    }
+
+    It 'returns nothing for <Name>' -ForEach @(
+        @{ Name = 'no text'; Text = '' }
+        @{ Name = 'spaces only'; Text = '   ' }
+        @{ Name = 'a text that names no program'; Text = 'ask the administrator' }
+    ) {
+        InModuleScope HelpdeskToolkit -Parameters @{ Text = $Text } { Split-UninstallString -Text $Text } | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Test-UninstallerMissing' {
+    BeforeAll {
+        $folder = Join-Path -Path $TestDrive -ChildPath 'Contoso App'
+        [void](New-Item -Path $folder -ItemType Directory -Force)
+        $present = Join-Path -Path $folder -ChildPath 'unins000.exe'
+        Set-Content -LiteralPath $present -Value 'x'
+        $gone = Join-Path -Path $folder -ChildPath 'deleted\unins000.exe'
+
+        function Test-Missing {
+            param($Program)
+            InModuleScope HelpdeskToolkit -Parameters @{ Program = $Program } { Test-UninstallerMissing -Program $Program }
+        }
+
+        # A drive letter no drive has at the moment
+        $used = [System.IO.DriveInfo]::GetDrives().Name
+        $freeDrive = 'ZYXWVUTSRQPONMLKJIHGFED'.ToCharArray() | ForEach-Object { "${_}:\" } | Where-Object { $used -notcontains $_ } | Select-Object -First 1
+    }
+
+    It 'is true when the file that removes the program no longer exists' {
+        Test-Missing (Get-TestProgram -UninstallString ('"{0}" /SILENT' -f $gone)) | Should -BeTrue
+        Test-Missing (Get-TestProgram -UninstallString ('{0} /S' -f $gone)) | Should -BeTrue
+    }
+
+    It 'is false while the file is there' {
+        Test-Missing (Get-TestProgram -UninstallString ('"{0}" /SILENT' -f $present)) | Should -BeFalse
+    }
+
+    It 'never reports a program of Windows Installer, which is removed through its product code' {
+        Test-Missing (Get-TestProgram -ProductCode $productCode -UninstallString ('"{0}"' -f $gone)) | Should -BeFalse
+        Test-Missing (Get-TestProgram -UninstallString ('MsiExec.exe /X{0}' -f $productCode)) | Should -BeFalse
+    }
+
+    It 'leaves <Name> alone' -ForEach @(
+        @{ Name = 'a program without an uninstall command'; Text = '' }
+        @{ Name = 'a bare program name, which Windows finds itself'; Text = 'rundll32.exe contoso.dll,Remove' }
+        @{ Name = 'a network path, which may just not be reachable'; Text = '"\\fs01\apps\Contoso\remove.exe"' }
+        @{ Name = 'a text that names no program'; Text = 'ask the administrator' }
+    ) {
+        Test-Missing (Get-TestProgram -UninstallString $Text) | Should -BeFalse
+    }
+
+    It 'does not call a program on a drive that is not connected a leftover' {
+        if (-not $freeDrive) {
+            Set-ItResult -Skipped -Because 'every drive letter is in use on this computer'
+            return
+        }
+        Test-Missing (Get-TestProgram -UninstallString ('"{0}Games\Contoso\unins000.exe"' -f $freeDrive)) | Should -BeFalse
+    }
+
+    It 'is false for no program and for a program without the properties' {
+        Test-Missing $null | Should -BeFalse
+        Test-Missing ([PSCustomObject]@{ Name = 'Driver Pack'; Version = '' }) | Should -BeFalse
+    }
+}
+
 Describe 'A click on a program: Open-WindowUninstall' -Skip:(-not $isSta) {
     BeforeAll {
         # Whatever a test forgets to say: nobody is asked and nothing is started.

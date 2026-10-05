@@ -169,6 +169,7 @@
     'Location use'                      = 'Which programs asked for the location of the computer lately, as Windows records it for the signed-in user. The same list is in Settings > Privacy & security > Location.'
     'USB storage devices'               = 'USB sticks and USB disks that have been connected to this computer at some time. Windows remembers each one so it does not have to install its driver again.'
     'Memory test'                       = 'The result of the last run of Windows Memory Diagnostic, which tests the memory modules for faults during a restart. Faulty memory causes crashes that seem to have no pattern.'
+    'Leftover program entries'          = 'Programs that are still listed under Installed apps although the file that removes them no longer exists. They are what is left of a program whose folder was deleted instead of uninstalling it.'
     'Unsupported programs'              = 'Installed programs whose maker has ended the support for that version. They no longer get security updates, so every weakness found from then on stays open.'
     'Program updates'                   = 'Programs for which the package manager of Windows (winget) knows a newer version than the installed one. Only programs from its catalog are compared.'
     'Microsoft Office'                  = 'The installed version of Microsoft Office or Microsoft 365 Apps, the update channel it follows (how soon it gets new versions) and whether it updates itself.'

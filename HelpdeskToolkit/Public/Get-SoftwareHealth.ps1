@@ -1,7 +1,7 @@
 function Get-SoftwareHealth {
     <#
     .SYNOPSIS
-        Reports installed programs, unsupported and outdated ones, Microsoft Office, application crashes, browser extensions and the default browser.
+        Reports installed programs, unsupported and outdated ones, Microsoft Office, application crashes, browser extensions, the default browser and leftover entries.
     .DESCRIPTION
         - Installed programs: how many there are and their names with versions. The
           first few are part of the value, the rest is returned in the Details property.
@@ -20,6 +20,8 @@ function Get-SoftwareHealth {
           the size limit of Outlook is a Warning or Critical.
         - Browser extensions of Chrome, Edge, Brave and Opera, with their versions.
         - Default browser.
+        - Leftover program entries: programs that are still listed as installed
+          although the file that removes them is gone (reported as Info).
 
         Everything is read from the registry, the Application event log and the list
         of winget, without administrator rights. Nothing is installed, updated,
@@ -84,6 +86,19 @@ function Get-SoftwareHealth {
             $value = '{0} and {1} more' -f $value, $remaining.Count
         }
         New-CheckResult -Category $category -Check 'Recently installed' -Status Info -Value $value -Details $remaining
+
+        # Entries of programs that are no longer there: their folder was deleted by
+        # hand, so the uninstaller is gone and "Uninstall" fails.
+        $leftover = @($programs | Where-Object { Test-UninstallerMissing -Program $_ } | ForEach-Object { $_.Name })
+        if ($leftover.Count -eq 0) {
+            New-CheckResult -Category $category -Check 'Leftover program entries' -Status OK -Value 'None found'
+        }
+        else {
+            $list = ConvertTo-ListValue -Item $leftover -Shown 4
+            $value = '{0} {1} whose uninstaller is gone: {2}' -f $leftover.Count, $(if ($leftover.Count -eq 1) { 'entry' } else { 'entries' }), $list.Value
+            New-CheckResult -Category $category -Check 'Leftover program entries' -Status Info -Value $value -Details $list.Details `
+                -Recommendation 'These programs are still listed under Installed apps, but the file that removes them no longer exists, usually because their folder was deleted by hand. "Uninstall" fails for them. They do no harm and take up next to no space. To get rid of an entry, install the program again and then uninstall it properly, or use the "Program Install and Uninstall troubleshooter" of Microsoft.'
+        }
 
         # Programs whose maker no longer releases security updates for them
         $unsupported = @(Get-UnsupportedProgram -Program $programs | Sort-Object -Property @{ Expression = 'Level'; Descending = $true }, Name)
