@@ -9,9 +9,9 @@ function Show-WindowVolume {
 
         Below the meter is the line "What takes up the space", which opens a list of
         the largest programs and folders of the drive (see Switch-WindowVolume and
-        Get-DiskUsageDetail). A click on a program opens the page of Windows where it
-        is removed (see Open-WindowUninstall), and buttons open that page and the one
-        where files are cleaned up; the application itself removes nothing.
+        Get-DiskUsageDetail). A click on a program offers to start its uninstaller
+        (see Open-WindowUninstall), and buttons open the pages of Windows where
+        programs are removed and files are cleaned up.
 
         With -Volume the drives of a new measurement are stored and shown; without it
         the stored ones are drawn again (after a click, or when a measurement of the
@@ -72,12 +72,12 @@ function Show-WindowVolume {
                     $detail = $usage.Detail
                     $state = (Get-LocalizedText 'Measured at {0:HH:mm}. The {1} programs installed on this drive take up {2}.') -f
                         $detail.MeasuredAt, $detail.ProgramCount, (Format-Gigabyte -Bytes $detail.ProgramBytes)
-                    $tip = Get-LocalizedText 'Click to open Installed apps of Windows, where this program is removed'
+                    $tip = Get-LocalizedText 'Click to uninstall this program: its own uninstaller starts after you confirm'
                     $programs = @($detail.Programs | ForEach-Object { [PSCustomObject]@{ Name = $_.Name; Text = & $toSize $_; Kind = 'Program'; Tip = $tip } })
                     $folders = @($detail.Folders | ForEach-Object { [PSCustomObject]@{ Name = $_.Name; Text = & $toSize $_ } })
                     $lists = 'Show'
 
-                    $notes = @(Get-LocalizedText 'To remove a program, click it: Installed apps of Windows opens, where you choose it and click Uninstall. This application itself removes nothing.')
+                    $notes = @(Get-LocalizedText 'To remove a program, click it: after you confirm, its own uninstaller starts, the same one Windows starts from Installed apps. Nothing is removed before you confirm there too.')
                     if ($detail.UnknownCount -gt 0) {
                         $notes += (Get-LocalizedText 'Programs that do not say how large they are: {0}.') -f $detail.UnknownCount
                     }

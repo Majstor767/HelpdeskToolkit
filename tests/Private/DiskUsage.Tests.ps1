@@ -266,15 +266,15 @@ Describe 'Show-WindowVolume and Switch-WindowVolume' -Skip:(-not $isSta) {
         $row.Folders.Text | Should -Be @('71 GB or more', '28 GB')
     }
 
-    It 'says that the application removes nothing, and where a program is removed' {
+    It 'says how a program is removed, and that nothing is removed without a confirmation' {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Switch-WindowVolume -Gui $Gui -Drive 'C:' }
         $gui.DiskUsage['C:'].State = 'Done'
         $gui.DiskUsage['C:'].Detail = New-TestDetail
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Show-WindowVolume -Gui $Gui }
 
         $note = @($gui.Controls.MonitorVolumes.ItemsSource)[0].Note
-        $note | Should -Match 'click it: Installed apps of Windows opens, where you choose it and click Uninstall'
-        $note | Should -Match 'This application itself removes nothing'
+        $note | Should -Match 'click it: after you confirm, its own uninstaller starts'
+        $note | Should -Match 'Nothing is removed before you confirm there too'
         $note | Should -Not -Match 'administrator'
         $note | Should -Not -Match 'do not say how large'
     }

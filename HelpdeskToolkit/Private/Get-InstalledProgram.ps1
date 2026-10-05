@@ -14,6 +14,11 @@ function Get-InstalledProgram {
         like in the Windows list. The install date, the size (the estimate the
         installer wrote down) and the folder are optional in the registry, so they can
         be empty.
+
+        Three more properties say how the program is removed (see Get-UninstallCommand):
+        UninstallString, the command the installer wrote down; ProductCode, for a
+        program installed by Windows Installer; and Scope, "Machine" for a program
+        installed for everybody and "User" for one that only the current user has.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -68,12 +73,22 @@ function Get-InstalledProgram {
             $location = ([string]$entry.InstallLocation).Trim().Trim('"').TrimEnd('\')
         }
 
+        # The name of the key is the product code of a Windows Installer package.
+        $productCode = ''
+        if ($names -contains 'WindowsInstaller' -and $entry.WindowsInstaller -eq 1 -and
+            $names -contains 'PSChildName' -and $entry.PSChildName -match '^\{[0-9A-Fa-f-]{36}\}$') {
+            $productCode = [string]$entry.PSChildName
+        }
+
         [PSCustomObject]@{
-            Name        = ([string]$entry.DisplayName).Trim()
-            Version     = $version.Trim()
-            InstallDate = $installed
-            SizeBytes   = $size
-            Location    = $location
+            Name            = ([string]$entry.DisplayName).Trim()
+            Version         = $version.Trim()
+            InstallDate     = $installed
+            SizeBytes       = $size
+            Location        = $location
+            UninstallString = if ($names -contains 'UninstallString') { [string]$entry.UninstallString } else { '' }
+            ProductCode     = $productCode
+            Scope           = if ($names -contains 'PSPath' -and [string]$entry.PSPath -match 'HKEY_CURRENT_USER') { 'User' } else { 'Machine' }
         }
     }
 }

@@ -1183,6 +1183,15 @@ Describe 'Results in the order of their severity' {
 }
 
 Describe 'A click on a program in "What takes up the space"' -Skip:(-not $isSta) {
+    BeforeAll {
+        # The program of these tests is not installed anywhere: there is no uninstaller
+        # to start, so the click leads to the page of Windows. Whatever happens, nobody
+        # is asked and nothing is started (see Uninstall.Tests.ps1 for the rest).
+        Mock -ModuleName HelpdeskToolkit Get-InstalledProgram { }
+        Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $false }
+        Mock -ModuleName HelpdeskToolkit Start-Process { }
+    }
+
     BeforeEach {
         $gui = InModuleScope HelpdeskToolkit { New-HealthCheckWindow }
     }
@@ -1201,7 +1210,7 @@ Describe 'A click on a program in "What takes up the space"' -Skip:(-not $isSta)
         $row = @($gui.Controls.MonitorVolumes.ItemsSource)[0]
 
         $row.Programs[0].Kind | Should -Be 'Program'
-        $row.Programs[0].Tip | Should -Be 'Click to open Installed apps of Windows, where this program is removed'
+        $row.Programs[0].Tip | Should -Be 'Click to uninstall this program: its own uninstaller starts after you confirm'
         # A folder is not a program and cannot be clicked.
         $row.Folders[0].PSObject.Properties['Kind'] | Should -BeNullOrEmpty
     }
