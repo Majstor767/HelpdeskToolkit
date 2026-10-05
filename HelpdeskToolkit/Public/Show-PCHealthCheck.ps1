@@ -162,6 +162,10 @@ function Show-PCHealthCheck {
         }
     }
 
+    # The line of the score is drawn for the size its area has, so it is drawn again
+    # when the window is resized or the Overview is laid out for the first time.
+    $controls.TrendGraph.Add_SizeChanged({ Show-WindowTrend -Gui $script:HealthCheckWindow })
+
     # Polls the background check a few times per second (see Receive-WindowCheck).
     # Every timer of the window catches its own errors (see Write-WindowError): Windows
     # never calls a timer again whose handler has failed.

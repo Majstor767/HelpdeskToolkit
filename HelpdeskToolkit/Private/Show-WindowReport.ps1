@@ -138,6 +138,23 @@ function Show-WindowReport {
         $controls.ScoreDetailText.Visibility = $collapsed
     }
 
+    # How the score changed over the checks the application kept (see Show-WindowTrend).
+    # A check the application repeated by itself is not kept, and a report that was
+    # opened from a file may be older than the kept ones: the report on the screen
+    # is put where it belongs in time unless it is among them already.
+    # A report of an older version may lack the score or the name of the computer.
+    $read = { param($Name) if ($Report.PSObject.Properties[$Name]) { $Report.$Name } }
+    $computer = [string](& $read 'ComputerName')
+    $score = & $read 'Score'
+    $history = @(if ($computer) { Get-HealthScoreHistory -ComputerName $computer })
+    $shown = [datetime]::MinValue
+    if ($null -ne $score -and [datetime]::TryParseExact([string](& $read 'GeneratedAt'), 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::None, [ref]$shown) -and @($history | Where-Object { $_.Time -eq $shown }).Count -eq 0) {
+        $history += [PSCustomObject]@{ Time = $shown; Score = [int]$score }
+    }
+    $Gui.ScoreHistory = @($history | Sort-Object -Property Time)
+    Show-WindowTrend -Gui $Gui
+
     # Page list: Overview, Live monitor and the timeline first, then the categories in
     # the order they ran. A report of an older version has no timeline.
     $entries = @(

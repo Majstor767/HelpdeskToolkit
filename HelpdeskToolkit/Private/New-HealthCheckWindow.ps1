@@ -24,6 +24,8 @@ function New-HealthCheckWindow {
         - Report, PreviousReport, Worker, Handle, Timer, CheckState: state of the health
                         check; CheckState holds the process the check runs in
                         (see Invoke-WindowCheck)
+        - ScoreHistory: the scores the line on the Overview is drawn from
+                        (see Show-WindowTrend)
         - LastError:    the last unexpected error that was written to the log
                         (see Write-WindowError)
         - RetiredWorkers: runspaces that were told to end and are released once
@@ -171,6 +173,9 @@ function New-HealthCheckWindow {
         SignalTimer       = $null
         Report            = $null
         PreviousReport    = $null
+        # Time and score of the kept reports and of the one on the screen, oldest first
+        # (see Show-WindowTrend).
+        ScoreHistory      = @()
         # The report on the screen is the one of an earlier start of the application,
         # shown until the first check of this start has finished (see Show-WindowLastReport).
         StaleReport       = $false

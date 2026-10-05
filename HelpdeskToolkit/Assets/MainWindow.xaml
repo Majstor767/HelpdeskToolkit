@@ -1303,6 +1303,25 @@
                     <!-- Where the points of the score went, for example "Points lost: Security -19" -->
                     <TextBlock x:Name="ScoreDetailText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="2,-6,6,12" Visibility="Collapsed"/>
 
+                    <!-- The score of the checks the application kept, oldest on the left -->
+                    <Border x:Name="TrendBorder" Style="{StaticResource SectionCard}" Margin="0,0,6,12" Visibility="Collapsed">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <TextBlock x:Name="TrendText" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}"/>
+                                <TextBlock Text="Health score over time" Style="{StaticResource SectionTitle}"/>
+                            </DockPanel>
+                            <Border Style="{StaticResource GraphFrame}" Margin="0" Height="90">
+                                <Grid>
+                                    <Canvas x:Name="TrendGraph" ClipToBounds="True">
+                                        <Polygon x:Name="TrendArea" Fill="{DynamicResource CpuBrush}" Opacity="0.16"/>
+                                        <Polyline x:Name="TrendLine" Stroke="{DynamicResource CpuBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                    </Canvas>
+                                    <TextBlock x:Name="TrendCaption" Style="{StaticResource GraphCaption}" VerticalAlignment="Bottom" Margin="6,0,0,3"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <!-- What changed since the previous check of this computer -->
                     <Border x:Name="ChangesBorder" Style="{StaticResource SectionCard}" Margin="0,0,6,12" Visibility="Collapsed">
                         <StackPanel>
