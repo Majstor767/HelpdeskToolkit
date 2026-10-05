@@ -130,6 +130,9 @@ number of days of history) are remembered for the next start as well.
   and Critical result is a link to the page of Microsoft that explains the problem
   (free up drive space, troubleshoot Windows Update, blue screens, firewall, printers
   and so on); a problem without such a page gets a web search for its name.
+  The page opens in your browser also where Windows itself fails to open links
+  because it still names a default browser that was removed; that case is reported
+  as a warning of its own under Software.
 - **Events with their numbers:** the results of the event log list every kind of
   error under "Show more", with its source, its event number and how often it
   happened ("Event 10016: DistributedCOM (45x)"). A click on a line searches the web

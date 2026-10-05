@@ -58,6 +58,11 @@ The first public version. It will be released as 1.0.0.
 - Below the fix of every problem, a link to the page of Microsoft that explains it,
   or a web search for its name. The results of the event log list every kind of
   event with its event number under "Show more"; a click looks that event up.
+- Links open also when Windows cannot open them: when the default browser was removed
+  and Windows still names it ("Application not found"), another browser is used; from a
+  window with administrator rights the page is opened by the desktop of the user, so
+  the browser does not run as administrator. A default browser that is gone is
+  reported as a warning under Software.
 - A click on a program in "What takes up the space" starts the program's own
   uninstaller, after a question; a program without one opens Installed apps.
 - A side bar in the manner of Windows 11: an icon for every page, the check categories

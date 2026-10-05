@@ -101,46 +101,6 @@ Describe 'Get-AntivirusProduct' {
     }
 }
 
-Describe 'Get-DefaultBrowserPath' {
-    BeforeAll {
-        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { [PSCustomObject]@{ ProgId = 'ContosoBrowserHTML' } }
-        Mock -ModuleName HelpdeskToolkit Test-Path { $true }
-    }
-
-    It 'extracts the executable from a quoted command line' {
-        Mock -ModuleName HelpdeskToolkit Get-Item {
-            $key = [PSCustomObject]@{}
-            $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { '"C:\Program Files\Contoso\browser.exe" --single-argument %1' }
-            $key
-        }
-        InModuleScope HelpdeskToolkit { Get-DefaultBrowserPath } | Should -Be 'C:\Program Files\Contoso\browser.exe'
-    }
-
-    It 'extracts the executable from an unquoted command line' {
-        Mock -ModuleName HelpdeskToolkit Get-Item {
-            $key = [PSCustomObject]@{}
-            $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { 'C:\Contoso\browser.exe -url %1' }
-            $key
-        }
-        InModuleScope HelpdeskToolkit { Get-DefaultBrowserPath } | Should -Be 'C:\Contoso\browser.exe'
-    }
-
-    It 'returns nothing when the executable does not exist' {
-        Mock -ModuleName HelpdeskToolkit Test-Path { $false }
-        Mock -ModuleName HelpdeskToolkit Get-Item {
-            $key = [PSCustomObject]@{}
-            $key | Add-Member -MemberType ScriptMethod -Name GetValue -Value { '"C:\Gone\browser.exe" %1' }
-            $key
-        }
-        InModuleScope HelpdeskToolkit { Get-DefaultBrowserPath } | Should -BeNullOrEmpty
-    }
-
-    It 'returns nothing when no default browser is registered' {
-        Mock -ModuleName HelpdeskToolkit Get-ItemProperty { throw 'Key not found' }
-        InModuleScope HelpdeskToolkit { Get-DefaultBrowserPath } | Should -BeNullOrEmpty
-    }
-}
-
 Describe 'Test-HttpsEndpoint' {
     It 'reports success with the status code when the request succeeds' {
         Mock -ModuleName HelpdeskToolkit Invoke-WebRequest { [PSCustomObject]@{ StatusCode = 200 } }

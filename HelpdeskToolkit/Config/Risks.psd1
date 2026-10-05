@@ -45,6 +45,7 @@
 
     # --- Software -------------------------------------------------------------------
     'Application crashes'               = 'Every crash can lose unsaved work and damage the file that was open. Crashes that keep coming back point to a faulty program, add-in or driver, and they rarely stop by themselves.'
+    'Default browser'                   = 'Links in e-mails, documents and other programs do not open. Programs that sign in through the browser or show their help there stop at that step, usually with a message that explains nothing.'
     'Unsupported programs'              = 'A program without support keeps every security hole that is found from now on. Attackers study the fixes of the newer versions to learn where the old ones are weak, and a prepared document or web page is then enough to take over the computer.'
     'Program updates'                   = 'Old versions keep security holes that are already fixed, and publicly described, in the new ones. The longer a program stays behind, the more of them pile up.'
     'Microsoft Office'                  = 'Office opens documents from e-mail and the internet every day. Without updates, a prepared Word or Excel file can use a weakness that was fixed long ago.'

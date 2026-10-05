@@ -225,6 +225,9 @@ Describe 'The button that opens the support page of the maker' -Skip:(-not $isSt
         Mock -ModuleName HelpdeskToolkit Enable-WindowMonitor { }
         Mock -ModuleName HelpdeskToolkit Disable-WindowMonitor { }
         Mock -ModuleName HelpdeskToolkit Start-Process { }
+        # The page is opened by Open-WebAddress (see Browser.Tests.ps1); here it is replaced,
+        # so no browser of this computer is ever started.
+        Mock -ModuleName HelpdeskToolkit Open-WebAddress { $true }
         Mock -ModuleName HelpdeskToolkit Set-Clipboard { }
     }
 
@@ -241,7 +244,7 @@ Describe 'The button that opens the support page of the maker' -Skip:(-not $isSt
         $opened = InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowSupportPage -Gui $Gui -Value 'Dell Inc.: looked up with the serial number' }
 
         $opened | Should -BeTrue
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'https://www.dell.com/support/home' }
+        Should -Invoke -ModuleName HelpdeskToolkit Open-WebAddress -Times 1 -Exactly -ParameterFilter { $Url -eq 'https://www.dell.com/support/home' }
         Should -Invoke -ModuleName HelpdeskToolkit Set-Clipboard -Times 1 -Exactly -ParameterFilter { $Value -eq 'CNT4012XYZ' }
         $gui.Controls.StatusText.Text | Should -Be 'The support page is open. The serial number CNT4012XYZ was copied: paste it into the search field there (Ctrl+V).'
     }
@@ -249,7 +252,7 @@ Describe 'The button that opens the support page of the maker' -Skip:(-not $isSt
     It 'never puts the serial number into the address' {
         $gui = New-TestWindow
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowSupportPage -Gui $Gui -Value 'Dell Inc.' } | Out-Null
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 0 -Exactly -ParameterFilter { $FilePath -match 'CNT4012XYZ' -or $ArgumentList -match 'CNT4012XYZ' }
+        Should -Invoke -ModuleName HelpdeskToolkit Open-WebAddress -Times 0 -Exactly -ParameterFilter { $Url -match 'CNT4012XYZ' }
     }
 
     It 'copies nothing when the maker did not set a serial number' {
@@ -283,7 +286,7 @@ Describe 'The button that opens the support page of the maker' -Skip:(-not $isSt
         $button.DataContext = $card
 
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Button = $button } { Invoke-WindowCardClick -Gui $Gui -Source $Button }
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq 'https://www.dell.com/support/home' }
+        Should -Invoke -ModuleName HelpdeskToolkit Open-WebAddress -Times 1 -Exactly -ParameterFilter { $Url -eq 'https://www.dell.com/support/home' }
         Should -Invoke -ModuleName HelpdeskToolkit Set-Clipboard -Times 1 -Exactly
     }
 }

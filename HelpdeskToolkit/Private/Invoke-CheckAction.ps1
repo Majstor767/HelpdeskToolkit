@@ -30,6 +30,10 @@ function Invoke-CheckAction {
     }
 
     try {
+        if ($action.Target -match '^https://') {
+            # A web page, such as the support page of the maker of the computer
+            return (Open-WebAddress -Url $action.Target)
+        }
         if ($action.Arguments) {
             Start-Process -FilePath $action.Target -ArgumentList $action.Arguments -ErrorAction Stop
         }

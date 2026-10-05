@@ -16,7 +16,7 @@ Describe 'Get-SoftwareHealth' {
         Mock -ModuleName HelpdeskToolkit Get-WinEvent {
             throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
         }
-        Mock -ModuleName HelpdeskToolkit Get-DefaultBrowserPath { 'C:\Contoso\browser.exe' }
+        Mock -ModuleName HelpdeskToolkit Get-DefaultBrowser { [PSCustomObject]@{ ProgId = 'ContosoHTML'; Path = 'C:\Contoso\browser.exe'; Exists = $true; IsBroken = $false; Usable = 'C:\Contoso\browser.exe' } }
         Mock -ModuleName HelpdeskToolkit Get-FileProductName { 'Contoso Browser' }
         Mock -ModuleName HelpdeskToolkit Get-BrowserExtension { }
         # winget finds nothing to update; no Microsoft Office and no Outlook on this computer.
@@ -130,7 +130,7 @@ Describe 'Get-SoftwareHealth' {
 
     Context 'when no default browser is registered' {
         It 'reports that none is set' {
-            Mock -ModuleName HelpdeskToolkit Get-DefaultBrowserPath { }
+            Mock -ModuleName HelpdeskToolkit Get-DefaultBrowser { [PSCustomObject]@{ ProgId = ''; Path = ''; Exists = $false; IsBroken = $false; Usable = '' } }
             (Get-SoftwareHealth | Where-Object Check -eq 'Default browser').Value | Should -Be 'Not set'
         }
     }

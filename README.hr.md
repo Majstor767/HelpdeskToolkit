@@ -129,6 +129,9 @@ povijesti) također se pamte do sljedećeg pokretanja.
   Warning i Critical nalazi se link na Microsoftovu stranicu koja objašnjava problem
   (oslobađanje prostora, problemi s Windows Updateom, plavi ekran, vatrozid, pisači
   i tako dalje); problem bez takve stranice dobije web pretragu svog naziva.
+  Stranica se otvara u tvom pregledniku i ondje gdje sam Windows ne uspijeva otvoriti
+  linkove jer kao zadani preglednik i dalje navodi onaj koji je uklonjen; taj se
+  slučaj prijavljuje kao zasebno upozorenje pod Software.
 - **Događaji s brojevima:** rezultati dnevnika događaja pod "Show more" listaju svaku
   vrstu greške s izvorom, brojem događaja i koliko se puta dogodila ("Event 10016:
   DistributedCOM (45x)"). Klik na redak pretražuje web točno za taj događaj; tako se

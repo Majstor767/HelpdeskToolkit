@@ -260,10 +260,16 @@ function Get-SoftwareHealth {
         New-FailureResult -Category $category -Check 'Browser extensions' -ErrorRecord $_
     }
 
-    # Default browser
-    $browserPath = Get-DefaultBrowserPath
-    if ($browserPath) {
-        New-CheckResult -Category $category -Check 'Default browser' -Status Info -Value (Get-FileProductName -Path $browserPath)
+    # Default browser. Windows can go on naming a browser that was removed; every link
+    # in every program then fails with "Application not found".
+    $browser = Get-DefaultBrowser
+    if ($browser.IsBroken) {
+        New-CheckResult -Category $category -Check 'Default browser' -Status Warning `
+            -Value ('Set to a program that is no longer installed ({0})' -f $browser.ProgId) `
+            -Recommendation 'Windows hands every link to a browser that is no longer on this computer, so a click on a link in another program fails with "Application not found". Choose a browser again: Settings > Apps > Default apps.'
+    }
+    elseif ($browser.Exists) {
+        New-CheckResult -Category $category -Check 'Default browser' -Status Info -Value (Get-FileProductName -Path $browser.Path)
     }
     else {
         New-CheckResult -Category $category -Check 'Default browser' -Status Info -Value 'Not set'

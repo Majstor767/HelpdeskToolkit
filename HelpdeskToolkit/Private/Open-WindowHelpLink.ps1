@@ -4,12 +4,13 @@ function Open-WindowHelpLink {
         Opens the page that explains a problem in the browser.
     .DESCRIPTION
         The action of a click on one of the links below a recommended fix (see
-        Get-CheckHelpLink). The address is handed to Windows, which opens it in the
-        default browser of the user.
+        Get-CheckHelpLink). The address is opened in the default browser of the user
+        (see Open-WebAddress, which also knows how to do that from a window that runs
+        with administrator rights, and when the default browser of Windows is gone).
+        Only "https://" addresses are opened.
 
-        Only addresses that begin with "https://" are opened: the links are built
-        from Config\Help.psd1, and anything else in their place would be a mistake in
-        that file, not something to hand to Windows.
+        When the page had to be opened in another browser because Windows names one
+        that is no longer installed, the status bar says so and where that is set.
 
         Returns $true when the address was handed to Windows.
     #>
@@ -25,13 +26,16 @@ function Open-WindowHelpLink {
         [string]$Url
     )
 
-    if ($Url -notmatch '^https://\S+$') {
-        return $false
-    }
-
     try {
-        Start-Process -FilePath $Url -ErrorAction Stop
-        $Gui.Controls.StatusText.Text = Get-LocalizedText 'The page was opened in the browser.'
+        if (-not (Open-WebAddress -Url $Url)) {
+            return $false
+        }
+        $Gui.Controls.StatusText.Text = if ((Get-DefaultBrowser).IsBroken) {
+            Get-LocalizedText 'The page was opened in another browser: the default browser of Windows is no longer installed. Choose one under Settings > Apps > Default apps.'
+        }
+        else {
+            Get-LocalizedText 'The page was opened in the browser.'
+        }
         $true
     }
     catch {

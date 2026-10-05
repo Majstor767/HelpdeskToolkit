@@ -176,24 +176,32 @@ Describe 'Opening a link' -Skip:(-not $isSta) {
         $gui = InModuleScope HelpdeskToolkit { New-HealthCheckWindow }
     }
 
-    It 'hands the address to Windows and says so' {
-        Mock -ModuleName HelpdeskToolkit Start-Process { }
+    It 'opens the address and says so' {
+        Mock -ModuleName HelpdeskToolkit Open-WebAddress { $true }
+        Mock -ModuleName HelpdeskToolkit Get-DefaultBrowser { [PSCustomObject]@{ ProgId = 'ContosoHTML'; Path = 'C:\Contoso\browser.exe'; Exists = $true; IsBroken = $false; Usable = 'C:\Contoso\browser.exe' } }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowHelpLink -Gui $Gui -Url 'https://support.microsoft.com/windows/activation/activate-windows' } | Should -BeTrue
 
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -Scope It -ParameterFilter { $FilePath -eq 'https://support.microsoft.com/windows/activation/activate-windows' }
+        Should -Invoke -ModuleName HelpdeskToolkit Open-WebAddress -Times 1 -Exactly -Scope It -ParameterFilter { $Url -eq 'https://support.microsoft.com/windows/activation/activate-windows' }
         $gui.Controls.StatusText.Text | Should -Be 'The page was opened in the browser.'
     }
 
-    It 'opens nothing that is not an https address' -ForEach @(
-        'http://example.test/page', 'file:///C:/Windows/System32/calc.exe', 'C:\Windows\System32\calc.exe', 'https://example.test/a b', ''
-    ) {
-        Mock -ModuleName HelpdeskToolkit Start-Process { }
-        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui; Url = $_ } { Open-WindowHelpLink -Gui $Gui -Url $Url } | Should -BeFalse
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 0 -Exactly -Scope It
+    It 'says so when the page had to be opened in another browser because the default one is gone' {
+        Mock -ModuleName HelpdeskToolkit Open-WebAddress { $true }
+        Mock -ModuleName HelpdeskToolkit Get-DefaultBrowser { [PSCustomObject]@{ ProgId = 'RemovedHTML'; Path = 'C:\Gone\browser.exe'; Exists = $false; IsBroken = $true; Usable = 'C:\Other\browser.exe' } }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowHelpLink -Gui $Gui -Url 'https://example.test/' } | Should -BeTrue
+
+        $gui.Controls.StatusText.Text | Should -Be 'The page was opened in another browser: the default browser of Windows is no longer installed. Choose one under Settings > Apps > Default apps.'
     }
 
-    It 'says so when Windows cannot open the address' {
-        Mock -ModuleName HelpdeskToolkit Start-Process { throw 'No browser' }
+    It 'opens nothing for an address that is refused, and says nothing' {
+        Mock -ModuleName HelpdeskToolkit Open-WebAddress { $false }
+        $before = $gui.Controls.StatusText.Text
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowHelpLink -Gui $Gui -Url 'file:///C:/Windows/System32/calc.exe' } | Should -BeFalse
+        $gui.Controls.StatusText.Text | Should -Be $before
+    }
+
+    It 'says so when the address cannot be opened' {
+        Mock -ModuleName HelpdeskToolkit Open-WebAddress { throw 'No browser' }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowHelpLink -Gui $Gui -Url 'https://example.test/' } | Should -BeFalse
         $gui.Controls.StatusText.Text | Should -Be 'The page could not be opened: No browser'
     }
