@@ -15,6 +15,9 @@ function Invoke-WindowCardClick {
           and closes its details. The choice is stored in $Gui.CardState, so the card
           looks the same after the results were replaced by an automatic check.
 
+        - A link below a recommendation opens the page that explains the problem in
+          the browser (Open-WindowHelpLink). Its data context is the link, not the card.
+
         Clicks on anything else are ignored.
     #>
     [CmdletBinding()]
@@ -34,6 +37,10 @@ function Invoke-WindowCardClick {
     }
 
     $item = $Source.DataContext
+    if ($item -and $item.PSObject.Properties['Url'] -and $Source -is [System.Windows.Controls.Button]) {
+        [void](Open-WindowHelpLink -Gui $Gui -Url ([string]$item.Url))
+        return
+    }
     if (-not $item -or -not $item.PSObject.Properties['SourceCheck']) {
         return
     }

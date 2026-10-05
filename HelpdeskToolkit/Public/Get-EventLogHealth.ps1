@@ -113,24 +113,43 @@ function Get-EventLogHealth {
         }
     )
 
+    # Every kind of event among the given ones, the most frequent first, as
+    # "<source> <number> (<how often>)": the source and the event number are the two
+    # things to look up to find out what an event means and how it is fixed. They
+    # become the details of the result, where the window makes each of them a link
+    # (see Get-CheckHelpLink). A log that is flooded by hundreds of kinds of events is
+    # cut off after the hundred most frequent.
+    $listEvents = {
+        param([object[]]$Entry)
+        @(
+            $Entry |
+                Group-Object -Property ProviderName, Id |
+                Sort-Object -Property Count -Descending |
+                Select-Object -First 100 |
+                ForEach-Object { '{0} {1} ({2})' -f $_.Group[0].ProviderName, $_.Group[0].Id, $_.Count }
+        )
+    }
+
     foreach ($hardwareCheck in $hardwareChecks) {
         try {
             try {
                 # Levels 1 to 3: critical, error and warning.
                 $filter = @{ LogName = 'System'; ProviderName = $hardwareCheck.Providers; Level = 1, 2, 3; StartTime = $since }
-                $count = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop).Count
+                $found = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop)
             }
             catch {
                 if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {
                     throw
                 }
-                $count = 0
+                $found = @()
             }
+            $count = $found.Count
 
             $status = Get-ThresholdStatus -Value $count -Warning $hardwareCheck.WarningAbove
             $recommendation = if ($status -ne 'OK') { $hardwareCheck.Recommendation } else { '' }
+            $details = @(if ($found.Count -gt 0) { & $listEvents $found })
             New-CheckResult -Category $category -Check $hardwareCheck.Check -Status $status `
-                -Value ('{0} {1}' -f $count, $period) -Recommendation $recommendation `
+                -Value ('{0} {1}' -f $count, $period) -Recommendation $recommendation -Details $details `
                 -Allowed (Format-AllowedRange -Warning $hardwareCheck.WarningAbove) -Typical '0'
         }
         catch {
@@ -167,20 +186,22 @@ function Get-EventLogHealth {
         else {
             ''
         }
+        $details = @(if ($criticalCount -gt 0) { & $listEvents @($entries | Where-Object { $_.Level -eq 1 }) })
         New-CheckResult -Category $category -Check "$logName log - critical events" -Status $status `
-            -Value ('{0} {1}' -f $criticalCount, $period) -Recommendation $recommendation `
+            -Value ('{0} {1}' -f $criticalCount, $period) -Recommendation $recommendation -Details $details `
             -Allowed (Format-AllowedRange -Warning $thresholds.CriticalEventWarningAbove -Critical $thresholds.CriticalEventCriticalAbove) `
             -Typical $thresholds.TypicalCriticalEvents
 
         $status = Get-ThresholdStatus -Value $errorCount -Warning $thresholds.ErrorEventWarningAbove
         $recommendation = if ($status -ne 'OK') {
-            'Unusually many errors. Start with the top sources listed below and look them up in Event Viewer (eventvwr.msc) > Windows Logs > {0}.' -f $logName
+            'Unusually many errors. Each kind is listed in the details with its event number, the most frequent first; start with those. The events themselves are in Event Viewer (eventvwr.msc) > Windows Logs > {0}.' -f $logName
         }
         else {
             ''
         }
+        $details = @(if ($errorCount -gt 0) { & $listEvents @($entries | Where-Object { $_.Level -eq 2 }) })
         New-CheckResult -Category $category -Check "$logName log - errors" -Status $status `
-            -Value ('{0} {1}' -f $errorCount, $period) -Recommendation $recommendation `
+            -Value ('{0} {1}' -f $errorCount, $period) -Recommendation $recommendation -Details $details `
             -Allowed (Format-AllowedRange -Warning $thresholds.ErrorEventWarningAbove) -Typical $thresholds.TypicalErrorEvents
 
         # The five busiest sources go into the value; any others are kept as details.

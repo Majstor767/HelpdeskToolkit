@@ -45,6 +45,8 @@ $script:ToolVersion = $null
 $script:Actions = $null
 # Why a problem matters (Config\Risks.psd1), read on first use.
 $script:Risks = $null
+# Where a problem is explained on the web (Config\Help.psd1), read on first use.
+$script:Help = $null
 # Programs that no longer get security updates (Config\EndOfLife.psd1), read on first use.
 $script:EndOfLife = $null
 # Language of the window ("en" or "hr") and the translations of that language.

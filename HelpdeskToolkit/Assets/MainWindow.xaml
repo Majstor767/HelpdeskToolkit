@@ -217,6 +217,67 @@
             </Setter>
         </Style>
 
+        <!-- A link that opens a page in the browser: text in the accent color with the
+             sign for "opens outside", underlined under the mouse -->
+        <Style x:Key="LinkButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="11" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                            <TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The links below the recommended fix of a problem: where it is explained -->
+        <DataTemplate x:Key="HelpLink">
+            <Button Content="{Binding Label}" ToolTip="{Binding Url}" Style="{StaticResource LinkButton}"/>
+        </DataTemplate>
+
+        <!-- One line of the details of a result ("Show 5 more"). A line that names an
+             event of the event log is a link that looks the event up on the web; any
+             other line is plain text. -->
+        <DataTemplate x:Key="MoreLine">
+            <Grid>
+                <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Url}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <Button Content="{Binding Text}" ToolTip="Look up what this event means and how it is fixed">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
+                            <Setter Property="Margin" Value="0,1,0,2"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Url}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </DataTemplate>
+
         <!-- "Show 5 more": a line of text with an arrow that opens and closes a list -->
         <Style x:Key="LinkToggle" TargetType="ToggleButton">
             <Setter Property="Foreground" Value="{DynamicResource InfoBrush}"/>
@@ -701,17 +762,7 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <TextBlock Text="{Binding More}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,5">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding More}" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <ItemsControl ItemsSource="{Binding MoreItems}" ItemTemplate="{StaticResource MoreLine}" Margin="0,0,0,5"/>
                         <TextBlock Text="{Binding Reference}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,3">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -853,17 +904,17 @@
                                 </Style>
                             </StackPanel.Style>
                             <ToggleButton x:Name="ProblemMoreToggle" Content="{Binding MoreHeader}" Style="{StaticResource LinkToggle}"/>
-                            <TextBlock Text="{Binding More}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="16,4,0,2">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                            <ItemsControl ItemsSource="{Binding MoreItems}" ItemTemplate="{StaticResource MoreLine}" Margin="16,4,0,2">
+                                <ItemsControl.Style>
+                                    <Style TargetType="ItemsControl">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsChecked, ElementName=ProblemMoreToggle}" Value="False">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                                </ItemsControl.Style>
+                            </ItemsControl>
                         </StackPanel>
 
                         <TextBlock Text="{Binding Reference}" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
@@ -905,8 +956,9 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- What to do about it -->
-                    <Border Grid.Column="2" CornerRadius="5" Padding="12,9" Margin="0,10,10,10" VerticalAlignment="Top">
+                    <!-- What to do about it, and below that where the problem is explained -->
+                    <StackPanel Grid.Column="2" Margin="0,10,10,10" VerticalAlignment="Top">
+                    <Border CornerRadius="5" Padding="12,9">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="Background" Value="{DynamicResource WarningBackBrush}"/>
@@ -936,6 +988,8 @@
                             </Button>
                         </StackPanel>
                     </Border>
+                    <ItemsControl ItemsSource="{Binding Links}" ItemTemplate="{StaticResource HelpLink}" Margin="2,2,0,0"/>
+                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -1376,17 +1430,17 @@
                                                         </Style>
                                                     </StackPanel.Style>
                                                     <ToggleButton x:Name="MoreToggle" Content="{Binding MoreHeader}" Style="{StaticResource LinkToggle}"/>
-                                                    <TextBlock Text="{Binding More}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="16,4,0,2">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
+                                                    <ItemsControl ItemsSource="{Binding MoreItems}" ItemTemplate="{StaticResource MoreLine}" Margin="16,4,0,2">
+                                                        <ItemsControl.Style>
+                                                            <Style TargetType="ItemsControl">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsChecked, ElementName=MoreToggle}" Value="False">
                                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
+                                                        </ItemsControl.Style>
+                                                    </ItemsControl>
                                                 </StackPanel>
 
                                                 <!-- Allowed range and typical value of a measurement -->
@@ -1464,6 +1518,8 @@
                                                         </Button>
                                                     </StackPanel>
                                                 </Border>
+                                                <!-- Where the problem is explained -->
+                                                <ItemsControl ItemsSource="{Binding Links}" ItemTemplate="{StaticResource HelpLink}" Margin="2,0,0,2"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

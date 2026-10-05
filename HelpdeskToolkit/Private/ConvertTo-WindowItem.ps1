@@ -8,8 +8,12 @@ function ConvertTo-WindowItem {
         logic of its own:
 
         - Reference: the allowed range and the typical value on one line
-        - More / MoreHeader: the remaining items of a long list and the caption of the
+        - More / MoreItems / MoreHeader: the remaining items of a long list (as one
+          text, which the search looks through, and line by line, where a line that
+          names an event carries the address that explains it) and the caption of the
           section that opens them
+        - Links: where the problem is explained on the web, shown below the
+          recommended fix of a Warning or Critical result
         - RecommendationLabel: "Recommended fix" for a problem, "Advice" otherwise
         - ActionLabel: the caption of the button that opens the place in Windows where
           the problem is fixed; empty when there is no recommendation or no such place
@@ -59,6 +63,46 @@ function ConvertTo-WindowItem {
             $risk = Get-LocalizedText (Get-CheckRisk -Check $Result.Check -Category $Result.Category -Value ([string]$Result.Value))
         }
 
+        # Where things are explained on the web (see Get-CheckHelpLink). A problem gets
+        # a link below its recommended fix: the page of the maker, or a search for the
+        # name of the check. A line of the details that names an event of the event log
+        # becomes a link itself, whatever the status of the result.
+        $isProblem = $Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable'
+        $help = @(
+            if ($isProblem -or $details.Count -gt 0) {
+                Get-CheckHelpLink -Check $Result.Check -Category $Result.Category -Detail $details
+            }
+        )
+        $links = @(
+            if ($isProblem) {
+                foreach ($link in $help | Where-Object { $_.Kind -ne 'Event' }) {
+                    $text = if ($link.Kind -eq 'Page') { 'What this means and how to fix it' } else { 'Search the web for this problem' }
+                    [PSCustomObject]@{ Label = Get-LocalizedText $text; Url = $link.Url }
+                }
+            }
+        )
+
+        # The details, line by line. An event reads "Event 10016: DistributedCOM, 45
+        # times" and opens the search for that event; any other line is plain text.
+        $eventLinks = @{}
+        foreach ($link in $help | Where-Object { $_.Kind -eq 'Event' }) {
+            $eventLinks[$link.Line] = $link
+        }
+        $moreItems = @(
+            foreach ($line in $details) {
+                if ($eventLinks.ContainsKey($line)) {
+                    $link = $eventLinks[$line]
+                    [PSCustomObject]@{
+                        Text = (Get-LocalizedText 'Event {0}: {1}, {2} times') -f $link.Id, $link.Source, $link.Count
+                        Url  = $link.Url
+                    }
+                }
+                else {
+                    [PSCustomObject]@{ Text = [string]$line; Url = '' }
+                }
+            }
+        )
+
         [PSCustomObject]@{
             Status              = $Result.Status
             StatusText          = Get-LocalizedText $Result.Status
@@ -68,12 +112,14 @@ function ConvertTo-WindowItem {
             Description         = Get-LocalizedText ([string]$Result.Description)
             Reference           = $reference -join '   |   '
             More                = $details -join "`n"
-            MoreHeader          = if ($details.Count -gt 0) { (Get-LocalizedText 'Show {0} more') -f $details.Count } else { '' }
+            MoreItems           = $moreItems
+            MoreHeader         = if ($details.Count -gt 0) { (Get-LocalizedText 'Show {0} more') -f $details.Count } else { '' }
             Risk                = $risk
             RiskLabel           = Get-LocalizedText 'WHY THIS IS A PROBLEM'
             Recommendation      = Get-LocalizedText ([string]$Result.Recommendation)
             RecommendationLabel = Get-LocalizedText $label
             ActionLabel         = $actionLabel
+            Links               = $links
             SourceCheck         = $Result.Check
             SourceValue         = [string]$Result.Value
             # "Yes" frames the card; set for the result a notice has led to.

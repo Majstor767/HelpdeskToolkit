@@ -705,7 +705,7 @@
         'The disk or the file system reported problems. Back up important data, check the drive health in the Hardware category and run "chkdsk /scan" as administrator. Repeated errors usually mean the drive or its cable is failing.' = 'Disk ili datotečni sustav javili su probleme. Napravi sigurnosnu kopiju važnih podataka, provjeri zdravlje pogona u kategoriji Hardver i kao administrator pokreni "chkdsk /scan". Ponovljene greške obično znače da pogon ili njegov kabel otkazuju.'
         'The hardware reported errors to Windows. Typical causes are faulty memory, overheating or an unstable power supply: clean the cooling, test the memory with Windows Memory Diagnostic (mdsched.exe) and update the BIOS and chipset drivers.' = 'Hardver je Windowsu prijavio greške. Tipični uzroci su neispravna memorija, pregrijavanje ili nestabilno napajanje: očisti hlađenje, testiraj memoriju alatom Windows Memory Diagnostic (mdsched.exe) te ažuriraj BIOS i drivere čipseta.'
         'Critical events usually mean crashes or unexpected shutdowns. Open Event Viewer (eventvwr.msc) > Windows Logs > {0} and filter by level Critical.' = 'Kritični događaji obično znače rušenja ili neočekivana gašenja. Otvori Preglednik događaja (eventvwr.msc) > Windows Logs > {0} i filtriraj po razini Critical.'
-        'Unusually many errors. Start with the top sources listed below and look them up in Event Viewer (eventvwr.msc) > Windows Logs > {0}.' = 'Neobično mnogo grešaka. Kreni od najčešćih izvora navedenih ispod i potraži ih u Pregledniku događaja (eventvwr.msc) > Windows Logs > {0}.'
+        'Unusually many errors. Each kind is listed in the details with its event number, the most frequent first; start with those. The events themselves are in Event Viewer (eventvwr.msc) > Windows Logs > {0}.' = 'Neobično mnogo grešaka. Svaka vrsta je navedena u detaljima sa svojim brojem događaja, najčešće prve; kreni od njih. Sami događaji su u Pregledniku događaja (eventvwr.msc) > Windows Logs > {0}.'
         'No update was installed for more than {0} days. Open Settings > Windows Update and check for updates.' = 'Nijedno ažuriranje nije instalirano više od {0} dana. Otvori Postavke > Windows Update i provjeri ima li ažuriranja.'
         'Restart the computer to finish installing updates.'   = 'Ponovno pokreni računalo da se dovrši instalacija ažuriranja.'
         'Windows Update is paused, so security updates are not installed. Open Settings > Windows Update and choose "Resume updates".' = 'Windows Update je pauziran, pa se sigurnosna ažuriranja ne instaliraju. Otvori Postavke > Windows Update i odaberi "Nastavi s ažuriranjima".'
@@ -1003,6 +1003,14 @@
         'Windows drive'                                        = 'disk s Windowsom'
         'Without administrator rights, folders that belong to other users are only measured as far as they can be read.' = 'Bez administratorskih prava mape drugih korisnika mjere se samo onoliko koliko se mogu pročitati.'
         'This is where the space of the drive goes. Start cleaning up with the largest folders that hold your own files; a folder that belongs to an installed program or a game is removed by uninstalling it, not by deleting the folder. "Or more" means the folder was too large to be measured completely in the time allowed.' = 'Ovdje odlazi prostor diska. Čišćenje počni od najvećih mapa s vlastitim datotekama; mapa koja pripada instaliranom programu ili igri uklanja se deinstalacijom, a ne brisanjem mape. "Ili više" znači da je mapa bila prevelika da se cijela izmjeri u zadanom vremenu.'
+
+        # --- Where a problem is explained -------------------------------------------
+        'What this means and how to fix it'                    = 'Što ovo znači i kako se popravlja'
+        'Event {0}: {1}, {2} times'                            = 'Događaj {0}: {1}, {2} puta'
+        'Look up what this event means and how it is fixed'    = 'Potraži što ovaj događaj znači i kako se popravlja'
+        'Search the web for this problem'                      = 'Potraži ovaj problem na webu'
+        'The page was opened in the browser.'                  = 'Stranica je otvorena u pregledniku.'
+        'The page could not be opened: {0}'                    = 'Stranica se nije mogla otvoriti: {0}'
 
         # --- The page of a category -------------------------------------------------
         'NEEDS ATTENTION'                                      = 'TRAŽI PAŽNJU'

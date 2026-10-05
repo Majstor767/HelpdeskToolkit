@@ -235,13 +235,17 @@ function New-TestEvent {
         [int]$Count = 1,
 
         # For crash events: the name of the program that crashed (first event property).
-        [string]$Program = ''
+        [string]$Program = '',
+
+        # The number of the event.
+        [int]$Id = 1000
     )
 
     1..$Count | ForEach-Object {
         [PSCustomObject]@{
             Level        = $Level
             ProviderName = $Source
+            Id           = $Id
             Properties   = @([PSCustomObject]@{ Value = $Program })
         }
     }
