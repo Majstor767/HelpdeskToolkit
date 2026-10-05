@@ -2265,7 +2265,7 @@
                                             <ComboBoxItem Content="Never" Tag="0"/>
                                         </ComboBox>
                                     </DockPanel>
-                                    <TextBlock Text="After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                    <TextBlock Text="After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result. While the window is hidden or the computer runs on its battery, the check is repeated less often." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 
@@ -2289,7 +2289,7 @@
                                 <StackPanel>
                                     <TextBlock Text="About" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <TextBlock x:Name="AboutText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks and recordings of the Live monitor are kept in the folder below." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
+                                    <TextBlock Text="The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks, recordings of the Live monitor and a log of errors (app.log) are kept in the folder below." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
                                     <TextBlock x:Name="DataFolderText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                     <Button x:Name="OpenDataFolderButton" Content="Open the folder" Tag="&#xE838;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left"/>
                                 </StackPanel>

@@ -163,9 +163,18 @@ function Show-PCHealthCheck {
     }
 
     # Polls the background check a few times per second (see Receive-WindowCheck).
+    # Every timer of the window catches its own errors (see Write-WindowError): Windows
+    # never calls a timer again whose handler has failed.
     $gui.Timer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
     $gui.Timer.Interval = [timespan]::FromMilliseconds(200)
-    $gui.Timer.Add_Tick({ Receive-WindowCheck -Gui $script:HealthCheckWindow })
+    $gui.Timer.Add_Tick({
+            try {
+                Receive-WindowCheck -Gui $script:HealthCheckWindow
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
+            }
+        })
 
     $controls.RunButton.Add_Click({ Invoke-WindowCheck -Gui $script:HealthCheckWindow })
 
@@ -189,7 +198,15 @@ function Show-PCHealthCheck {
     # Looks every few seconds whether it is time to repeat the check (see Invoke-WindowAutoCheck).
     $gui.AutoTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
     $gui.AutoTimer.Interval = [timespan]::FromSeconds(15)
-    $gui.AutoTimer.Add_Tick({ [void](Invoke-WindowAutoCheck -Gui $script:HealthCheckWindow) })
+    $gui.AutoTimer.Add_Tick({
+            try {
+                [void](Clear-WindowWorker -Gui $script:HealthCheckWindow)
+                [void](Invoke-WindowAutoCheck -Gui $script:HealthCheckWindow)
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
+            }
+        })
     $gui.AutoTimer.Start()
 
     # A click on a notice opens its result; the button next to them dismisses them all.
@@ -205,7 +222,14 @@ function Show-PCHealthCheck {
     # timer only runs while that page is open or a recording is under way.
     $gui.MonitorTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
     $gui.MonitorTimer.Interval = [timespan]::FromMilliseconds(400)
-    $gui.MonitorTimer.Add_Tick({ Receive-WindowMonitor -Gui $script:HealthCheckWindow })
+    $gui.MonitorTimer.Add_Tick({
+            try {
+                Receive-WindowMonitor -Gui $script:HealthCheckWindow
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
+            }
+        })
 
     # With administrator rights there is nothing left to elevate: the button gives way
     # to a line that says so.
@@ -570,6 +594,17 @@ function Show-PCHealthCheck {
             $state.SignalTimer.Stop()
             Disable-WindowMonitor -Gui $state -Stop
             if ($state.Worker) {
+                # The check runs in a process of its own, which must not outlive the window.
+                $check = $state['CheckState']
+                $process = if ($check) { $check.Process }
+                if ($process) {
+                    try {
+                        $process.Kill()
+                    }
+                    catch {
+                        Write-Verbose "The process of the check had already ended: $($_.Exception.Message)"
+                    }
+                }
                 [void]$state.Worker.BeginStop($null, $null)
             }
             foreach ($usage in @($state.DiskUsage.Values) + @($state.ComponentDetail.Values)) {
@@ -591,7 +626,14 @@ function Show-PCHealthCheck {
     # asks this window to come to the front (see Receive-AppShowRequest).
     $gui.SignalTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
     $gui.SignalTimer.Interval = [timespan]::FromSeconds(1)
-    $gui.SignalTimer.Add_Tick({ [void](Receive-AppShowRequest -Gui $script:HealthCheckWindow) })
+    $gui.SignalTimer.Add_Tick({
+            try {
+                [void](Receive-AppShowRequest -Gui $script:HealthCheckWindow)
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
+            }
+        })
     $gui.SignalTimer.Start()
 
     # While the window exists, the installer must not replace the files of the application.
@@ -601,6 +643,19 @@ function Show-PCHealthCheck {
     # is hidden, and this window is hidden while the application runs in the
     # background. The loop below handles its events until it is closed for good.
     $gui.Frame = New-Object -TypeName System.Windows.Threading.DispatcherFrame
+
+    # An error in a click or a key that nothing catches would end the application
+    # without a word, because it has no console. It is written to the log instead and
+    # the window stays open (see Write-WindowError).
+    $errorHandler = [System.Windows.Threading.DispatcherUnhandledExceptionEventHandler] {
+        $failure = $args[1]
+        $state = $script:HealthCheckWindow
+        if ($state) {
+            [void](Write-WindowError -Gui $state -Exception $failure.Exception)
+            $failure.Handled = $true
+        }
+    }
+    $window.Dispatcher.add_UnhandledException($errorHandler)
     try {
         if ($settings.KeepInBackground -or $Background) {
             Enable-WindowTrayIcon -Gui $gui
@@ -619,7 +674,13 @@ function Show-PCHealthCheck {
         }
         [System.Windows.Threading.Dispatcher]::PushFrame($gui.Frame)
     }
+    catch {
+        # What ends the window in spite of all that is at least written down.
+        [void](Write-AppLog -Message 'The window ended with an error' -ErrorRecord $_)
+        throw
+    }
     finally {
+        $window.Dispatcher.remove_UnhandledException($errorHandler)
         if ($gui.TrayIcon) {
             $gui.TrayIcon.Visible = $false
             $gui.TrayIcon.Dispose()

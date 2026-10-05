@@ -21,7 +21,13 @@ function New-HealthCheckWindow {
         - InstanceLock, Hidden, Exiting, Started, TrayHintShown, Frame, SignalTimer:
                         state of running in the background (see Hide-WindowToTray,
                         Lock-AppInstance and Show-PCHealthCheck)
-        - Report, PreviousReport, Worker, Handle, Timer: state of the health check
+        - Report, PreviousReport, Worker, Handle, Timer, CheckState: state of the health
+                        check; CheckState holds the process the check runs in
+                        (see Invoke-WindowCheck)
+        - LastError:    the last unexpected error that was written to the log
+                        (see Write-WindowError)
+        - RetiredWorkers: runspaces that were told to end and are released once
+                        they have (see Clear-WindowWorker)
         - Background, LastCheckAt, AutoTimer, Notices, HighlightCheck, TrayIcon:
                         state of the automatic check and of what it announces
         - Monitor, MonitorTimer, MonitorHistory, MonitorUserPaused, Recorder:
@@ -171,6 +177,12 @@ function New-HealthCheckWindow {
         Worker            = $null
         Handle            = $null
         Timer             = $null
+        # The process the running check runs in, for the runspace and the window alike.
+        CheckState        = $null
+        # The last unexpected error and when it was written to the log (see Write-WindowError).
+        LastError         = $null
+        # Runspaces that were told to end; released once they have (see Clear-WindowWorker).
+        RetiredWorkers    = (New-Object -TypeName System.Collections.ArrayList)
         # The running check was started by the application itself (see Invoke-WindowAutoCheck).
         Background        = $false
         # The progress of the running check that is on the screen (see Receive-WindowCheck).

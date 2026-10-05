@@ -59,6 +59,7 @@ $script:AppDataRoot = $null
 # Initialize-AppIdentity). The shortcuts of the installer carry the same name.
 $script:AppUserModelId = 'Majstor767.HelpdeskToolkit'
 $script:AppIdentityType = $null
+$script:MemoryNativeType = $null
 # Replaces the Startup folder of the user, where the shortcut for starting with Windows
 # goes (see Get-AutoStartPath); used by the tests.
 $script:AutoStartFolder = $null

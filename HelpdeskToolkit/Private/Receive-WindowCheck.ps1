@@ -87,6 +87,15 @@ function Receive-WindowCheck {
             Select-Object -Last 1
 
         if (-not $report) {
+            # The check ran in a process of its own and its report came back as the
+            # plain data of a JSON file (see Invoke-WindowCheck).
+            $data = $output | Where-Object { $_ -and $_.PSObject.Properties['Results'] } | Select-Object -Last 1
+            if ($data) {
+                $report = ConvertTo-HealthReport -InputObject $data
+            }
+        }
+
+        if (-not $report) {
             $reason = if ($worker.Streams.Error.Count -gt 0) { $worker.Streams.Error[0].ToString() } else { 'No report was returned.' }
             throw $reason
         }
@@ -137,12 +146,17 @@ function Receive-WindowCheck {
     }
     catch {
         $controls.StatusText.Text = (Get-LocalizedText 'The check failed: {0}') -f $_.Exception.Message
+        [void](Write-AppLog -Message 'The check failed' -ErrorRecord $_)
     }
     finally {
         $worker.Dispose()
         $Gui.Worker = $null
         $Gui.Handle = $null
+        $Gui.CheckState = $null
         $Gui.Background = $false
+        # The report that was replaced and the data of the new one are no longer
+        # needed; a window nobody looks at also hands its memory back to Windows.
+        Optimize-ProcessMemory -Trim:([bool]$Gui.Hidden)
         # The automatic check counts from here, also after a check that failed.
         $Gui.LastCheckAt = Get-Date
         $controls.RunButton.IsEnabled = $true

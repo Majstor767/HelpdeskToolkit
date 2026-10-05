@@ -8,8 +8,9 @@ function Hide-WindowToTray {
         notification area stays (Enable-WindowTrayIcon); the automatic check goes on
         and announces new problems with a Windows notification.
 
-        The Live monitor stops measuring while nobody can see it, unless it is
-        recording into a file.
+        The Live monitor stops measuring while nobody can see it and gives up its
+        runspace, unless it is recording into a file. The memory the window does not
+        need while it is hidden goes back to Windows (Optimize-ProcessMemory).
 
         The first time in a run, a notification says where the application went and
         how it is ended, because a window that disappears without ending its program
@@ -26,9 +27,11 @@ function Hide-WindowToTray {
     )
 
     Enable-WindowTrayIcon -Gui $Gui
-    Disable-WindowMonitor -Gui $Gui
+    Disable-WindowMonitor -Gui $Gui -Release
     $Gui.Hidden = $true
     $Gui.Window.Hide()
+    # A window nobody looks at hands the memory it does not use back to Windows.
+    Optimize-ProcessMemory -Trim
 
     if (-not $Quiet -and -not $Gui.TrayHintShown) {
         $Gui.TrayHintShown = $true

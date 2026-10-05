@@ -15,9 +15,11 @@ function Enable-WindowMonitor {
         left out while "Skip network tests" is ticked). The loop waits in short steps,
         so it reacts to a change within a moment.
 
-        The runspace is created once per window. Leaving the page only pauses it
-        (Disable-WindowMonitor), so coming back shows data again without a delay. When
-        the user pressed Pause, opening the page does not resume by itself.
+        Leaving the page only pauses the runspace (Disable-WindowMonitor), so coming
+        back shows data again without a delay. A window that goes into the background
+        gives it up to save memory; a new one is created here when the page is opened
+        the next time. When the user pressed Pause, opening the page does not resume
+        by itself.
     #>
     [CmdletBinding()]
     param(
@@ -64,6 +66,10 @@ function Enable-WindowMonitor {
                     Start-Sleep -Milliseconds 200
                 }
             }
+
+            # The loop was told to end. Removing the module closes the runspaces it
+            # measured with (see Get-CimInstanceBatch); nothing else would release them.
+            Remove-Module -Name HelpdeskToolkit -ErrorAction SilentlyContinue
         }
 
         $worker = [powershell]::Create()

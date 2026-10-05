@@ -134,7 +134,9 @@
         'Open the Live monitor'                                = 'Otvori praćenje uživo'
         'About'                                                = 'O aplikaciji'
         'HelpdeskToolkit {0}  |  PowerShell {1}'               = 'HelpdeskToolkit {0}  |  PowerShell {1}'
-        'The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks and recordings of the Live monitor are kept in the folder below.' = 'Aplikacija samo čita podatke i nikad ništa ne mijenja na računalu. Vlastite postavke, povijest ranijih provjera i snimke praćenja uživo drži u mapi ispod.'
+        'The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks, recordings of the Live monitor and a log of errors (app.log) are kept in the folder below.' = 'Aplikacija samo čita podatke i nikad ništa ne mijenja na računalu. Vlastite postavke, povijest ranijih provjera, snimke praćenja uživo i dnevnik grešaka (app.log) drži u mapi ispod.'
+        'Something went wrong; the application keeps running. The details were written to {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje. Pojedinosti su zapisane u {0}'
+        'Something went wrong; the application keeps running: {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje: {0}'
         'Open the folder'                                      = 'Otvori mapu'
         'Language, theme and the automatic check (Ctrl+,)'     = 'Jezik, tema i automatska provjera (Ctrl+,)'
         'Open the settings'                                    = 'Otvori postavke'
@@ -144,7 +146,7 @@
         'Every 15 minutes'                                     = 'Svakih 15 minuta'
         'Every 30 minutes'                                     = 'Svakih 30 minuta'
         'Every 60 minutes'                                     = 'Svakih 60 minuta'
-        'After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result.' = 'Nakon prve provjere aplikacija je ponavlja u pozadini i ažurira rezultate. Novi problem najavljuje se na vrhu prozora, a dok prozor nije u prvom planu i Windows obavijesti. Klik na nju vodi do rezultata.'
+        'After the first check the application repeats it in the background and updates the results. A problem that is new is announced at the top of the window and, while the window is not in front, with a Windows notification. A click on it leads to the result. While the window is hidden or the computer runs on its battery, the check is repeated less often.' = 'Nakon prve provjere aplikacija je ponavlja u pozadini i ažurira rezultate. Novi problem najavljuje se na vrhu prozora, a dok prozor nije u prvom planu i Windows obavijesti. Klik na nju vodi do rezultata. Dok je prozor skriven ili računalo radi na bateriji, provjera se ponavlja rjeđe.'
 
         # --- Why a problem matters ------------------------------------------------
         'Why this is a problem'                                = 'Zašto je to problem'
