@@ -30,6 +30,7 @@ AppId={{0E354CC9-7F28-44F2-96B4-5782F88829B9}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Antonio Majstorovic
+AppCopyright=Copyright (c) 2026 Antonio Majstorovic. MIT License.
 AppPublisherURL=https://github.com/Majstor767/HelpdeskToolkit
 AppSupportURL=https://github.com/Majstor767/HelpdeskToolkit/issues
 AppUpdatesURL=https://github.com/Majstor767/HelpdeskToolkit/releases

@@ -135,6 +135,13 @@ number of days of history) are remembered for the next start as well.
   The page opens in your browser also where Windows itself fails to open links
   because it still names a default browser that was removed; that case is reported
   as a warning of its own under Software.
+- **A link for the exact error:** where a result names an update or an error code,
+  the fix has a link for each: the article of Microsoft about the update that failed
+  ("About update KB5050009"), a search for the error code of Windows Update
+  ("0x80070005"), for the stop code of a blue screen ("0x0000009F", listed under
+  "Show more" with how often it happened) and for the code Device Manager gives a
+  device that does not work ("code 28"). Only the number or the code goes into the
+  address, never a name.
 - **Events with their numbers:** the results of the event log list every kind of
   error under "Show more", with its source, its event number and how often it
   happened ("Event 10016: DistributedCOM (45x)"). A click on a line searches the web
@@ -669,6 +676,28 @@ The steps for a release, the PowerShell Gallery and winget are written down in
 .\tools\Test-HelpLink.ps1           # asks every page in Config\Help.psd1 whether it still exists
 ```
 
+## Privacy and legal notes
+
+- **No telemetry.** The program has no server and no account, and sends nothing about
+  you or your computer to anyone. Which network connections it makes (the connectivity
+  tests, winget, and the pages you open by clicking a link) and how each is avoided is
+  listed in [PRIVACY.md](PRIVACY.md).
+- **A report contains personal data**: the name of the computer, user names, installed
+  programs, network addresses, the serial number. Share it with care, and never in a
+  public issue.
+- **Use it only on computers you own or are allowed to examine.** That holds above all
+  for `-ComputerName` and for reports of computers other people use.
+- **No warranty.** The tool is free software under the MIT License and is provided
+  "as is". Its results and suggestions are general information, not professional
+  advice; they can be wrong or out of date. Keep a backup before you change a computer.
+- **Not a Microsoft product.** HelpdeskToolkit is an independent project and is not
+  affiliated with or endorsed by Microsoft. Windows and the other product names are
+  trademarks of their owners.
+
+The details are in [NOTICE.md](NOTICE.md); how to report a security problem is in
+[SECURITY.md](SECURITY.md), and what to mind when contributing in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). Copyright (c) 2026 Antonio Majstorovic.

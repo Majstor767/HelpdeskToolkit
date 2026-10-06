@@ -57,6 +57,10 @@ function Show-WindowSetting {
         [PSCustomObject]@{ Name = 'PrtSc'; Text = Get-LocalizedText 'Copy a picture of the window' }
     )
 
-    $controls.AboutText.Text = (Get-LocalizedText 'HelpdeskToolkit {0}  |  PowerShell {1}') -f (Get-ToolVersion), $PSVersionTable.PSVersion
+    # The version, and in one line what kind of software this is: who has to answer for
+    # it (nobody: no warranty) and whose it is not.
+    $controls.AboutText.Text = '{0}{1}{2}' -f ((Get-LocalizedText 'HelpdeskToolkit {0}  |  PowerShell {1}') -f (Get-ToolVersion), $PSVersionTable.PSVersion),
+        [Environment]::NewLine,
+        (Get-LocalizedText 'Free software under the MIT License, provided without warranty. An independent project, not affiliated with Microsoft.')
     $controls.DataFolderText.Text = Get-AppDataPath
 }

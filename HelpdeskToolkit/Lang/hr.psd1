@@ -138,6 +138,7 @@
         'Something went wrong; the application keeps running. The details were written to {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje. Pojedinosti su zapisane u {0}'
         'Something went wrong; the application keeps running: {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje: {0}'
         'Open the folder'                                      = 'Otvori mapu'
+        'Free software under the MIT License, provided without warranty. An independent project, not affiliated with Microsoft.' = 'Slobodan softver pod licencom MIT, bez jamstva. Neovisan projekt, nije povezan s Microsoftom.'
         'Language, theme and the automatic check (Ctrl+,)'     = 'Jezik, tema i automatska provjera (Ctrl+,)'
         'Open the settings'                                    = 'Otvori postavke'
         'Automatic check'                                      = 'Automatska provjera'
@@ -1029,6 +1030,9 @@
         'Event {0}: {1} ({2}x)'                                = 'Događaj {0}: {1} ({2}x)'
         'Look up what this event means and how it is fixed'    = 'Potraži što ovaj događaj znači i kako se popravlja'
         'Search the web for this problem'                      = 'Potraži ovaj problem na webu'
+        'About update {0}'                                     = 'O ažuriranju {0}'
+        'Windows returned no information about the operating system and the computer.' = 'Windows nije vratio podatke o operacijskom sustavu i računalu.'
+        'Search the web for error {0}'                         = 'Potraži grešku {0} na webu'
         'The page was opened in the browser.'                  = 'Stranica je otvorena u pregledniku.'
         'The page could not be opened: {0}'                    = 'Stranica se nije mogla otvoriti: {0}'
 

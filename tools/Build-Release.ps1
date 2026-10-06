@@ -66,7 +66,7 @@ New-Item -Path $staging -ItemType Directory | Out-Null
 
 try {
     Copy-Item -Path (Join-Path -Path $root -ChildPath 'HelpdeskToolkit') -Destination $staging -Recurse
-    foreach ($file in 'Start-HelpdeskToolkit.cmd', 'Start-HelpdeskToolkit.ps1', 'Invoke-HealthCheck.ps1', 'LICENSE', 'README.md', 'README.hr.md', 'CHANGELOG.md') {
+    foreach ($file in 'Start-HelpdeskToolkit.cmd', 'Start-HelpdeskToolkit.ps1', 'Invoke-HealthCheck.ps1', 'LICENSE', 'NOTICE.md', 'PRIVACY.md', 'README.md', 'README.hr.md', 'CHANGELOG.md') {
         $source = Join-Path -Path $root -ChildPath $file
         if (Test-Path -LiteralPath $source) {
             Copy-Item -LiteralPath $source -Destination $staging

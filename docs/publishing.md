@@ -18,19 +18,41 @@ sends something to the internet is started by hand.
       `.\tools\New-SampleReport.ps1`, then `.\tools\New-Screenshot.ps1`.
 - [ ] `.\tools\Build-Release.ps1` builds the installer, and the installed application
       starts and runs a check.
+- [ ] `.\tools\Test-HelpLink.ps1` finds every linked page.
+
+### Legal and privacy
+
+- [ ] `LICENSE`, `NOTICE.md`, `PRIVACY.md`, `SECURITY.md` and `CONTRIBUTING.md` say what
+      is true of this version; `tests\Legal.Tests.ps1` compares the privacy page with the
+      addresses in the configuration and with the commands that use the network.
+- [ ] No file and no commit contains a real computer name, user name, address or serial
+      number: `git grep -n -i <name of this computer>` and
+      `git log --all --oneline -S <name of this computer>` find nothing.
+- [ ] The e-mail address in the commits is one that may be public. Every commit carries
+      the name and the address of its author, and GitHub shows them. To keep a private
+      address out, turn on "Keep my email addresses private" in the GitHub settings
+      and use the `...@users.noreply.github.com` address it shows; rewriting the address
+      in commits that exist already has to happen before the first push.
+- [ ] The name is free: no other program called HelpdeskToolkit in the PowerShell
+      Gallery, on winget or on GitHub that it could be mistaken for.
 
 ## GitHub
 
 1. Sign in once: `gh auth login` (GitHub.com, HTTPS, sign in with the browser).
-2. Create the repository from the local folder and push it:
+2. Create the repository from the local folder and push it. Start **private**: the
+   tests then run on GitHub before anybody else can see the project.
 
    ```powershell
-   gh repo create Majstor767/HelpdeskToolkit --public --source . --remote origin --push
+   gh repo create Majstor767/HelpdeskToolkit --private --source . --remote origin --push
    ```
 
 3. Open the **Actions** tab and wait for the CI run. It is the first time the tests
    run on a computer other than the one they were written on, so read the result
-   before going on.
+   before going on. When it is green, make the repository public:
+
+   ```powershell
+   gh repo edit Majstor767/HelpdeskToolkit --visibility public --accept-visibility-change-consequences
+   ```
 4. Create the release by pushing a tag that matches `ModuleVersion`:
 
    ```powershell
@@ -43,6 +65,9 @@ sends something to the internet is started by hand.
 5. Download the installer from the Releases page on another computer, or with another
    account, and install it. This shows what a user sees: the SmartScreen notice
    ("More info" > "Run anyway"), because the installer is not digitally signed.
+
+On the repository page, turn on **Settings > Code security > Private vulnerability
+reporting**: `SECURITY.md` sends people there.
 
 Good to set on the repository page: a short description, the topics `powershell`,
 `windows`, `helpdesk`, `it-support`, `diagnostics`, and the picture

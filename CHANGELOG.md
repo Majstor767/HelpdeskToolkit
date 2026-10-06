@@ -59,6 +59,14 @@ The first public version. It will be released as 1.0.0.
   minutes at most) or the computer runs on battery (15, and 60 when both apply).
 - An unexpected error no longer ends the application without a trace: it is written
   to `app.log` in the folder of the application and the window stays open.
+- A check keeps working when Windows does not answer: tests let every source of
+  data fail, alone and all at once, and no category is lost. A category that fails
+  in the middle keeps what it had found.
+- In Croatian the result cards are built fifteen times faster, and the table of
+  translated texts no longer grows without end.
+- Privacy, notices and security policy: `PRIVACY.md` lists every network connection
+  the program makes, `NOTICE.md` the license, the trademarks and what the tool is
+  not, `SECURITY.md` how to report a vulnerability.
 
 ### The window
 
@@ -70,6 +78,11 @@ The first public version. It will be released as 1.0.0.
 - Below the fix of every problem, a link to the page of Microsoft that explains it,
   or a web search for its name. The results of the event log list every kind of
   event with its event number under "Show more"; a click looks that event up.
+- A link for the exact error: the article of Microsoft about an update that failed,
+  and a search for the error code of Windows Update, for the stop code of a blue
+  screen (now listed with how often it happened) and for the code Device Manager
+  gives a device. Services and the profiles of the firewall get the page that
+  explains them, as do fifteen more checks that only had a web search.
 - Links open also when Windows cannot open them: when the default browser was removed
   and Windows still names it ("Application not found"), another browser is used; from a
   window with administrator rights the page is opened by the desktop of the user, so

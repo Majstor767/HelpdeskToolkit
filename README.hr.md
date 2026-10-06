@@ -134,6 +134,12 @@ povijesti) također se pamte do sljedećeg pokretanja.
   Stranica se otvara u tvom pregledniku i ondje gdje sam Windows ne uspijeva otvoriti
   linkove jer kao zadani preglednik i dalje navodi onaj koji je uklonjen; taj se
   slučaj prijavljuje kao zasebno upozorenje pod Software.
+- **Link za točno tu grešku:** gdje rezultat navodi ažuriranje ili kod greške, uz
+  rješenje stoji link za svaki: Microsoftov članak o ažuriranju koje nije uspjelo
+  ("About update KB5050009"), pretraga koda greške Windows Updatea ("0x80070005"),
+  stop-koda plavog ekrana ("0x0000009F", popisan pod "Show more" s brojem
+  ponavljanja) i koda koji Device Manager daje uređaju koji ne radi ("code 28"). U
+  adresu ide samo broj ili kod, nikad ime.
 - **Događaji s brojevima:** rezultati dnevnika događaja pod "Show more" listaju svaku
   vrstu greške s izvorom, brojem događaja i koliko se puta dogodila ("Event 10016:
   DistributedCOM (45x)"). Klik na redak pretražuje web točno za taj događaj; tako se
@@ -655,6 +661,29 @@ izdanje, PowerShell Gallery i winget zapisani su u [docs/publishing.md](docs/pub
 .\tools\Test-HelpLink.ps1           # pita svaku stranicu iz Config\Help.psd1 postoji li još
 ```
 
+## Privatnost i pravne napomene
+
+- **Bez telemetrije.** Program nema poslužitelj ni korisnički račun i nikome ne šalje
+  ništa o tebi ni o tvom računalu. Koje mrežne veze otvara (testovi povezanosti, winget
+  i stranice koje otvoriš klikom na link) i kako se svaka izbjegava, piše u
+  [PRIVACY.md](PRIVACY.md).
+- **Izvještaj sadrži osobne podatke**: ime računala, korisnička imena, instalirane
+  programe, mrežne adrese, serijski broj. Dijeli ga oprezno i nikad u javnoj prijavi
+  problema.
+- **Koristi ga samo na računalima koja su tvoja ili koja smiješ pregledavati.** To
+  posebno vrijedi za `-ComputerName` i za izvještaje računala kojima se služe drugi.
+- **Bez jamstva.** Alat je slobodan softver pod licencom MIT i daje se "kakav jest".
+  Njegovi rezultati i prijedlozi opće su informacije, a ne stručni savjet; mogu biti
+  pogrešni ili zastarjeli. Prije nego što nešto mijenjaš na računalu, napravi
+  sigurnosnu kopiju.
+- **Nije Microsoftov proizvod.** HelpdeskToolkit je neovisan projekt i nije povezan s
+  Microsoftom niti ga Microsoft podržava. Windows i ostala imena proizvoda zaštitni su
+  znakovi svojih vlasnika.
+
+Pojedinosti su u [NOTICE.md](NOTICE.md) (na engleskom); kako se prijavljuje sigurnosni
+problem piše u [SECURITY.md](SECURITY.md), a na što paziti pri doprinosu u
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Licenca
 
-[MIT](LICENSE)
+[MIT](LICENSE). Copyright (c) 2026 Antonio Majstorovic.
