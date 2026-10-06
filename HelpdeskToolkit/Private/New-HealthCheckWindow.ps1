@@ -184,6 +184,8 @@ function New-HealthCheckWindow {
         Timer             = $null
         # The process the running check runs in, for the runspace and the window alike.
         CheckState        = $null
+        # When the running check was started; one that takes too long is stopped.
+        CheckStartedAt    = $null
         # The last unexpected error and when it was written to the log (see Write-WindowError).
         LastError         = $null
         # Runspaces that were told to end; released once they have (see Clear-WindowWorker).

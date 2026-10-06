@@ -59,6 +59,9 @@ The first public version. It will be released as 1.0.0.
   minutes at most) or the computer runs on battery (15, and 60 when both apply).
 - An unexpected error no longer ends the application without a trace: it is written
   to `app.log` in the folder of the application and the window stays open.
+- A check that does not finish is stopped after ten minutes and the window says so,
+  instead of showing "Checking ..." for ever. Errors in the menu of the icon next to
+  the clock are written to the log like those of the window.
 - A check keeps working when Windows does not answer: tests let every source of
   data fail, alone and all at once, and no category is lost. A category that fails
   in the middle keeps what it had found.

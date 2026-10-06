@@ -244,6 +244,72 @@ Describe 'A check of the window, in a process of its own' -Skip:(-not $isSta) {
         }
     }
 
+    It 'stops a check that does not finish, and says so' {
+        $gui = Get-TestWindow
+        $gui.ManifestPath = New-TestModuleFolder -Name 'Slow' -Body $slowModule
+        # A limit of about a second instead of ten minutes
+        $previous = InModuleScope HelpdeskToolkit { $script:CheckTimeoutMinutes }
+        InModuleScope HelpdeskToolkit { $script:CheckTimeoutMinutes = 0.02 }
+        try {
+            InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowCheck -Gui $Gui }
+            $gui.CheckStartedAt | Should -BeOfType [datetime]
+
+            # What the timer of the window does: look a few times per second.
+            $deadline = (Get-Date).AddSeconds(60)
+            $id = 0
+            while ($gui.Worker -and (Get-Date) -lt $deadline) {
+                if (-not $id -and $gui.CheckState.Process) {
+                    $id = $gui.CheckState.Process.Id
+                }
+                InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Receive-WindowCheck -Gui $Gui }
+                Start-Sleep -Milliseconds 100
+            }
+
+            $gui.Worker | Should -BeNullOrEmpty -Because 'the check was stopped and the window is free for the next one'
+            $gui.Controls.StatusText.Text | Should -BeLike 'The check failed: *did not finish within*and was stopped*'
+            $gui.Controls.RunButton.IsEnabled | Should -BeTrue
+            $gui.CheckStartedAt | Should -BeNullOrEmpty
+            $id | Should -BeGreaterThan 0
+            Get-Process -Id $id -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+        }
+        finally {
+            InModuleScope HelpdeskToolkit -Parameters @{ Previous = $previous } { $script:CheckTimeoutMinutes = $Previous }
+            $gui.Timer.Stop()
+            if ($gui.Worker) {
+                $gui.Worker.Stop()
+                $gui.Worker.Dispose()
+            }
+        }
+    }
+
+    It 'leaves a check alone that is within its time' {
+        InModuleScope HelpdeskToolkit { $script:CheckTimeoutMinutes } | Should -Be 10
+        $gui = Get-TestWindow
+        $gui.ManifestPath = New-TestModuleFolder -Name 'Slow' -Body $slowModule
+        try {
+            InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Invoke-WindowCheck -Gui $Gui }
+            $deadline = (Get-Date).AddSeconds(30)
+            while (-not $gui.CheckState.Process -and (Get-Date) -lt $deadline) {
+                Start-Sleep -Milliseconds 50
+            }
+            InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Receive-WindowCheck -Gui $Gui }
+
+            $gui.CheckState.TimedOut | Should -BeFalse
+            $gui.CheckState.Process.HasExited | Should -BeFalse
+            $gui.Worker | Should -Not -BeNullOrEmpty
+        }
+        finally {
+            $gui.Timer.Stop()
+            if ($gui.CheckState -and $gui.CheckState.Process) {
+                $gui.CheckState.Process.Kill()
+            }
+            if ($gui.Worker) {
+                [void]$gui.Handle.AsyncWaitHandle.WaitOne(30000)
+                $gui.Worker.Dispose()
+            }
+        }
+    }
+
     It 'gives a repeated check the right to reuse remembered measurements' {
         $gui = Get-TestWindow
         $gui.ManifestPath = New-TestModuleFolder -Name 'Reporting' -Body $reportingModule

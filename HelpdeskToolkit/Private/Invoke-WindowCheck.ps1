@@ -18,7 +18,8 @@ function Invoke-WindowCheck {
         A second PowerShell runspace of the window (a separate thread) starts that
         process, passes its progress on and reads the report it leaves behind as a
         JSON file. The process has the rights of the window: started from an elevated
-        window it is elevated too, without another question.
+        window it is elevated too, without another question. A process that does not
+        finish is stopped after $script:CheckTimeoutMinutes (see Receive-WindowCheck).
 
         With -Background the check is one the application repeats by itself (see
         Invoke-WindowAutoCheck). It runs the same way but stays out of the way: no
@@ -118,6 +119,9 @@ function Invoke-WindowCheck {
             }
             $process.WaitForExit()
 
+            if ($State.TimedOut) {
+                throw ('The check did not finish within {0} minutes and was stopped: Windows did not answer one of its questions. Try again; if it happens again, tick "Skip network tests".' -f $State.TimeoutMinutes)
+            }
             if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $reportPath)) {
                 if (-not $failure) {
                     $failure = ([string]$errorText.Result).Trim()
@@ -154,7 +158,7 @@ function Invoke-WindowCheck {
     $scriptPath = Join-Path -Path (Split-Path -Path $Gui.ManifestPath -Parent) -ChildPath 'Invoke-CheckWorker.ps1'
     $program = if ($PSVersionTable.PSEdition -eq 'Core') { 'pwsh.exe' } else { 'powershell.exe' }
     $powershell = Join-Path -Path $PSHOME -ChildPath $program
-    $state = [hashtable]::Synchronized(@{ Process = $null })
+    $state = [hashtable]::Synchronized(@{ Process = $null; TimedOut = $false; TimeoutMinutes = $script:CheckTimeoutMinutes })
 
     $worker = [powershell]::Create()
     [void]$worker.AddScript($work.ToString()).AddArgument($scriptPath).AddArgument($powershell).
@@ -164,6 +168,7 @@ function Invoke-WindowCheck {
     $Gui.Background = [bool]$Background
     $Gui.RunStep = ''
     $Gui.CheckState = $state
+    $Gui.CheckStartedAt = Get-Date
     $Gui.Worker = $worker
     $Gui.Handle = $worker.BeginInvoke()
     $Gui.Timer.Start()

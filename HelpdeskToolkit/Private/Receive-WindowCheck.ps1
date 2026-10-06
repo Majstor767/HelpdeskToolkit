@@ -13,6 +13,10 @@ function Receive-WindowCheck {
         Save-HealthReportHistory), after the report of the previous check was looked
         up, so the Overview can show what changed since then.
 
+        A check that has not finished after $script:CheckTimeoutMinutes is stopped: its
+        process is ended and the window says so, instead of showing "Checking ..."
+        for ever.
+
         The report of an automatic check (Invoke-WindowCheck -Background) is handled
         differently:
         - It replaces the results without interrupting the user (Show-WindowReport
@@ -44,6 +48,22 @@ function Receive-WindowCheck {
     }
 
     if (-not $Gui.Handle.IsCompleted) {
+        # A check that takes this long waits for an answer of Windows that will not
+        # come (a broken WMI repository does that). Its process is ended; the runspace
+        # then finishes by itself and the next call reports why.
+        $check = $Gui['CheckState']
+        $started = $Gui['CheckStartedAt']
+        if ($check -and $started -and -not $check.TimedOut -and $script:CheckTimeoutMinutes -gt 0 -and
+            ((Get-Date) - $started).TotalMinutes -gt $script:CheckTimeoutMinutes -and $check.Process) {
+            $check.TimedOut = $true
+            try {
+                $check.Process.Kill()
+            }
+            catch {
+                Write-Verbose "The process of the check had already ended: $($_.Exception.Message)"
+            }
+        }
+
         # Windows cmdlets used inside the checks write progress records of their own,
         # so only the records of Get-PCHealthReport are used. The record that closes
         # its progress bar has a percentage of -1 and is skipped as well.
@@ -153,6 +173,7 @@ function Receive-WindowCheck {
         $Gui.Worker = $null
         $Gui.Handle = $null
         $Gui.CheckState = $null
+        $Gui.CheckStartedAt = $null
         $Gui.Background = $false
         # The report that was replaced and the data of the new one are no longer
         # needed; a window nobody looks at also hands its memory back to Windows.

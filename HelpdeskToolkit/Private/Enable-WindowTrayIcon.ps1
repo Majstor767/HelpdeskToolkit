@@ -39,39 +39,66 @@ function Enable-WindowTrayIcon {
     $icon.Text = 'HelpdeskToolkit'
 
     # The handlers run later; they reach the window through the module-level variable.
+    # They belong to Windows Forms, which the error handler of the window does not
+    # hear: each one catches its own errors and writes them to the log.
     $menu = New-Object -TypeName System.Windows.Forms.ContextMenuStrip
     $openItem = $menu.Items.Add((Get-LocalizedText 'Open HelpdeskToolkit'))
     $openItem.Add_Click({
-            if ($script:HealthCheckWindow) {
-                Show-WindowFromTray -Gui $script:HealthCheckWindow -Force
+            try {
+                if ($script:HealthCheckWindow) {
+                    Show-WindowFromTray -Gui $script:HealthCheckWindow -Force
+                }
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
             }
         })
     $runItem = $menu.Items.Add((Get-LocalizedText 'Run check now'))
     $runItem.Add_Click({
-            $state = $script:HealthCheckWindow
-            if ($state -and -not $state.Worker) {
-                Invoke-WindowCheck -Gui $state
+            try {
+                $state = $script:HealthCheckWindow
+                if ($state -and -not $state.Worker) {
+                    Invoke-WindowCheck -Gui $state
+                }
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
             }
         })
     [void]$menu.Items.Add((New-Object -TypeName System.Windows.Forms.ToolStripSeparator))
     $exitItem = $menu.Items.Add((Get-LocalizedText 'Exit'))
     $exitItem.Add_Click({
-            if ($script:HealthCheckWindow) {
-                Exit-WindowApplication -Gui $script:HealthCheckWindow
+            try {
+                if ($script:HealthCheckWindow) {
+                    Exit-WindowApplication -Gui $script:HealthCheckWindow
+                }
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
             }
         })
     $icon.ContextMenuStrip = $menu
 
     $open = {
-        if ($script:HealthCheckWindow) {
-            [void](Open-WindowNotice -Gui $script:HealthCheckWindow)
+        try {
+            if ($script:HealthCheckWindow) {
+                [void](Open-WindowNotice -Gui $script:HealthCheckWindow)
+            }
+        }
+        catch {
+            [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
         }
     }
     $icon.Add_BalloonTipClicked($open)
     # The right button belongs to the menu.
     $icon.Add_MouseClick({
-            if ($args[1].Button -eq [System.Windows.Forms.MouseButtons]::Left -and $script:HealthCheckWindow) {
-                [void](Open-WindowNotice -Gui $script:HealthCheckWindow)
+            try {
+                if ($args[1].Button -eq [System.Windows.Forms.MouseButtons]::Left -and $script:HealthCheckWindow) {
+                    [void](Open-WindowNotice -Gui $script:HealthCheckWindow)
+                }
+            }
+            catch {
+                [void](Write-WindowError -Gui $script:HealthCheckWindow -ErrorRecord $_)
             }
         })
 

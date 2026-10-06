@@ -211,6 +211,16 @@ Describe 'How Show-PCHealthCheck deals with errors' {
         }
     }
 
+    It 'lets every handler of the icon next to the clock catch its own errors, which the window would not hear' {
+        $tray = [System.IO.File]::ReadAllText((Join-Path -Path $moduleRoot -ChildPath 'Private\Enable-WindowTrayIcon.ps1'))
+        # Three entries of the menu, the click on the icon and the click on a notification
+        $handlers = [regex]::Matches($tray, '(?s)(Add_Click|Add_MouseClick)\(\{(.*?)\n        \}\)|\$open = \{(.*?)\n    \}')
+        $handlers.Count | Should -Be 5
+        foreach ($handler in $handlers) {
+            $handler.Value | Should -Match '(?s)try \{.*\}\s+catch \{\s+\[void\]\(Write-WindowError -Gui \$script:HealthCheckWindow -ErrorRecord \$_\)'
+        }
+    }
+
     It 'takes the errors nothing caught from the window and lets it stay open' {
         $source | Should -Match 'DispatcherUnhandledExceptionEventHandler'
         $source | Should -Match '\$window\.Dispatcher\.add_UnhandledException\(\$errorHandler\)'

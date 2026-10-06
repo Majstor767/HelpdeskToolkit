@@ -60,6 +60,10 @@ $script:AppDataRoot = $null
 $script:AppUserModelId = 'Majstor767.HelpdeskToolkit'
 $script:AppIdentityType = $null
 $script:MemoryNativeType = $null
+# After this many minutes a check of the window that has not finished is stopped (see
+# Receive-WindowCheck). A check takes seconds; one that takes this long is waiting for
+# an answer of Windows that will not come.
+$script:CheckTimeoutMinutes = 10
 # Replaces the Startup folder of the user, where the shortcut for starting with Windows
 # goes (see Get-AutoStartPath); used by the tests.
 $script:AutoStartFolder = $null
