@@ -24,8 +24,8 @@ function Import-TranslationTable {
         - Sentences: the texts that end like a sentence, longest first, to take apart
           a recommendation that consists of several of them.
 
-        Returns a table with Language, Text, Templates, Sentences, Patterns and an
-        empty Cache. An unknown language or an unreadable file gives empty parts, so
+        Returns a table with Language, Text, Exact (the texts with their capital
+        letters as written), Templates, Sentences, Patterns and an empty Cache. An unknown language or an unreadable file gives empty parts, so
         the window falls back to English.
     #>
     [CmdletBinding()]
@@ -35,7 +35,17 @@ function Import-TranslationTable {
         [string]$Language
     )
 
-    $table = @{ Language = $Language; Text = @{}; Templates = @(); Sentences = @(); Patterns = @(); Cache = @{} }
+    # Exact holds the texts as they are written, capital letters included: the table
+    # Text finds "OK" and "Ok" alike, and Get-LocalizedText has to tell them apart.
+    $table = @{
+        Language  = $Language
+        Text      = @{}
+        Exact     = New-Object -TypeName 'System.Collections.Generic.HashSet[string]' -ArgumentList ([System.StringComparer]::Ordinal)
+        Templates = @()
+        Sentences = @()
+        Patterns  = @()
+        Cache     = @{}
+    }
 
     $path = Join-Path -Path $script:ModuleRoot -ChildPath ('Lang\{0}.psd1' -f $Language)
     if (-not (Test-Path -LiteralPath $path)) {
@@ -57,6 +67,7 @@ function Import-TranslationTable {
         elseif ($data[$name] -is [hashtable]) {
             foreach ($key in $data[$name].Keys) {
                 $table.Text[[string]$key] = [string]$data[$name][$key]
+                [void]$table.Exact.Add([string]$key)
             }
         }
     }

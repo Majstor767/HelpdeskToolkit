@@ -46,7 +46,11 @@ function Get-LocalizedText {
     # 1. The whole text
     if ($table.Text.ContainsKey($Text)) {
         $translation = [string]$table.Text[$Text]
-        if ($Text -cmatch '[A-Z]{2}' -and $Text -ceq $Text.ToUpperInvariant() -and $Text -cne [string]($table.Text.Keys | Where-Object { $_ -eq $Text } | Select-Object -First 1)) {
+        # A text in capitals whose translation was written for the ordinary spelling
+        # ("RECOMMENDED FIX" for "Recommended fix") is put in capitals as well. Whether
+        # the table has it exactly as written is looked up, not searched for: this runs
+        # for every label of every card.
+        if ($Text -cmatch '[A-Z]{2}' -and $Text -ceq $Text.ToUpperInvariant() -and -not $table.Exact.Contains($Text)) {
             return $translation.ToUpper()
         }
         return $translation
@@ -97,6 +101,12 @@ function Get-LocalizedText {
         }
     }
 
+    # The values of the checks change all the time ("52 % used", "53 % used"), and the
+    # application is meant to run for days: a table that remembers every text it ever
+    # translated would grow without end. When it is full it starts again.
+    if ($table.Cache.Count -ge 5000) {
+        $table.Cache.Clear()
+    }
     $table.Cache[$Text] = $result
     $result
 }
