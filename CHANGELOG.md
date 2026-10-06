@@ -170,6 +170,7 @@ The first public version. It will be released as 1.0.0.
 
 ### Distribution
 
+- The package for testers is in English: `README.txt` and the folder `Portable`.
 - Installer for the current user (no administrator rights), portable ZIP, or use as a
   PowerShell module.
 - Setup and the uninstaller stop with a message while the application is open,

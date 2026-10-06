@@ -223,7 +223,7 @@ function Invoke-PCHealthCheck {
 Describe 'Package for a tester' {
     BeforeAll {
         $script = Join-Path -Path $root -ChildPath 'tools\New-TestPackage.ps1'
-        $readme = Join-Path -Path $root -ChildPath 'docs\tester\PROCITAJ-ME.txt'
+        $readme = Join-Path -Path $root -ChildPath 'docs\tester\README.txt'
     }
 
     It 'has a script that puts the package together, with help' {
@@ -248,7 +248,9 @@ Describe 'Package for a tester' {
         $text.IndexOf('[System.IO.FileShare]::None') | Should -BeLessThan $text.IndexOf('-Recurse -Force')
     }
 
-    It 'has instructions that Notepad shows with their Croatian letters' {
+    It 'has instructions in English, as a file Notepad reads on every Windows version' {
+        [System.IO.File]::ReadAllText($readme, [System.Text.Encoding]::UTF8) | Should -Match '^\uFEFF?HelpdeskToolkit - test version'
+        Join-Path -Path $root -ChildPath 'docs\tester\PROCITAJ-ME.txt' | Should -Not -Exist
         $bytes = [System.IO.File]::ReadAllBytes($readme)
         $bytes[0], $bytes[1], $bytes[2] | Should -Be @(0xEF, 0xBB, 0xBF)
     }
@@ -258,7 +260,11 @@ Describe 'Package for a tester' {
         $text | Should -Match 'Start-HelpdeskToolkit\.cmd'
         $text | Should -Match 'Windows protected your PC'
         $text | Should -Match 'Run anyway'
-        $text | Should -Match 'SAMO .ITA'
-        $text | Should -Match 'Privatnost'
+        $text | Should -Match 'ONLY READ'
+        $text | Should -Match 'Privacy:'
+        $text | Should -Match 'No warranty:'
+        # The folder the instructions send the tester to is the one the script creates.
+        $text | Should -Match 'Open the folder "Portable"'
+        Get-Content -LiteralPath $script -Raw | Should -Match "-ChildPath 'Portable'"
     }
 }

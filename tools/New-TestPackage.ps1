@@ -5,10 +5,10 @@
     Builds the release (tools\Build-Release.ps1) and arranges it for a tester:
 
         dist\HelpdeskToolkit-test-<version>\
-            PROCITAJ-ME.txt                      what it is, how to start it, what to try,
+            README.txt                           what it is, how to start it, what to try,
                                                  what feedback is wanted (docs\tester)
             HelpdeskToolkit-Setup-<version>.exe  the installer
-            Bez-instalacije\                     the portable copy, already unpacked:
+            Portable\                            the portable copy, already unpacked:
                                                  double-click Start-HelpdeskToolkit.cmd
             SHA256SUMS.txt                       checksums of the two release files
 
@@ -66,8 +66,16 @@ $packageZip = '{0}.zip' -f $package
 # A copy of the application that was started from the old package keeps a file of it
 # open (see Lock-AppFile). Deleting the folder under a running window would leave that
 # window without its files, so nothing is touched while it runs.
-$lockFile = Join-Path -Path $package -ChildPath 'Bez-instalacije\HelpdeskToolkit\Assets\HelpdeskToolkit.ico'
-if (Test-Path -LiteralPath $lockFile) {
+# The copy is looked for in every folder of the old package, whatever that folder was
+# called when the package was built.
+$lockFiles = @(
+    if (Test-Path -LiteralPath $package) {
+        Get-ChildItem -LiteralPath $package -Directory |
+            ForEach-Object { Join-Path -Path $_.FullName -ChildPath 'HelpdeskToolkit\Assets\HelpdeskToolkit.ico' } |
+            Where-Object { Test-Path -LiteralPath $_ }
+    }
+)
+foreach ($lockFile in $lockFiles) {
     try {
         $stream = [System.IO.File]::Open($lockFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
         $stream.Dispose()
@@ -87,12 +95,12 @@ New-Item -Path $package -ItemType Directory | Out-Null
 
 Copy-Item -LiteralPath $installer -Destination $package
 Copy-Item -LiteralPath $checksums -Destination $package
-Expand-Archive -LiteralPath $portable -DestinationPath (Join-Path -Path $package -ChildPath 'Bez-instalacije')
+Expand-Archive -LiteralPath $portable -DestinationPath (Join-Path -Path $package -ChildPath 'Portable')
 
 # The instructions, with a line that says exactly which build this is. They are
-# written as UTF-8 with a byte order mark, so Notepad shows the Croatian letters on
-# every Windows version.
-$readme = [System.IO.File]::ReadAllText((Join-Path -Path $root -ChildPath 'docs\tester\PROCITAJ-ME.txt'), [System.Text.Encoding]::UTF8)
+# written as UTF-8 with a byte order mark, so Notepad shows every character on every
+# Windows version.
+$readme = [System.IO.File]::ReadAllText((Join-Path -Path $root -ChildPath 'docs\tester\README.txt'), [System.Text.Encoding]::UTF8)
 $commit = ''
 try {
     $commit = (& git -C $root rev-parse --short HEAD 2>$null)
@@ -100,13 +108,13 @@ try {
 catch {
     Write-Verbose "The commit could not be read: $($_.Exception.Message)"
 }
-$build = 'Verzija {0}, slozeno {1:yyyy-MM-dd}' -f $version, (Get-Date)
+$build = 'Version {0}, built {1:yyyy-MM-dd}' -f $version, (Get-Date)
 if ($commit) {
     $build = '{0}, commit {1}' -f $build, $commit
 }
 $readme = $readme.TrimEnd() + "`r`n`r`n`r`n" + $build + "`r`n"
 $readme = $readme -replace "`r?`n", "`r`n"
-[System.IO.File]::WriteAllText((Join-Path -Path $package -ChildPath 'PROCITAJ-ME.txt'), $readme, (New-Object -TypeName System.Text.UTF8Encoding -ArgumentList $true))
+[System.IO.File]::WriteAllText((Join-Path -Path $package -ChildPath 'README.txt'), $readme, (New-Object -TypeName System.Text.UTF8Encoding -ArgumentList $true))
 
 Compress-Archive -Path $package -DestinationPath $packageZip
 
