@@ -55,6 +55,10 @@ function Get-SystemHealth {
     try {
         $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
         $computer = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+        # A broken WMI repository answers without an error and without anything in it.
+        if (-not $os -or -not $computer) {
+            throw 'Windows returned no information about the operating system and the computer.'
+        }
     }
     catch {
         New-FailureResult -Category $category -Check 'System information' -ErrorRecord $_

@@ -438,36 +438,41 @@ function Get-SecurityHealth {
     }
 
     # Backup of personal files: File History and OneDrive
-    $fileHistory = Get-FileHistoryTarget
-    $oneDriveAccounts = @(Get-ChildItem -Path 'HKCU:\Software\Microsoft\OneDrive\Accounts' -ErrorAction SilentlyContinue |
-            Where-Object { $_.GetValue('UserFolder') })
-    $oneDriveRunning = @(Get-Process -Name 'OneDrive' -ErrorAction SilentlyContinue).Count -gt 0
+    try {
+        $fileHistory = Get-FileHistoryTarget
+        $oneDriveAccounts = @(Get-ChildItem -Path 'HKCU:\Software\Microsoft\OneDrive\Accounts' -ErrorAction SilentlyContinue |
+                Where-Object { $_.GetValue('UserFolder') })
+        $oneDriveRunning = @(Get-Process -Name 'OneDrive' -ErrorAction SilentlyContinue).Count -gt 0
 
-    if ($fileHistory) {
-        New-CheckResult -Category $category -Check 'File History' -Status Info -Value ('Set up, saves to {0}' -f $fileHistory)
-    }
-    else {
-        # Without any sign of a backup the advice is given; another backup program may
-        # of course be in use, which is why this is not a warning.
-        $recommendation = if ($oneDriveAccounts.Count -eq 0) {
-            'No backup of the personal files was found (neither File History nor OneDrive). If no other backup program is used, set one up: a disk can fail without warning. File History is in Control Panel > File History.'
+        if ($fileHistory) {
+            New-CheckResult -Category $category -Check 'File History' -Status Info -Value ('Set up, saves to {0}' -f $fileHistory)
         }
         else {
-            ''
+            # Without any sign of a backup the advice is given; another backup program may
+            # of course be in use, which is why this is not a warning.
+            $recommendation = if ($oneDriveAccounts.Count -eq 0) {
+                'No backup of the personal files was found (neither File History nor OneDrive). If no other backup program is used, set one up: a disk can fail without warning. File History is in Control Panel > File History.'
+            }
+            else {
+                ''
+            }
+            New-CheckResult -Category $category -Check 'File History' -Status Info -Value 'Not set up' -Recommendation $recommendation
         }
-        New-CheckResult -Category $category -Check 'File History' -Status Info -Value 'Not set up' -Recommendation $recommendation
-    }
 
-    $oneDriveValue = if ($oneDriveAccounts.Count -eq 0) {
-        'Not signed in'
+        $oneDriveValue = if ($oneDriveAccounts.Count -eq 0) {
+            'Not signed in'
+        }
+        elseif ($oneDriveRunning) {
+            'Signed in and running'
+        }
+        else {
+            'Signed in, but not running'
+        }
+        New-CheckResult -Category $category -Check 'OneDrive' -Status Info -Value $oneDriveValue
     }
-    elseif ($oneDriveRunning) {
-        'Signed in and running'
+    catch {
+        New-FailureResult -Category $category -Check 'File History' -ErrorRecord $_
     }
-    else {
-        'Signed in, but not running'
-    }
-    New-CheckResult -Category $category -Check 'OneDrive' -Status Info -Value $oneDriveValue
 
     # System Restore. RPSessionInterval = 1 means protection is on for at least one drive.
     $protection = Get-RegistryValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' -Name 'RPSessionInterval'

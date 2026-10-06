@@ -189,9 +189,14 @@ function Get-NetworkHealth {
         New-FailureResult -Category $category -Check 'Hosts file' -ErrorRecord $_
     }
 
-    $mappedDrives = @(Get-MappedDrive)
-    $mappedValue = if ($mappedDrives.Count -gt 0) { $mappedDrives -join ', ' } else { 'None' }
-    New-CheckResult -Category $category -Check 'Mapped network drives' -Status Info -Value $mappedValue
+    try {
+        $mappedDrives = @(Get-MappedDrive)
+        $mappedValue = if ($mappedDrives.Count -gt 0) { $mappedDrives -join ', ' } else { 'None' }
+        New-CheckResult -Category $category -Check 'Mapped network drives' -Status Info -Value $mappedValue
+    }
+    catch {
+        New-FailureResult -Category $category -Check 'Mapped network drives' -ErrorRecord $_
+    }
 
     if ($SkipConnectivity) {
         New-CheckResult -Category $category -Check 'Connectivity tests' -Status Info -Value 'Skipped'

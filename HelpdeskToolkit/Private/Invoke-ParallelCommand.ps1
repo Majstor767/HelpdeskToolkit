@@ -12,8 +12,8 @@ function Invoke-ParallelCommand {
         runspaces. The commands are called inside the module, so private functions
         can be run as well.
 
-        A command that fails does not stop the others: its error is returned in place
-        of its output.
+        A command that fails does not stop the others: its error is returned next to
+        what it had returned until then.
 
         Returns an ordered table with one entry per job, in the order of -Job. Each
         entry is an object with Output (what the command returned) and Error (the
@@ -42,13 +42,17 @@ function Invoke-ParallelCommand {
 
     $work = {
         param($ManifestPath, $Command, $Parameters)
+        # What the command returned before it failed is kept: a command that reports
+        # twenty things and fails at the last one has still found out nineteen.
+        $output = New-Object -TypeName System.Collections.Generic.List[object]
         try {
             $module = Import-Module -Name $ManifestPath -PassThru -ErrorAction Stop
-            $output = @(& $module { param($Name, $Arguments) & $Name @Arguments -ErrorAction Stop } $Command $Parameters)
-            [PSCustomObject]@{ Output = $output; Error = $null }
+            & $module { param($Name, $Arguments) & $Name @Arguments -ErrorAction Stop } $Command $Parameters |
+                ForEach-Object { $output.Add($_) }
+            [PSCustomObject]@{ Output = $output.ToArray(); Error = $null }
         }
         catch {
-            [PSCustomObject]@{ Output = @(); Error = $_ }
+            [PSCustomObject]@{ Output = $output.ToArray(); Error = $_ }
         }
     }
 

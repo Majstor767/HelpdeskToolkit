@@ -135,12 +135,11 @@ function Get-PCHealthReport {
 
         foreach ($category in $checks.Keys) {
             $entry = $outcome[$category]
+            # What a category found before it failed is part of the report.
+            $entry.Output
             if ($entry.Error) {
                 # One broken category must not take the whole report down with it.
                 New-FailureResult -Category $category -Check 'Check execution' -ErrorRecord $entry.Error
-            }
-            else {
-                $entry.Output
             }
         }
     }
