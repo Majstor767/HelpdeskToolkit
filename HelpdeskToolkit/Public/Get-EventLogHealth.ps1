@@ -72,14 +72,28 @@ function Get-EventLogHealth {
     try {
         try {
             $filter = @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WER-SystemErrorReporting'; Id = 1001; StartTime = $since }
-            $blueScreenCount = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop).Count
+            $blueScreens = @(Get-WinEvent -FilterHashtable $filter -ErrorAction Stop)
         }
         catch {
             if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {
                 throw
             }
-            $blueScreenCount = 0
+            $blueScreens = @()
         }
+        $blueScreenCount = $blueScreens.Count
+
+        # The stop code says what kind of crash it was. It is the first thing the event
+        # records ("0x0000009f (0x0000000000000003, ...)"); the details list every code
+        # with how often it happened, and the window offers a search for each.
+        $stopCodes = @(
+            foreach ($entry in $blueScreens) {
+                $first = if ($entry.PSObject.Properties['Properties'] -and @($entry.Properties).Count -gt 0) { [string]@($entry.Properties)[0].Value } else { '' }
+                if ($first -match '0x[0-9A-Fa-f]{8}\b') {
+                    '0x{0}' -f $Matches[0].Substring(2).ToUpperInvariant()
+                }
+            }
+        )
+        $details = @($stopCodes | Group-Object | Sort-Object -Property Count -Descending | ForEach-Object { 'Stop code {0} ({1}x)' -f $_.Name, $_.Count })
 
         $status = Get-ThresholdStatus -Value $blueScreenCount -Warning $thresholds.BlueScreenWarningAbove
         $recommendation = if ($status -ne 'OK') {
@@ -89,7 +103,7 @@ function Get-EventLogHealth {
             ''
         }
         New-CheckResult -Category $category -Check 'Blue screens' -Status $status `
-            -Value ('{0} {1}' -f $blueScreenCount, $period) -Recommendation $recommendation `
+            -Value ('{0} {1}' -f $blueScreenCount, $period) -Recommendation $recommendation -Details $details `
             -Allowed (Format-AllowedRange -Warning $thresholds.BlueScreenWarningAbove) -Typical $thresholds.TypicalBlueScreens
     }
     catch {

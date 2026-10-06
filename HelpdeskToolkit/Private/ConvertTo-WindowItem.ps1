@@ -12,8 +12,9 @@ function ConvertTo-WindowItem {
           text, which the search looks through, and line by line, where a line that
           names an event carries the address that explains it) and the caption of the
           section that opens them
-        - Links: where the problem is explained on the web, shown below the
-          recommended fix of a Warning or Critical result
+        - Links: where the problem, and every update and error code it names, is
+          explained on the web, shown below the recommended fix of a Warning or
+          Critical result
         - RecommendationLabel: "Recommended fix" for a problem, "Advice" otherwise
         - ActionLabel: the caption of the button that opens the place in Windows where
           the problem is fixed; empty when there is no recommendation or no such place
@@ -64,20 +65,26 @@ function ConvertTo-WindowItem {
         }
 
         # Where things are explained on the web (see Get-CheckHelpLink). A problem gets
-        # a link below its recommended fix: the page of the maker, or a search for the
-        # name of the check. A line of the details that names an event of the event log
+        # links below its recommended fix: the page of the maker or a search for the
+        # name of the check, and one for every update and error code it names. A line of the details that names an event of the event log
         # becomes a link itself, whatever the status of the result.
         $isProblem = $Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable'
         $help = @(
             if ($isProblem -or $details.Count -gt 0) {
-                Get-CheckHelpLink -Check $Result.Check -Category $Result.Category -Detail $details
+                Get-CheckHelpLink -Check $Result.Check -Category $Result.Category -Detail $details -Value ([string]$Result.Value)
             }
         )
         $links = @(
             if ($isProblem) {
                 foreach ($link in $help | Where-Object { $_.Kind -ne 'Event' }) {
-                    $text = if ($link.Kind -eq 'Page') { 'What this means and how to fix it' } else { 'Search the web for this problem' }
-                    [PSCustomObject]@{ Label = Get-LocalizedText $text; Url = $link.Url }
+                    # An update gets its article, an error code a search for exactly that code.
+                    $caption = switch ($link.Kind) {
+                        'Page' { Get-LocalizedText 'What this means and how to fix it' }
+                        'Article' { (Get-LocalizedText 'About update {0}') -f $link.Text }
+                        'Code' { (Get-LocalizedText 'Search the web for error {0}') -f $link.Text }
+                        default { Get-LocalizedText 'Search the web for this problem' }
+                    }
+                    [PSCustomObject]@{ Label = $caption; Url = $link.Url }
                 }
             }
         )

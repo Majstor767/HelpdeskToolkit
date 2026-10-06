@@ -16,9 +16,9 @@ BeforeAll {
     $help = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Config\Help.psd1')
 
     function Get-TestLink {
-        param([string]$Check, [string]$Category = '', [string[]]$Detail = @())
-        InModuleScope HelpdeskToolkit -Parameters @{ Check = $Check; Category = $Category; Detail = $Detail } {
-            Get-CheckHelpLink -Check $Check -Category $Category -Detail $Detail
+        param([string]$Check, [string]$Category = '', [string[]]$Detail = @(), [string]$Value = '')
+        InModuleScope HelpdeskToolkit -Parameters @{ Check = $Check; Category = $Category; Detail = $Detail; Value = $Value } {
+            Get-CheckHelpLink -Check $Check -Category $Category -Detail $Detail -Value $Value
         }
     }
 
@@ -45,6 +45,10 @@ Describe 'Config\Help.psd1' {
         foreach ($address in $addresses) {
             $address | Should -Not -Match '\.com/[a-z]{2}-[a-z]{2}/'
         }
+    }
+
+    It 'has an address for the article of an update, with a place for its number' {
+        $help.ArticleUrl | Should -Match '^https://support\.microsoft\.com/\S*\{0\}$'
     }
 
     It 'has a search address with a place for the search words' {
@@ -81,10 +85,10 @@ Describe 'Get-CheckHelpLink' {
     }
 
     It 'searches the web for the name of a check that has no page' {
-        $link = @(Get-TestLink -Check 'Guest account' -Category 'Security')
+        $link = @(Get-TestLink -Check 'Scheduled tasks' -Category 'System')
         $link.Count | Should -Be 1
         $link[0].Kind | Should -Be 'Search'
-        $link[0].Url | Should -Be ($help.SearchUrl -f 'Windows%20Guest%20account')
+        $link[0].Url | Should -Be ($help.SearchUrl -f 'Windows%20Scheduled%20tasks')
     }
 
     It 'leaves the part in parentheses out of the search, which can name a drive or a user' {
@@ -113,6 +117,99 @@ Describe 'Get-CheckHelpLink' {
         $links.Kind | Should -Be @('Page', 'Event')
     }
 
+    It 'finds the page of <Check> by <How>' -ForEach @(
+        @{ Check = 'Firewall - Public profile'; Category = 'Security'; Key = 'Firewall'; How = 'the part of its name before " - "' }
+        @{ Check = 'Drive: Contoso SSD 512GB'; Category = 'Hardware'; Key = 'Drive'; How = 'the part of its name before the colon' }
+        @{ Check = 'Print Spooler (Spooler)'; Category = 'Services'; Key = 'Service:Spooler'; How = 'the name of the service in parentheses' }
+        @{ Check = 'Windows Update (wuauserv)'; Category = 'Services'; Key = 'Service:wuauserv'; How = 'the name of the service in parentheses' }
+    ) {
+        $link = @(Get-TestLink -Check $Check -Category $Category)
+        $link.Count | Should -Be 1
+        $link[0].Kind | Should -Be 'Page'
+        $link[0].Url | Should -Be $help.Pages[$Key]
+    }
+
+    It 'takes the name in parentheses for a service only among the services' {
+        # "Disk (C:)" must not be looked up as a service called "C:".
+        @(Get-TestLink -Check 'Some check (Spooler)' -Category 'Elsewhere')[0].Kind | Should -Be 'Search'
+    }
+
+    It 'searches for a service without a page by its name and the word "service"' {
+        $link = @(Get-TestLink -Check 'Contoso Agent (ContosoSvc)' -Category 'Services')
+        $link.Count | Should -Be 1
+        $link[0].Kind | Should -Be 'Search'
+        $link[0].Url | Should -Be ($help.SearchUrl -f 'Windows%20service%20ContosoSvc%20not%20running')
+    }
+
+    It 'has a page for every check that can be a problem in <_>' -ForEach @(
+        'Stability index', 'File system', 'Memory test', 'Drive details: Contoso SSD', 'Application crashes', 'Default browser',
+        'Microsoft Office', 'Program updates', 'Unsupported programs', 'Disk errors', 'Hardware errors', 'Failed sign-ins',
+        'Account lockouts', 'Automatic sign-in', 'Guest account'
+    ) {
+        @(Get-TestLink -Check $_ -Category 'Nowhere')[0].Kind | Should -Be 'Page'
+    }
+
+    It 'links the article of every update that is named, each once' {
+        $value = '2 updates: 2026-01 Cumulative Update for Windows 11 (KB5050009) (error 0x80070005), Security Update (KB5049622) (error 0x800F0922)'
+        $links = @(Get-TestLink -Check 'Failed updates' -Category 'Windows Update' -Value $value -Detail @('Another one (KB5050009) (error 0x80070005)'))
+
+        $articles = @($links | Where-Object Kind -eq 'Article')
+        $articles.Text | Should -Be @('KB5050009', 'KB5049622')
+        $articles[0].Url | Should -Be 'https://support.microsoft.com/help/5050009'
+        $articles[1].Url | Should -Be 'https://support.microsoft.com/help/5049622'
+    }
+
+    It 'searches for every error code that is named, as an error of Windows Update there' {
+        $value = '2 updates: Update A (KB5050009) (error 0x80070005), Update B (KB5049622) (error 0x800f0922)'
+        $codes = @(Get-TestLink -Check 'Failed updates' -Category 'Windows Update' -Value $value | Where-Object Kind -eq 'Code')
+
+        $codes.Text | Should -Be @('0x80070005', '0x800F0922')
+        $codes[0].Url | Should -Be ($help.SearchUrl -f 'Windows%20Update%20error%200x80070005')
+        $codes[1].Url | Should -Be ($help.SearchUrl -f 'Windows%20Update%20error%200x800F0922')
+    }
+
+    It 'searches for the stop code of a blue screen' {
+        $links = @(Get-TestLink -Check 'Blue screens' -Category 'Event Log' -Value '3 in the last 7 days' -Detail @('Stop code 0x0000009F (2x)', 'Stop code 0x00000050 (1x)'))
+        $links.Kind | Should -Be @('Page', 'Code', 'Code')
+        $links[1].Text | Should -Be '0x0000009F'
+        $links[1].Url | Should -Be ($help.SearchUrl -f 'Windows%20stop%20code%200x0000009F')
+    }
+
+    It 'searches for the code Device Manager gives a device, each code once' {
+        $value = '3 devices: Contoso Camera (code 28), Unknown device (code 28), Contoso Dock (code 43)'
+        $codes = @(Get-TestLink -Check 'Devices with problems' -Category 'Hardware' -Value $value | Where-Object Kind -eq 'Code')
+        $codes.Text | Should -Be @('code 28', 'code 43')
+        $codes[0].Url | Should -Be ($help.SearchUrl -f 'Device%20Manager%20error%20code%2028')
+    }
+
+    It 'reads "(code N)" as a code of Device Manager only for the devices' {
+        @(Get-TestLink -Check 'Startup programs' -Category 'System' -Value 'Contoso Tool (code 28)' | Where-Object Kind -eq 'Code').Count | Should -Be 0
+    }
+
+    It 'links only the first three updates and codes, so a card does not fill with links' {
+        $value = (1..6 | ForEach-Object { 'Update (KB500000{0}) (error 0x8007000{0})' -f $_ }) -join ', '
+        $links = @(Get-TestLink -Check 'Failed updates' -Category 'Windows Update' -Value $value)
+        @($links | Where-Object Kind -eq 'Article').Count | Should -Be 3
+        @($links | Where-Object Kind -eq 'Code').Count | Should -Be 3
+    }
+
+    It 'never puts anything but the number or the code into the address' {
+        $value = '1 update: Update for Marko Horvat on D:\Private (KB5050009) (error 0x80070005)'
+        foreach ($link in Get-TestLink -Check 'Failed updates' -Category 'Windows Update' -Value $value -Detail @('C:\Users\marko\file.txt 0xZZ', 'KB12 is too short')) {
+            $link.Url | Should -Not -Match 'Marko|Horvat|Private|Users|file'
+        }
+    }
+
+    It 'takes nothing for a code that only looks like one' {
+        $links = @(Get-TestLink -Check 'Failed updates' -Category 'Windows Update' -Value 'KB12 0x1234 0x123456789ABCDEF0 KB1234567890')
+        @($links | Where-Object { $_.Kind -in 'Article', 'Code' }).Count | Should -Be 0
+    }
+
+    It 'does not read the number of an event as anything else' {
+        $links = @(Get-TestLink -Check 'System log - errors' -Category 'Event Log' -Detail @('Microsoft-Windows-Kernel-Power 41 (3)'))
+        $links.Kind | Should -Be @('Event')
+    }
+
     It 'returns only addresses that begin with https' {
         foreach ($check in 'Disk (C:)', 'Guest account', 'System log - errors') {
             foreach ($link in Get-TestLink -Check $check -Category 'Event Log' -Detail 'Source 1 (1)') {
@@ -131,9 +228,28 @@ Describe 'The links of a result card' {
     }
 
     It 'gives a problem without a page a search for its name, never for its value' {
-        $item = Get-TestItem -Result (New-TestResult -Category 'Security' -Check 'Guest account' -Status Warning -Value 'Enabled for Marko' -Recommendation 'Disable it.')
+        $item = Get-TestItem -Result (New-TestResult -Category 'System' -Check 'Scheduled tasks' -Status Warning -Value 'Failed for Marko' -Recommendation 'Look at them.')
         $item.Links[0].Label | Should -Be 'Search the web for this problem'
         $item.Links[0].Url | Should -Not -Match 'Marko'
+    }
+
+    It 'offers the article of a failed update and a search for its error code below the fix' {
+        $item = Get-TestItem -Result (New-TestResult -Category 'Windows Update' -Check 'Failed updates' -Status Warning `
+                -Value '1 update: 2026-01 Cumulative Update for Windows 11 (KB5050009) (error 0x80070005)' -Recommendation 'Run the troubleshooter.')
+
+        $item.Links.Label | Should -Be @('What this means and how to fix it', 'About update KB5050009', 'Search the web for error 0x80070005')
+        $item.Links[1].Url | Should -Be 'https://support.microsoft.com/help/5050009'
+    }
+
+    It 'offers a search for the code of a device that does not work' {
+        $item = Get-TestItem -Result (New-TestResult -Category 'Hardware' -Check 'Devices with problems' -Status Warning `
+                -Value '1 devices: Contoso Camera (code 28)' -Recommendation 'Install the driver.')
+        $item.Links.Label | Should -Be @('What this means and how to fix it', 'Search the web for error code 28')
+    }
+
+    It 'offers no link for the updates of a result that is fine' {
+        $item = Get-TestItem -Result (New-TestResult -Category 'Windows Update' -Check 'Last installed update' -Status OK -Value 'KB5050009, 3 days ago')
+        @($item.Links).Count | Should -Be 0
     }
 
     It 'gives no link to a result that is fine, and none to one that could not be read' {
@@ -262,6 +378,40 @@ Describe 'Get-EventLogHealth: the events behind a count' {
     }
 }
 
+Describe 'Get-EventLogHealth: the stop codes behind the blue screens' {
+    BeforeAll {
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent {
+            throw (New-TestErrorRecord -Message 'No events were found' -ErrorId 'NoMatchingEventsFound')
+        }
+    }
+
+    It 'lists every stop code with how often it happened, the most frequent first' {
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable.ProviderName -eq 'Microsoft-Windows-WER-SystemErrorReporting' } {
+            New-TestEvent -Source 'Microsoft-Windows-WER-SystemErrorReporting' -Id 1001 -Program '0x00000050 (0xffffa8000c5a0000, 0x0000000000000000, 0xfffff80002a5b0c1, 0x0000000000000002)'
+            New-TestEvent -Source 'Microsoft-Windows-WER-SystemErrorReporting' -Id 1001 -Count 2 -Program '0x0000009f (0x0000000000000003, 0xffffe0015d3a7060, 0xfffff8012b4a3990, 0xffffe0015e1c2010)'
+        }
+        $result = Get-EventLogHealth | Where-Object Check -eq 'Blue screens'
+
+        $result.Value | Should -BeLike '3 *'
+        $result.Details | Should -Be @('Stop code 0x0000009F (2x)', 'Stop code 0x00000050 (1x)')
+    }
+
+    It 'still counts a blue screen whose event names no stop code' {
+        Mock -ModuleName HelpdeskToolkit Get-WinEvent -ParameterFilter { $FilterHashtable.ProviderName -eq 'Microsoft-Windows-WER-SystemErrorReporting' } {
+            New-TestEvent -Source 'Microsoft-Windows-WER-SystemErrorReporting' -Id 1001 -Program ''
+            [PSCustomObject]@{ Level = 2; ProviderName = 'Microsoft-Windows-WER-SystemErrorReporting'; Id = 1001; Properties = @() }
+        }
+        $result = Get-EventLogHealth | Where-Object Check -eq 'Blue screens'
+
+        $result.Value | Should -BeLike '2 *'
+        @($result.Details).Count | Should -Be 0
+    }
+
+    It 'has no details without a blue screen' {
+        @((Get-EventLogHealth | Where-Object Check -eq 'Blue screens').Details).Count | Should -Be 0
+    }
+}
+
 Describe 'The texts of the links' {
     It 'are translated into Croatian' {
         $croatian = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Lang\hr.psd1')
@@ -270,6 +420,7 @@ Describe 'The texts of the links' {
             foreach ($key in $table.Keys) { $texts[$key] = $table[$key] }
         }
         foreach ($text in 'What this means and how to fix it', 'Search the web for this problem', 'Event {0}: {1} ({2}x)',
+            'About update {0}', 'Search the web for error {0}',
             'Look up what this event means and how it is fixed', 'The page was opened in the browser.', 'The page could not be opened: {0}') {
             $texts[$text] | Should -Not -BeNullOrEmpty -Because "'$text' is shown to the user"
         }
