@@ -564,8 +564,15 @@ English.
 
 ## Requirements
 
-- Windows 10 version 1809 or later, or Windows 11
+- Windows 10 version 1809 or later, or Windows 11, in any display language and with
+  any regional settings. Dates are always written as year-month-day in the calendar
+  every program reads, also where Windows counts the years differently (Saudi Arabia,
+  Thailand, Iran).
 - Windows PowerShell 5.1 (part of Windows) or PowerShell 7
+- A screen of 1024 x 768 or more; the window makes itself fit a smaller laptop screen.
+- PowerShell must be allowed to run in full: on a computer whose organization
+  restricts it (AppLocker or App Control for Business, "Constrained Language Mode")
+  the tool does not start.
 
 ## Development
 

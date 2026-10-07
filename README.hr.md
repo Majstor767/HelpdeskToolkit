@@ -551,8 +551,15 @@ uz engleske izvornike. Tekst bez prijevoda jednostavno se prikaže na engleskom.
 
 ## Zahtjevi
 
-- Windows 10 verzije 1809 ili noviji, ili Windows 11
+- Windows 10 verzije 1809 ili noviji, ili Windows 11, na bilo kojem jeziku prikaza i s
+  bilo kojim regionalnim postavkama. Datumi se uvijek pišu kao godina-mjesec-dan u
+  kalendaru koji čita svaki program, i ondje gdje Windows godine broji drukčije
+  (Saudijska Arabija, Tajland, Iran).
 - Windows PowerShell 5.1 (dio Windowsa) ili PowerShell 7
+- Zaslon od 1024 x 768 ili veći; prozor se sam prilagodi manjem zaslonu prijenosnika.
+- PowerShell se mora smjeti izvršavati u punom obliku: na računalu na kojem ga
+  organizacija ograničava (AppLocker ili App Control for Business, "Constrained
+  Language Mode") alat se ne pokreće.
 
 ## Razvoj
 

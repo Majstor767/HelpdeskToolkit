@@ -62,6 +62,14 @@ The first public version. It will be released as 1.0.0.
 - A check that does not finish is stopped after ten minutes and the window says so,
   instead of showing "Checking ..." for ever. Errors in the menu of the icon next to
   the clock are written to the log like those of the window.
+- Other computers: dates no longer follow the calendar of the regional settings (a
+  Saudi, Thai or Iranian Windows wrote the year 1447, 2569 or 1405 into results,
+  reports and file names); capital and small letters are converted the same way
+  everywhere (on a Turkish Windows the HTML report lost the colors of "Info"); the
+  window fits a laptop screen that is smaller than its design size; the module loads
+  from a folder with square brackets in its name; a battery that reports no charge or
+  no capacity is no longer taken for an empty or worn-out one. The whole test suite
+  was run under Turkish, German, Saudi and Thai regional settings.
 - A check keeps working when Windows does not answer: tests let every source of
   data fail, alone and all at once, and no category is lost. A category that fails
   in the middle keeps what it had found.
