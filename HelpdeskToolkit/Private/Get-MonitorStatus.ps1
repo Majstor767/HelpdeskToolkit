@@ -131,7 +131,11 @@ function Get-MonitorStatus {
     $limit = $limits.Memory.WarningPercent
     $judgement = & $judge $History.Memory $limit
     $advice = @((Get-LocalizedText 'The memory has been {0} % full on average over the last measurements; up to {1} % is fine.') -f $judgement.Average, $limit)
-    $program = & $first $Snapshot.MemoryProcesses
+    # Parts of Windows itself appear among the programs and can use the most memory
+    # ("Memory Compression" is where Windows keeps memory it has squeezed). Nobody can
+    # close them, so the advice names the first program that can be closed.
+    $ownOfWindows = 'Memory Compression', 'System', 'Registry', 'Secure System', 'Idle', 'System Idle Process'
+    $program = & $first @($Snapshot.MemoryProcesses | Where-Object { $_ -and $ownOfWindows -notcontains [string]$_.Name })
     if ($program) {
         $advice += (Get-LocalizedText 'The program that uses the most memory right now is {0} ({1}). Close it, or some of its tabs and documents.') -f $program.Name, (Format-Gigabyte -Bytes $program.MemoryBytes)
     }

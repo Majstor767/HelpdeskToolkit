@@ -130,6 +130,25 @@ Describe 'Get-MonitorStatus' {
         $status.ActionCheck | Should -Be 'Memory usage'
     }
 
+    It 'does not advise closing a part of Windows that happens to use the most memory' {
+        $snapshot = New-TestSnapshot
+        $snapshot.MemoryProcesses = @(
+            [PSCustomObject]@{ Name = 'Memory Compression'; MemoryBytes = 4GB }
+            [PSCustomObject]@{ Name = 'System'; MemoryBytes = 3GB }
+            [PSCustomObject]@{ Name = 'browser'; MemoryBytes = 2GB }
+        )
+        $status = Get-TestStatus -Name 'Memory' -History (New-TestHistory -Memory 92, 93, 94) -Snapshot $snapshot
+        $status.Advice[1] | Should -Be 'The program that uses the most memory right now is browser (2 GB). Close it, or some of its tabs and documents.'
+    }
+
+    It 'names no program when only parts of Windows are in the list' {
+        $snapshot = New-TestSnapshot
+        $snapshot.MemoryProcesses = @([PSCustomObject]@{ Name = 'Memory Compression'; MemoryBytes = 4GB })
+        $status = Get-TestStatus -Name 'Memory' -History (New-TestHistory -Memory 92, 93, 94) -Snapshot $snapshot
+        ($status.Advice -join ' ') | Should -Not -Match 'Memory Compression'
+        ($status.Advice -join ' ') | Should -Not -Match 'uses the most memory right now'
+    }
+
     It 'judges the graphics card by its own, higher limit' {
         (Get-TestStatus -Name 'Gpu' -History (New-TestHistory -Gpu 80, 80, 80)).Level | Should -Be 'Ok'
         (Get-TestStatus -Name 'Gpu' -History (New-TestHistory -Gpu 88, 88, 88)).Level | Should -Be 'Near'
