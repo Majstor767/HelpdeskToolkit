@@ -73,6 +73,20 @@
         'Allowed: {0}'                                         = 'Dopušteno: {0}'
         'Typical: {0}'                                         = 'Tipično: {0}'
         'Show {0} more'                                        = 'Prikaži još {0}'
+        'Show all {0}: click a program to switch it off or on' = 'Prikaži svih {0}: klikni program da ga isključiš ili uključiš'
+        'turned off'                                           = 'isključeno'
+        'Click to stop this program from starting with Windows' = 'Klikni da se ovaj program više ne pokreće s Windowsima'
+        'Click to let this program start with Windows again'   = 'Klikni da se ovaj program opet pokreće s Windowsima'
+        'Stop "{0}" from starting with Windows?'               = 'Želiš li da se "{0}" više ne pokreće s Windowsima?'
+        'The program stays installed and can still be started by hand; only its automatic start is switched off, the same switch as in Task Manager > Startup apps. A click on it here switches it on again.' = 'Program ostaje instaliran i i dalje ga možeš pokrenuti ručno; isključuje se samo njegovo automatsko pokretanje, isti prekidač kao u Task Manager > Startup apps. Klik na njega ovdje ponovno ga uključuje.'
+        'Let "{0}" start with Windows again?'                  = 'Želiš li da se "{0}" opet pokreće s Windowsima?'
+        'It was switched off. From the next sign-in on it starts by itself again.' = 'Bio je isključen. Od sljedeće prijave opet se pokreće sam.'
+        'Nothing was changed.'                                 = 'Ništa nije promijenjeno.'
+        '"{0}" no longer starts with Windows. The list is being updated.' = '"{0}" se više ne pokreće s Windowsima. Popis se osvježava.'
+        '"{0}" starts with Windows again. The list is being updated.' = '"{0}" se opet pokreće s Windowsima. Popis se osvježava.'
+        'The startup of "{0}" could not be switched: {1}'      = 'Pokretanje programa "{0}" nije se moglo promijeniti: {1}'
+        '"{0}" is not among the startup programs of this computer. Run the check again to see the current list.' = '"{0}" nije među programima koji se pokreću s ovim računalom. Pokreni provjeru ponovno da vidiš trenutačni popis.'
+        '"{0}" starts for every user of this computer, so switching it needs administrator rights. Choose "Restart as administrator" first, or use Task Manager > Startup apps.' = '"{0}" se pokreće za sve korisnike ovog računala, pa za promjenu trebaju administratorska prava. Prvo odaberi "Restart as administrator" ili upotrijebi Task Manager > Startup apps.'
 
         # --- Overview, search and filter ------------------------------------------
         'Click Run check to examine this computer.'            = 'Klikni Pokreni provjeru da pregledaš ovo računalo.'
@@ -134,7 +148,7 @@
         'Open the Live monitor'                                = 'Otvori praćenje uživo'
         'About'                                                = 'O aplikaciji'
         'HelpdeskToolkit {0}  |  PowerShell {1}'               = 'HelpdeskToolkit {0}  |  PowerShell {1}'
-        'The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks, recordings of the Live monitor and a log of errors (app.log) are kept in the folder below.' = 'Aplikacija samo čita podatke i nikad ništa ne mijenja na računalu. Vlastite postavke, povijest ranijih provjera, snimke praćenja uživo i dnevnik grešaka (app.log) drži u mapi ispod.'
+        'The checks only read information. The computer is changed only for a program you click and confirm: its uninstaller is started, or its start with Windows is switched. The settings of the application, the history of earlier checks, recordings of the Live monitor and a log (app.log) are kept in the folder below.' = 'Provjere samo čitaju podatke. Računalo se mijenja samo za program koji klikneš i potvrdiš: pokreće se njegova deinstalacija ili se prebacuje njegovo pokretanje s Windowsima. Postavke aplikacije, povijest ranijih provjera, snimke praćenja uživo i dnevnik (app.log) čuvaju se u mapi ispod.'
         'Something went wrong; the application keeps running. The details were written to {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje. Pojedinosti su zapisane u {0}'
         'Something went wrong; the application keeps running: {0}' = 'Nešto je pošlo po zlu; aplikacija radi dalje: {0}'
         'Open the folder'                                      = 'Otvori mapu'
@@ -674,7 +688,7 @@
         'Restart the computer; it has been running for more than {0} days. Use Restart, not Shut down: with Fast Startup enabled a shutdown does not reset the uptime.' = 'Ponovno pokreni računalo; radi dulje od {0} dana. Koristi Ponovno pokreni, a ne Isključi: uz uključeno Brzo pokretanje isključivanje ne poništava vrijeme rada.'
         'Windows has recorded many crashes or failures lately. Open Reliability Monitor (run "perfmon /rel") to see which program or device caused them and on which days.' = 'Windows je u zadnje vrijeme zabilježio mnogo rušenja ili kvarova. Otvori Monitor pouzdanosti (pokreni "perfmon /rel") da vidiš koji ih je program ili uređaj izazvao i kojih dana.'
         'Windows is not activated. Open Settings > System > Activation to see the reason and activate it.' = 'Windows nije aktiviran. Otvori Postavke > Sustav > Aktivacija da vidiš razlog i aktiviraš ga.'
-        'Many programs start together with Windows, which slows down sign-in. Turn off the ones that are not needed in Task Manager > Startup apps.' = 'Mnogo programa pokreće se zajedno s Windowsom, što usporava prijavu. Isključi one koji nisu potrebni u Upravitelju zadataka > Aplikacije pri pokretanju.'
+        'Many programs start together with Windows, which slows down sign-in. Turn off the ones that are not needed: open the list and click a program, or use Task Manager > Startup apps.' = 'Mnogo programa pokreće se zajedno s Windowsima, što usporava prijavu. Isključi one koji nisu potrebni: otvori popis i klikni program, ili upotrijebi Task Manager > Startup apps.'
         'Windows starts slowly. Turn off startup programs that are not needed (Task Manager > Startup apps); if the system drive is a hard disk, replacing it with an SSD helps the most.' = 'Windows se sporo pokreće. Isključi programe pri pokretanju koji nisu potrebni (Upravitelj zadataka > Aplikacije pri pokretanju); ako je sistemski disk klasični tvrdi disk, najviše pomaže zamjena SSD-om.'
         'Upgrade to Windows 11 if the hardware allows it; otherwise enroll the computer in Extended Security Updates or replace it.' = 'Nadogradi na Windows 11 ako hardver to dopušta; inače uključi računalo u Extended Security Updates ili ga zamijeni.'
         'Install the newest feature update: Settings > Windows Update.' = 'Instaliraj najnoviju nadogradnju značajki: Postavke > Windows Update.'
@@ -1215,6 +1229,8 @@
         @{ Match = '^Errors found \(tested (\S+)\)$'; Text = 'Pronađene greške (testirano $1)' },
         @{ Match = '^Charge not reported \(on battery\)$'; Text = 'Napunjenost nije javljena (na bateriji)' },
         @{ Match = '^Charge not reported \(plugged in\)$'; Text = 'Napunjenost nije javljena (na punjaču)' },
+        @{ Match = '^(\d+) programs? starts? with Windows, (\d+) more turned off$'; Text = 'S Windowsima se pokreće programa: $1, isključeno još: $2' },
+        @{ Match = '^(\d+) programs? starts? with Windows$'; Text = 'S Windowsima se pokreće programa: $1' },
         @{ Match = '^(\d+) programs? without security updates: '; Text = 'Programi bez sigurnosnih ažuriranja ($1): ' },
         @{ Match = '^(\d+) entr(?:y|ies) whose uninstaller is gone: '; Text = 'Unosi bez programa za deinstalaciju ($1): ' },
         @{ Match = '^(\d+) programs? can be updated: '; Text = 'Programi koji se mogu ažurirati ($1): ' },

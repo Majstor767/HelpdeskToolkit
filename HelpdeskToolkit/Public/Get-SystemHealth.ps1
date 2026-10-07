@@ -16,7 +16,8 @@ function Get-SystemHealth {
           Warning, because a long-running machine is a common cause of slowness and
           of updates that never finish installing.
         - Windows that is not activated is a Warning.
-        - More startup programs than the configured limit is a Warning, because they
+        - More startup programs that are switched on than the configured limit is a
+          Warning, because they
           slow down sign-in.
 
         - On Windows 10: whether the computer meets the requirements of Windows 11,
@@ -191,33 +192,30 @@ function Get-SystemHealth {
         New-FailureResult -Category $category -Check 'Windows activation' -ErrorRecord $_
     }
 
-    # Startup programs
+    # Startup programs: what is set to start at sign-in, and what of it is switched on
+    # (see Get-StartupProgram). Only what is switched on counts.
     try {
-        # Some entries carry a generated suffix (Name_0123ABCD...); it is removed for readability.
-        $programs = @(Get-CimInstance -ClassName Win32_StartupCommand -ErrorAction Stop |
-                ForEach-Object { [string]$_.Name -replace '_[0-9A-Fa-f]{16,}$', '' } | Sort-Object -Unique)
+        $startup = @(Get-StartupProgram)
+        $enabled = @($startup | Where-Object { $_.Enabled } | ForEach-Object { [string]$_.Name } | Sort-Object -Unique)
+        $disabled = @($startup | Where-Object { -not $_.Enabled } | ForEach-Object { [string]$_.Name } | Where-Object { $enabled -notcontains $_ } | Sort-Object -Unique)
 
-        # The first few names go into the value; the rest is kept as details, which
-        # the HTML report shows in an expandable list.
-        $shown = 8
-        $remaining = @($programs | Select-Object -Skip $shown)
-        $value = '{0} programs' -f $programs.Count
-        if ($programs.Count -gt 0) {
-            $value = '{0}: {1}' -f $value, (($programs | Select-Object -First $shown) -join ', ')
+        $value = '{0} {1} with Windows' -f $enabled.Count, $(if ($enabled.Count -eq 1) { 'program starts' } else { 'programs start' })
+        if ($disabled.Count -gt 0) {
+            $value = '{0}, {1} more turned off' -f $value, $disabled.Count
         }
-        if ($remaining.Count -gt 0) {
-            $value = '{0} and {1} more' -f $value, $remaining.Count
-        }
+        # Every program is a line of the details: the window makes each of them a
+        # switch (see Switch-WindowStartupProgram), the reports list them.
+        $names = @($enabled) + @($disabled | ForEach-Object { '{0} (turned off)' -f $_ })
 
-        $status = Get-ThresholdStatus -Value $programs.Count -Warning $thresholds.Startup.WarningProgramCount
+        $status = Get-ThresholdStatus -Value $enabled.Count -Warning $thresholds.Startup.WarningProgramCount
         $recommendation = if ($status -ne 'OK') {
-            'Many programs start together with Windows, which slows down sign-in. Turn off the ones that are not needed in Task Manager > Startup apps.'
+            'Many programs start together with Windows, which slows down sign-in. Turn off the ones that are not needed: open the list and click a program, or use Task Manager > Startup apps.'
         }
         else {
             ''
         }
         New-CheckResult -Category $category -Check 'Startup programs' -Status $status -Value $value -Recommendation $recommendation `
-            -Details $remaining -Allowed (Format-AllowedRange -Warning $thresholds.Startup.WarningProgramCount) -Typical $thresholds.Startup.Typical
+            -Details $names -Allowed (Format-AllowedRange -Warning $thresholds.Startup.WarningProgramCount) -Typical $thresholds.Startup.Typical
     }
     catch {
         New-FailureResult -Category $category -Check 'Startup programs' -ErrorRecord $_

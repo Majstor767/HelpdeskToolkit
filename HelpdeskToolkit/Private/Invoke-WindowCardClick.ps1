@@ -37,6 +37,11 @@ function Invoke-WindowCardClick {
     }
 
     $item = $Source.DataContext
+    # A line of the details that does something: a startup program is switched.
+    if ($item -and $item.PSObject.Properties['Action'] -and $item.Action -eq 'Startup' -and $Source -is [System.Windows.Controls.Button]) {
+        [void](Switch-WindowStartupProgram -Gui $Gui -Name ([string]$item.Target))
+        return
+    }
     if ($item -and $item.PSObject.Properties['Url'] -and $Source -is [System.Windows.Controls.Button]) {
         [void](Open-WindowHelpLink -Gui $Gui -Url ([string]$item.Url))
         return

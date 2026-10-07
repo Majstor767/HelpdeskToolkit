@@ -32,8 +32,8 @@ Describe 'Get-SystemHealth' {
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'SoftwareLicensingProduct' } {
             [PSCustomObject]@{ LicenseStatus = 1 }
         }
-        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_StartupCommand' } {
-            'OneDrive', 'Teams', 'Updater' | ForEach-Object { [PSCustomObject]@{ Name = $_ } }
+        Mock -ModuleName HelpdeskToolkit Get-StartupProgram {
+            'OneDrive', 'Teams', 'Updater' | ForEach-Object { [PSCustomObject]@{ Name = $_; Enabled = $true } }
         }
         Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_ReliabilityStabilityMetrics' } {
             [PSCustomObject]@{ SystemStabilityIndex = 8.74; TimeGenerated = (Get-Date).AddHours(-2) }
@@ -72,7 +72,7 @@ Describe 'Get-SystemHealth' {
             @{ Check = 'Domain or workgroup'; Value = 'Workgroup: WORKGROUP' }
             @{ Check = 'Signed-in user'; Value = 'TEST-PC-01\tester' }
             @{ Check = 'Windows activation'; Value = 'Activated' }
-            @{ Check = 'Startup programs'; Value = '3 programs: OneDrive, Teams, Updater' }
+            @{ Check = 'Startup programs'; Value = '3 programs start with Windows' }
             @{ Check = 'Scheduled tasks'; Value = '0 tasks' }
             @{ Check = 'Power plan'; Value = 'Balanced' }
             @{ Check = 'Fast Startup'; Value = 'Enabled' }
@@ -165,31 +165,58 @@ Describe 'Get-SystemHealth' {
 
     Context 'when many programs start with Windows' {
         BeforeAll {
-            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_StartupCommand' } {
-                1..18 | ForEach-Object { [PSCustomObject]@{ Name = 'Program{0:00}' -f $_ } }
-                [PSCustomObject]@{ Name = 'BrowserAutoLaunch_0123456789ABCDEF0123456789ABCDEF' }
+            Mock -ModuleName HelpdeskToolkit Get-StartupProgram {
+                1..18 | ForEach-Object { [PSCustomObject]@{ Name = 'Program{0:00}' -f $_; Enabled = $true } }
+                [PSCustomObject]@{ Name = 'BrowserAutoLaunch'; Enabled = $true }
                 # The same program registered twice must be counted once.
-                [PSCustomObject]@{ Name = 'Program01' }
+                [PSCustomObject]@{ Name = 'Program01'; Enabled = $true }
+                # Switched off in Task Manager: listed, but not counted.
+                [PSCustomObject]@{ Name = 'Old Updater'; Enabled = $false }
+                [PSCustomObject]@{ Name = 'Chat Client'; Enabled = $false }
             }
             $startup = Get-SystemHealth | Where-Object Check -eq 'Startup programs'
         }
 
         It 'reports a Warning above the limit and counts each program once' {
             $startup.Status | Should -Be 'Warning'
-            $startup.Value | Should -Match '^19 programs: '
+            $startup.Value | Should -Be '19 programs start with Windows, 2 more turned off'
             $startup.Allowed | Should -Be '0 - 15'
+            $startup.Recommendation | Should -Match 'click a program'
             $startup.Recommendation | Should -Match 'Startup apps'
         }
 
-        It 'shows the first eight programs and keeps the rest as details' {
-            $startup.Value | Should -Match 'and 11 more$'
-            $startup.Details.Count | Should -Be 11
+        It 'lists every program as a line of the details, the ones that are switched off last and marked' {
+            $startup.Details.Count | Should -Be 21
+            $startup.Details[0] | Should -Be 'BrowserAutoLaunch'
             $startup.Details | Should -Contain 'Program18'
+            $startup.Details[-2] | Should -Be 'Chat Client (turned off)'
+            $startup.Details[-1] | Should -Be 'Old Updater (turned off)'
+        }
+    }
+
+    Context 'the count of startup programs' {
+        It 'does not count what is switched off: <On> on and <Off> off is <Status>' -ForEach @(
+            @{ On = 15; Off = 10; Status = 'OK' }
+            @{ On = 16; Off = 0; Status = 'Warning' }
+            @{ On = 0; Off = 30; Status = 'OK' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-StartupProgram {
+                if ($On -gt 0) { 1..$On | ForEach-Object { [PSCustomObject]@{ Name = "On$_"; Enabled = $true } } }
+                if ($Off -gt 0) { 1..$Off | ForEach-Object { [PSCustomObject]@{ Name = "Off$_"; Enabled = $false } } }
+            }
+            (Get-SystemHealth | Where-Object Check -eq 'Startup programs').Status | Should -Be $Status
         }
 
-        It 'removes generated suffixes from program names' {
-            $startup.Value | Should -Match 'BrowserAutoLaunch,'
-            $startup.Value | Should -Not -Match '0123456789ABCDEF'
+        It 'writes "program starts" for a single one, and nothing about switched-off ones when there are none' {
+            Mock -ModuleName HelpdeskToolkit Get-StartupProgram { [PSCustomObject]@{ Name = 'OneDrive'; Enabled = $true } }
+            (Get-SystemHealth | Where-Object Check -eq 'Startup programs').Value | Should -Be '1 program starts with Windows'
+        }
+
+        It 'reports no startup programs as such' {
+            Mock -ModuleName HelpdeskToolkit Get-StartupProgram { }
+            $startup = Get-SystemHealth | Where-Object Check -eq 'Startup programs'
+            $startup.Value | Should -Be '0 programs start with Windows'
+            @($startup.Details).Count | Should -Be 0
         }
     }
 
@@ -300,7 +327,7 @@ Describe 'Get-SystemHealth' {
         }
 
         It 'marks a permission problem as "Requires admin"' {
-            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_StartupCommand' } {
+            Mock -ModuleName HelpdeskToolkit Get-StartupProgram {
                 throw (New-Object -TypeName System.UnauthorizedAccessException -ArgumentList 'Access denied')
             }
             (Get-SystemHealth | Where-Object Check -eq 'Startup programs').Value | Should -Be 'Requires admin'

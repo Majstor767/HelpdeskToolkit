@@ -12,9 +12,10 @@ pronađenim problemima i preporukama što učiniti.
 
 - **Samo čita.** Provjere samo čitaju podatke i nikad ništa ne mijenjaju na sustavu.
   Alat zapisuje samo svoje: postavke, izvještaje i, ako označiš "Start with Windows",
-  jedan prečac u tvojoj mapi Startup. Jedino što može pokrenuti, a da mijenja računalo,
-  jest deinstalacija programa koji klikneš u popisu zauzeća diska, i to tek nakon tvoje
-  potvrde.
+  jedan prečac u tvojoj mapi Startup. Dvije stvari mijenjaju računalo, svaka samo za
+  onaj program koji klikneš i tek nakon tvoje potvrde: pokreće se deinstalacija
+  programa iz popisa zauzeća diska, a program iz popisa programa pri pokretanju
+  isključuje se ili uključuje, istim prekidačem kojim to radi Task Manager.
 - **Ne traži administratorska prava.** Provjere kojima trebaju preskače i označava s "Requires admin".
 - **Ne traži ništa osim samog alata.** Napisan je u PowerShellu i koristi ono što Windows već ima.
 
@@ -134,6 +135,12 @@ povijesti) također se pamte do sljedećeg pokretanja.
   Stranica se otvara u tvom pregledniku i ondje gdje sam Windows ne uspijeva otvoriti
   linkove jer kao zadani preglednik i dalje navodi onaj koji je uklonjen; taj se
   slučaj prijavljuje kao zasebno upozorenje pod Software.
+- **Programi pri pokretanju kao prekidači:** rezultat *Startup programs* (System) broji
+  ono što se stvarno pokreće s Windowsima, zasebno navodi isključeno, a svaki program
+  je redak na koji se može kliknuti: nakon pitanja program se više ne pokreće s
+  Windowsima, ili se opet pokreće. To je prekidač iz *Task Manager > Startup apps*:
+  ništa se ne briše, a drugi klik vraća staro. Za program koji se pokreće svim
+  korisnicima prozor mora imati administratorska prava.
 - **Link za točno tu grešku:** gdje rezultat navodi ažuriranje ili kod greške, uz
   rješenje stoji link za svaki: Microsoftov članak o ažuriranju koje nije uspjelo
   ("About update KB5050009"), pretraga koda greške Windows Updatea ("0x80070005"),

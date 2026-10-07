@@ -12,9 +12,11 @@ problems it found and what to do about them.
 
 - **Read-only.** The checks only read information and never change anything on the
   system. What the tool writes is its own: its settings, the reports and, when you
-  tick "Start with Windows", one shortcut in your Startup folder. The one thing it can
-  start that changes the computer is the uninstaller of a program you click in the
-  disk usage list, and only after you have confirmed it.
+  tick "Start with Windows", one shortcut in your Startup folder. Two things change
+  the computer, each only for the one program you click and only after you have
+  confirmed it: the uninstaller of a program in the disk usage list is started, and a
+  program in the list of startup programs is switched off or on, with the same switch
+  Task Manager uses.
 - **No administrator rights needed.** Checks that need them are skipped and marked "Requires admin".
 - **Nothing to install besides the tool.** It is written in PowerShell and uses what Windows already has.
 
@@ -135,6 +137,12 @@ number of days of history) are remembered for the next start as well.
   The page opens in your browser also where Windows itself fails to open links
   because it still names a default browser that was removed; that case is reported
   as a warning of its own under Software.
+- **Startup programs as switches:** the result *Startup programs* (System) counts
+  what really starts with Windows, lists what is switched off separately, and makes
+  every program a line that can be clicked: after a question the program no longer
+  starts with Windows, or starts again. It is the switch of *Task Manager > Startup
+  apps*: nothing is deleted, and a second click undoes it. A program that starts for
+  every user needs the window to have administrator rights.
 - **A link for the exact error:** where a result names an update or an error code,
   the fix has a link for each: the article of Microsoft about the update that failed
   ("About update KB5050009"), a search for the error code of Windows Update

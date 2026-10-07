@@ -246,9 +246,10 @@
             <Button Content="{Binding Label}" ToolTip="{Binding Url}" Style="{StaticResource LinkButton}"/>
         </DataTemplate>
 
-        <!-- One line of the details of a result ("Show 5 more"). A line that names an
-             event of the event log is a link that looks the event up on the web; any
-             other line is plain text. -->
+        <!-- One line of the details of a result ("Show 5 more"). A line that can be
+             clicked (Link is "Yes") is shown as a link: an event of the event log is
+             looked up on the web, a startup program is switched off or on. Any other
+             line is plain text. -->
         <DataTemplate x:Key="MoreLine">
             <Grid>
                 <TextBlock Text="{Binding Text}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap">
@@ -256,19 +257,19 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Url}" Value="">
+                                <DataTrigger Binding="{Binding Link}" Value="">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <Button Content="{Binding Text}" ToolTip="Look up what this event means and how it is fixed">
+                <Button Content="{Binding Text}" ToolTip="{Binding Tip}">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
                             <Setter Property="Margin" Value="0,1,0,2"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Url}" Value="">
+                                <DataTrigger Binding="{Binding Link}" Value="">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -2308,7 +2309,7 @@
                                 <StackPanel>
                                     <TextBlock Text="About" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
                                     <TextBlock x:Name="AboutText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="The application only reads information and never changes anything on the computer. Its own settings, the history of earlier checks, recordings of the Live monitor and a log of errors (app.log) are kept in the folder below." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
+                                    <TextBlock Text="The checks only read information. The computer is changed only for a program you click and confirm: its uninstaller is started, or its start with Windows is switched. The settings of the application, the history of earlier checks, recordings of the Live monitor and a log (app.log) are kept in the folder below." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,6"/>
                                     <TextBlock x:Name="DataFolderText" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                                     <Button x:Name="OpenDataFolderButton" Content="Open the folder" Tag="&#xE838;" Style="{StaticResource SmallButton}" HorizontalAlignment="Left"/>
                                 </StackPanel>

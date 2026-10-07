@@ -9,9 +9,10 @@ function ConvertTo-WindowItem {
 
         - Reference: the allowed range and the typical value on one line
         - More / MoreItems / MoreHeader: the remaining items of a long list (as one
-          text, which the search looks through, and line by line, where a line that
-          names an event carries the address that explains it) and the caption of the
-          section that opens them
+          text, which the search looks through, and line by line) and the caption of
+          the section that opens them. A line can be clicked (Link) when it names an
+          event, which carries the address that explains it (Url), or a startup
+          program, which a click switches off or on (Action, Target)
         - Links: where the problem, and every update and error code it names, is
           explained on the web, shown below the recommended fix of a Warning or
           Critical result
@@ -101,12 +102,30 @@ function ConvertTo-WindowItem {
                 if ($eventLinks.ContainsKey($line)) {
                     $link = $eventLinks[$line]
                     [PSCustomObject]@{
-                        Text = (Get-LocalizedText 'Event {0}: {1} ({2}x)') -f $link.Id, $link.Source, $link.Count
-                        Url  = $link.Url
+                        Text   = (Get-LocalizedText 'Event {0}: {1} ({2}x)') -f $link.Id, $link.Source, $link.Count
+                        Url    = $link.Url
+                        Action = ''
+                        Target = ''
+                        Tip    = Get-LocalizedText 'Look up what this event means and how it is fixed'
+                        Link   = 'Yes'
+                    }
+                }
+                elseif ($Result.Check -eq 'Startup programs') {
+                    # A startup program: a click switches it off or on, after a question
+                    # (see Switch-WindowStartupProgram).
+                    $off = $line -match '^(?<name>.+) \(turned off\)$'
+                    $name = if ($off) { $Matches['name'] } else { [string]$line }
+                    [PSCustomObject]@{
+                        Text   = if ($off) { '{0} ({1})' -f $name, (Get-LocalizedText 'turned off') } else { $name }
+                        Url    = ''
+                        Action = 'Startup'
+                        Target = $name
+                        Tip    = if ($off) { Get-LocalizedText 'Click to let this program start with Windows again' } else { Get-LocalizedText 'Click to stop this program from starting with Windows' }
+                        Link   = 'Yes'
                     }
                 }
                 else {
-                    [PSCustomObject]@{ Text = [string]$line; Url = '' }
+                    [PSCustomObject]@{ Text = [string]$line; Url = ''; Action = ''; Target = ''; Tip = ''; Link = '' }
                 }
             }
         )
@@ -121,7 +140,16 @@ function ConvertTo-WindowItem {
             Reference           = $reference -join '   |   '
             More                = $details -join "`n"
             MoreItems           = $moreItems
-            MoreHeader         = if ($details.Count -gt 0) { (Get-LocalizedText 'Show {0} more') -f $details.Count } else { '' }
+            MoreHeader         = if ($details.Count -eq 0) {
+                ''
+            }
+            elseif ($Result.Check -eq 'Startup programs') {
+                # The value names none of them: this is the whole list, and every line a switch.
+                (Get-LocalizedText 'Show all {0}: click a program to switch it off or on') -f $details.Count
+            }
+            else {
+                (Get-LocalizedText 'Show {0} more') -f $details.Count
+            }
             Risk                = $risk
             RiskLabel           = Get-LocalizedText 'WHY THIS IS A PROBLEM'
             Recommendation      = Get-LocalizedText ([string]$Result.Recommendation)

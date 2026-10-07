@@ -126,10 +126,15 @@ Describe 'ConvertTo-WindowItem' {
         $item.Recommendation | Should -Be ''
     }
 
-    It 'puts the remaining items of a long list behind a "Show N more" section' {
+    It 'puts the items of a long list behind a section that opens on a click' {
+        # The startup programs are the whole list, and every line of it a switch.
         $item = InModuleScope HelpdeskToolkit -Parameters @{ Result = $testResults[1] } { ConvertTo-WindowItem -Result $Result }
-        $item.MoreHeader | Should -Be 'Show 2 more'
+        $item.MoreHeader | Should -Be 'Show all 2: click a program to switch it off or on'
         $item.More | Should -Be "Extra One`nExtra Two"
+
+        # Any other list is what did not fit into the value.
+        $other = New-TestResult -Category 'System' -Check 'Scheduled tasks' -Status Info -Value '10 tasks and 2 more' -Details 'Extra One', 'Extra Two'
+        (InModuleScope HelpdeskToolkit -Parameters @{ Result = $other } { ConvertTo-WindowItem -Result $Result }).MoreHeader | Should -Be 'Show 2 more'
     }
 
     It 'labels the recommendation of a problem as a recommended fix' {

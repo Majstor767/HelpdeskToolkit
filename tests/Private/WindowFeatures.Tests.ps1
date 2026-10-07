@@ -161,7 +161,7 @@ Describe 'ConvertTo-WindowItem: status text, button and language' {
         }
 
         It 'translates the caption of the list that opens on a click' {
-            $long = New-TestResult -Check 'Startup programs' -Details 'A', 'B', 'C'
+            $long = New-TestResult -Check 'Scheduled tasks' -Details 'A', 'B', 'C'
             (InModuleScope HelpdeskToolkit -Parameters @{ Result = $long } { ConvertTo-WindowItem -Result $Result }).MoreHeader | Should -Be 'Prikaži još 3'
         }
     }

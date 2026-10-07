@@ -89,6 +89,10 @@ The first public version. It will be released as 1.0.0.
 - Below the fix of every problem, a link to the page of Microsoft that explains it,
   or a web search for its name. The results of the event log list every kind of
   event with its event number under "Show more"; a click looks that event up.
+- Startup programs can be switched off and on from the result that lists them, after
+  a question, with the switch Task Manager uses. The result now counts only what is
+  switched on (it counted what Task Manager had already disabled) and also finds
+  32-bit programs that start for every user.
 - A link for the exact error: the article of Microsoft about an update that failed,
   and a search for the error code of Windows Update, for the stop code of a blue
   screen (now listed with how often it happened) and for the code Device Manager

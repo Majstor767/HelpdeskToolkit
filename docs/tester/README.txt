@@ -6,7 +6,9 @@ Thank you for trying it out! HelpdeskToolkit checks the state of a Windows compu
 why that is a problem and how it is fixed.
 
 The checks ONLY READ. They change nothing on the computer, delete nothing and send
-nothing about you anywhere. What goes to the internet are the network tests (ping, DNS
+nothing about you anywhere. Two things happen only when you click one program and
+confirm the question: its uninstaller is started (Live monitor > a disk), or it is
+switched off or on as a startup program (System > Startup programs). What goes to the internet are the network tests (ping, DNS
 and HTTPS to 1.1.1.1 and microsoft.com) and a question to winget, the package manager
 of Windows, whether newer versions of the installed programs exist; both are switched
 off with the tick "Skip network tests". A link you click opens a page of Microsoft or
@@ -76,6 +78,9 @@ WHAT IS WORTH TRYING
 - Live monitor > a disk > "What takes up the space": a click on a program asks
   whether you want to uninstall it and starts its own uninstaller. Nothing is
   started without your confirmation.
+- System > Startup programs > "Show all": a click on a program asks whether it should
+  stop starting with Windows (the same switch as Task Manager > Startup apps); a click
+  on one that is "turned off" switches it on again.
 - Timeline: what happened on the computer in the last weeks (installations, updates,
   crashes), day by day. A red dot is a failure, a blue one a change.
 - Software: programs for which a newer version exists and programs without support.
