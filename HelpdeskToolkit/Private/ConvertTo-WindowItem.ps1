@@ -65,42 +65,39 @@ function ConvertTo-WindowItem {
             $risk = Get-LocalizedText (Get-CheckRisk -Check $Result.Check -Category $Result.Category -Value ([string]$Result.Value))
         }
 
-        # Where things are explained on the web (see Get-CheckHelpLink). A problem gets
+        # Where things are explained on the web (see Get-ResultHelpLink). A problem gets
         # links below its recommended fix: the page of the maker or a search for the
-        # name of the check, and one for every update and error code it names. A line of the details that names an event of the event log
-        # becomes a link itself, whatever the status of the result.
-        $isProblem = $Result.Status -in 'Warning', 'Critical' -and [string]$Result.Value -ne 'Unavailable'
-        $help = @(
-            if ($isProblem -or $details.Count -gt 0) {
-                Get-CheckHelpLink -Check $Result.Check -Category $Result.Category -Detail $details -Value ([string]$Result.Value)
-            }
-        )
+        # name of the check, and one for every update, error code and crashing program
+        # it names. A line of the details that names an event of the event log or a
+        # program that crashed becomes a link itself, whatever the status of the result.
+        $help = @(Get-ResultHelpLink -Result $Result)
         $links = @(
-            if ($isProblem) {
-                foreach ($link in $help | Where-Object { $_.Kind -ne 'Event' }) {
-                    # An update gets its article, an error code a search for exactly that code.
-                    $caption = switch ($link.Kind) {
-                        'Page' { Get-LocalizedText 'What this means and how to fix it' }
-                        'Article' { (Get-LocalizedText 'About update {0}') -f $link.Text }
-                        'Code' { (Get-LocalizedText 'Search the web for error {0}') -f $link.Text }
-                        default { Get-LocalizedText 'Search the web for this problem' }
-                    }
-                    [PSCustomObject]@{ Label = $caption; Url = $link.Url }
-                }
+            foreach ($link in $help | Where-Object { -not $_.Line }) {
+                [PSCustomObject]@{ Label = Get-HelpLinkCaption -Link $link -Translate; Url = $link.Url }
             }
         )
-
         # The details, line by line. An event reads "Event 10016: DistributedCOM (45x)",
-        # with how often it happened, and opens the search for that event; any other
-        # line is plain text.
-        $eventLinks = @{}
-        foreach ($link in $help | Where-Object { $_.Kind -eq 'Event' }) {
-            $eventLinks[$link.Line] = $link
+        # with how often it happened, and opens the search for that event; a program
+        # that crashed opens the search for its crashes; any other line is plain text.
+        $lineLinks = @{}
+        foreach ($link in $help | Where-Object { $_.Line }) {
+            $lineLinks[$link.Line] = $link
         }
         $moreItems = @(
             foreach ($line in $details) {
-                if ($eventLinks.ContainsKey($line)) {
-                    $link = $eventLinks[$line]
+                if ($lineLinks.ContainsKey($line) -and $lineLinks[$line].Kind -eq 'Program') {
+                    # A program that crashed: the line opens the search for its crashes.
+                    [PSCustomObject]@{
+                        Text   = [string]$line
+                        Url    = $lineLinks[$line].Url
+                        Action = ''
+                        Target = ''
+                        Tip    = Get-LocalizedText 'Search the web for the crashes of this program'
+                        Link   = 'Yes'
+                    }
+                }
+                elseif ($lineLinks.ContainsKey($line)) {
+                    $link = $lineLinks[$line]
                     [PSCustomObject]@{
                         Text   = (Get-LocalizedText 'Event {0}: {1} ({2}x)') -f $link.Id, $link.Source, $link.Count
                         Url    = $link.Url

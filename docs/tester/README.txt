@@ -12,7 +12,8 @@ switched off or on as a startup program (System > Startup programs). What goes t
 and HTTPS to 1.1.1.1 and microsoft.com) and a question to winget, the package manager
 of Windows, whether newer versions of the installed programs exist; both are switched
 off with the tick "Skip network tests". A link you click opens a page of Microsoft or
-a web search in your browser.
+a web search on Google in your browser; a problem on the Timeline page and a program
+that crashed are such links, and they search for exactly that error.
 
 You need Windows 10 (version 1809 or later) or Windows 11. Nothing else.
 

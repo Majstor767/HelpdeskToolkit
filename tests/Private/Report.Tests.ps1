@@ -25,7 +25,11 @@ Describe 'ConvertTo-HealthReportHtml' {
         $html | Should -Match '<style>'
         $html | Should -Not -Match '<link'
         $html | Should -Not -Match '<script'
-        $html | Should -Not -Match '(src|href)\s*=\s*"https?:'
+        # Nothing is fetched from the web. A link the reader may click fetches nothing;
+        # where those lead is tested in ErrorSearch.Tests.ps1.
+        $html | Should -Not -Match 'src\s*='
+        $html | Should -Not -Match 'url\('
+        $html | Should -Not -Match '@import'
     }
 
     It 'shows the computer name, date, duration and elevation' {

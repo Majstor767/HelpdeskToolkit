@@ -1614,7 +1614,7 @@
                                 </ComboBox>
                                 <StackPanel>
                                     <TextBlock x:Name="TimelineSummary" Style="{StaticResource SectionTitle}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    <TextBlock Text="Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause. A click on a problem searches the web for exactly that error." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -1659,7 +1659,33 @@
                                                                     </TextBlock.Style>
                                                                 </TextBlock>
                                                                 <TextBlock DockPanel.Dock="Right" Text="{Binding Times}" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0"/>
-                                                                <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                                                <!-- A problem is a link to a web search for that error; a change is plain text. -->
+                                                                <Grid>
+                                                                    <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Link}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <Button Content="{Binding Title}" ToolTip="{Binding Url}">
+                                                                        <Button.Style>
+                                                                            <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
+                                                                                <Setter Property="Margin" Value="0"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Link}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Button.Style>
+                                                                    </Button>
+                                                                </Grid>
                                                             </DockPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>

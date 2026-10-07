@@ -13,8 +13,8 @@ HelpdeskToolkit is an independent, private project. It is not made, endorsed, sp
 or supported by Microsoft Corporation or by any other company named in it.
 
 Microsoft, Windows, Windows PowerShell, Microsoft Defender, Microsoft Edge, Microsoft
-Office, Outlook, OneDrive, BitLocker and Bing are trademarks of the Microsoft group of
-companies. Other names of products and companies that appear in the program, in its
+Office, Outlook, OneDrive and BitLocker are trademarks of the Microsoft group of
+companies. Google is a trademark of Google LLC. Other names of products and companies that appear in the program, in its
 reports or in this repository (for example the names of installed programs, of
 browsers, of hardware makers and of their products) are trademarks of their owners.
 They are used only to name the things the tool reports about.
@@ -39,8 +39,8 @@ organization. See [PRIVACY.md](PRIVACY.md).
 
 ## Links to other sites
 
-The window links problems to pages of Microsoft Support and Microsoft Learn and to web
-searches on Bing. Those sites belong to their operators, who alone are responsible for
+The window and the HTML report link problems to pages of Microsoft Support and
+Microsoft Learn and to web searches on Google. Those sites belong to their operators, who alone are responsible for
 their content, and their terms and privacy policies apply when you open them. A link is
 a pointer, not a recommendation of everything behind it.
 

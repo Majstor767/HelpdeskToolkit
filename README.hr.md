@@ -132,6 +132,13 @@ povijesti) također se pamte do sljedećeg pokretanja.
   Warning i Critical nalazi se link na Microsoftovu stranicu koja objašnjava problem
   (oslobađanje prostora, problemi s Windows Updateom, plavi ekran, vatrozid, pisači
   i tako dalje); problem bez takve stranice dobije web pretragu svog naziva.
+- **Greška koju Windows ne može popraviti vodi na pretragu točno te greške:** program
+  koji se stalno ruši (*Search the web for crashes of contoso.exe*), kod greške,
+  događaj iz dnevnika događaja i svaki problem na stranici Timeline: klik na rušenje
+  traži na Googleu program i njegov kod iznimke, na neuspjelo ažuriranje njegov broj
+  i grešku, na plavi ekran njegov stop kod. Provjera koja se nije mogla pročitati
+  nudi pretragu koda greške koji je Windows vratio. HTML izvještaj ima iste linkove.
+  Opis linka (tooltip) pokazuje adresu koju otvara.
   Stranica se otvara u tvom pregledniku i ondje gdje sam Windows ne uspijeva otvoriti
   linkove jer kao zadani preglednik i dalje navodi onaj koji je uklonjen; taj se
   slučaj prijavljuje kao zasebno upozorenje pod Software.
@@ -550,9 +557,10 @@ Ponašanje određuje šest podatkovnih datoteka; kod se ne mora mijenjati:
   podrške (preuzeto sa stranica proizvođača o životnom ciklusu; kad istekne još jedna
   verzija, dodaje se jedan redak).
 - [`HelpdeskToolkit/Config/Help.psd1`](HelpdeskToolkit/Config/Help.psd1):
-  stranica koja objašnjava pojedini problem i adresa web pretrage za sve ostalo. U
-  adresu ulazi samo naziv provjere, ili izvor i broj događaja; vrijednost rezultata
-  nikad.
+  stranica koja objašnjava pojedini problem i adresa web pretrage za sve ostalo
+  (Google; za drugu tražilicu promijeni `SearchUrl`). U adresu ulazi naziv provjere,
+  izvor i broj događaja, broj ažuriranja, kod greške te naziv programa koji se srušio
+  ili ažuriranja koje nije uspjelo; nikad korisnik, računalo, mapa ili disk.
 
 Vrijednosti "Typical" su iskustvene, okvirne vrijednosti za zdravo uredsko računalo.
 Služe samo za usporedbu i nikad ne utječu na status.

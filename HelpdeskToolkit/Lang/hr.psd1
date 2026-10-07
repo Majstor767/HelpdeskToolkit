@@ -977,7 +977,7 @@
         # --- Window: timeline, Internet tile, score, support page -------------------
         'Everything'                                           = 'Sve'
         'Changes only'                                         = 'Samo promjene'
-        'Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause.' = 'Potraži promjenu (instalaciju, ažuriranje, driver) neposredno prije prvog kvara: to je najčešći uzrok.'
+        'Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause. A click on a problem searches the web for exactly that error.' = 'Potraži promjenu (instalaciju, ažuriranje, upravljački program) malo prije prvog kvara: to je obično uzrok. Klik na problem pretražuje web za točno tu grešku.'
         'Timeline'                                             = 'Vremenska crta'
         'What happened on this computer lately, as Windows recorded it: installations, updates, crashes and failures.' = 'Što se u zadnje vrijeme događalo na ovom računalu, kako je to zabilježio Windows: instalacije, ažuriranja, rušenja i kvarovi.'
         '{0} problems and {1} changes on record'               = 'Zabilježeno problema: {0}, promjena: {1}'
@@ -1047,6 +1047,8 @@
         'Search the web for this problem'                      = 'Potraži ovaj problem na webu'
         'About update {0}'                                     = 'O ažuriranju {0}'
         'Windows returned no information about the operating system and the computer.' = 'Windows nije vratio podatke o operacijskom sustavu i računalu.'
+        'Search the web for crashes of {0}'                    = 'Potraži rušenja programa {0} na webu'
+        'Search the web for the crashes of this program'       = 'Potraži rušenja ovog programa na webu'
         'Search the web for error {0}'                         = 'Potraži grešku {0} na webu'
         'The page was opened in the browser.'                  = 'Stranica je otvorena u pregledniku.'
         'The page could not be opened: {0}'                    = 'Stranica se nije mogla otvoriti: {0}'

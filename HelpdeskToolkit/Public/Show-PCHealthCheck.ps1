@@ -318,6 +318,11 @@ function Show-PCHealthCheck {
             }
         })
 
+    # A problem on the Timeline page is a link: a click searches the web for that error.
+    $controls.TimelineItems.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, [System.Windows.RoutedEventHandler] {
+            Invoke-WindowTimelineClick -Gui $script:HealthCheckWindow -Source $args[1].OriginalSource
+        })
+
     # The button inside a card opens the place in Windows where the problem is fixed.
     # The cards are created from a template, so the click is caught on the list that
     # contains them; the card it came from is the "data context" of the button.

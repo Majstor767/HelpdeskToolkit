@@ -55,15 +55,20 @@ avoided:
 |---|---|---|
 | Ping to your router and to `1.1.1.1` (a public DNS server of Cloudflare), a DNS lookup of `microsoft.com`, one HTTPS request to `https://www.microsoft.com` | The connectivity tests of the Network category and the Internet tile of the Live monitor | Tick **Skip network tests**, or use `-SkipNetwork` |
 | `winget upgrade` | Asks the package manager of Windows which installed programs have a newer version. winget contacts its catalog, which Microsoft operates | The same switch |
-| Opening a page in your browser | Only when you click a link: a page of Microsoft Support or Microsoft Learn, or a web search on Bing | Do not click the link |
+| Opening a page in your browser | Only when you click a link: a page of Microsoft Support or Microsoft Learn, or a web search on Google | Do not click the link |
 | A remote computer | Only with `-ComputerName`: the report of that computer is read over Windows Remote Management | Do not use the parameter |
 
-What a link sends to a web site is the address itself. An address contains the name of
-a check ("Disk"), the source and the number of an event ("Kernel-Power 41"), the number
-of an update ("KB5050009") or an error code ("0x80070005"). It never contains the name
-of a computer, a user, a program, a file or a drive: the code only takes parts of a
-fixed shape, digits and hexadecimal digits, from a result. The sites you open that way
-(Microsoft, Bing) have their own privacy policies.
+What a link sends to a web site is the address itself, and only when you click it; the
+tip of a link shows the address before you do. An address contains the name of a check
+("Disk"), the source and the number of an event ("Kernel-Power 41"), the number of an
+update ("KB5050009"), an error code ("0x80070005"), or, in a search for a program that
+crashed or an update that failed, the name of the program or the update
+("contoso.exe crash"), because such a search is useless without it. Of a path only the
+file name is taken, a name must consist of letters, digits and a few punctuation marks,
+and a name that contains the name of the signed-in user or of the computer is left
+out. An address never contains the name of a computer or a user, a folder, a file path
+or a drive. The sites you open that way (Microsoft, Google) have their own privacy
+policies.
 
 ## Questions
 

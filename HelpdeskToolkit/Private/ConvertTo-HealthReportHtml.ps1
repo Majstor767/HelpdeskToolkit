@@ -34,6 +34,13 @@ function ConvertTo-HealthReportHtml {
         $timeline = @($Report.Timeline | Where-Object { $_ })
     }
 
+    # A link that opens in a new tab. The page it leads to learns nothing about the
+    # report: not the address it was opened from, and no way to reach back into it.
+    $anchor = {
+        param([string]$Url, [string]$EncodedText)
+        '<a href="{0}" target="_blank" rel="noopener noreferrer">{1}</a>' -f (ConvertTo-HtmlEncodedText -Text $Url), $EncodedText
+    }
+
     # Builds one table row; shared by the problem list and the category cards.
     $newRow = {
         param($Result, [switch]$ShowCategory)
@@ -55,10 +62,22 @@ function ConvertTo-HealthReportHtml {
 
         # Items that did not fit into the value. <details> is plain HTML that opens
         # and closes on click, so no script is needed.
+        # Where things are explained on the web: the same links the window shows (see
+        # Get-ResultHelpLink). A line of the details that names an event or a program
+        # that crashed is a link itself; the others follow the recommendation.
+        $help = @(Get-ResultHelpLink -Result $Result)
+        $lineLinks = @{}
+        foreach ($link in $help | Where-Object { $_.Line }) {
+            $lineLinks[$link.Line] = $link.Url
+        }
+
         $details = ''
         $items = @($Result.Details)
         if ($items.Count -gt 0) {
-            $listItems = ($items | ForEach-Object { '<li>{0}</li>' -f (ConvertTo-HtmlEncodedText -Text $_) }) -join ''
+            $listItems = ($items | ForEach-Object {
+                    $line = ConvertTo-HtmlEncodedText -Text $_
+                    if ($lineLinks.ContainsKey([string]$_)) { '<li>{0}</li>' -f (& $anchor $lineLinks[[string]$_] $line) } else { '<li>{0}</li>' -f $line }
+                }) -join ''
             $details = '<details><summary>Show {0} more</summary><ul>{1}</ul></details>' -f $items.Count, $listItems
         }
         $recommendation = if ($Result.Recommendation) {
@@ -66,6 +85,12 @@ function ConvertTo-HealthReportHtml {
         }
         else {
             ''
+        }
+
+        $links = ''
+        $below = @($help | Where-Object { -not $_.Line } | ForEach-Object { & $anchor $_.Url (ConvertTo-HtmlEncodedText -Text (Get-HelpLinkCaption -Link $_)) })
+        if ($below.Count -gt 0) {
+            $links = '<div class="links">{0}</div>' -f ($below -join '')
         }
 
         # Why the problem matters; only for a result that is one. A check that could
@@ -93,8 +118,8 @@ function ConvertTo-HealthReportHtml {
             ''
         }
 
-        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check"><div class="check">{2}</div>{3}</td><td><div class="value">{4}</div>{5}{6}{7}{8}</td></tr>' -f `
-            $statusClass, $Result.Status, $check, $description, (ConvertTo-HtmlEncodedText -Text $Result.Value), $details, $reference, $risk, $recommendation
+        '<tr><td class="col-status"><span class="badge {0}">{1}</span></td><td class="col-check"><div class="check">{2}</div>{3}</td><td><div class="value">{4}</div>{5}{6}{7}{8}{9}</td></tr>' -f `
+            $statusClass, $Result.Status, $check, $description, (ConvertTo-HtmlEncodedText -Text $Result.Value), $details, $reference, $risk, $recommendation, $links
     }
 
     $tableHead = '<thead><tr><th class="col-status">Status</th><th class="col-check">Check</th><th>Result</th></tr></thead>'
@@ -231,13 +256,18 @@ function ConvertTo-HealthReportHtml {
         $problemCount = @($timeline | Where-Object { $_.Level -eq 'Problem' }).Count
         $html.Add('<section class="card" id="timeline">')
         $html.Add(('<div class="card-header"><h2>Timeline</h2><span class="counts">{0} problems &middot; {1} changes</span></div>' -f $problemCount, ($timeline.Count - $problemCount)))
-        $html.Add('<p class="timeline-hint">What happened on this computer lately, as Windows recorded it for Reliability Monitor. Look for a change (an installation, an update, a driver) shortly before the first failure.</p>')
+        $html.Add('<p class="timeline-hint">What happened on this computer lately, as Windows recorded it for Reliability Monitor. Look for a change (an installation, an update, a driver) shortly before the first failure. A problem is a link that searches the web for exactly that error.</p>')
         $html.Add('<details><summary>Show the {0} entries</summary>' -f $timeline.Count)
         $html.Add('<table class="timeline">')
         $html.Add('<thead><tr><th class="col-time">Time</th><th class="col-kind">What</th><th>Program or update</th></tr></thead>')
         $html.Add('<tbody>')
         foreach ($entry in $timeline) {
             $title = ConvertTo-HtmlEncodedText -Text $entry.Title
+            # A problem is a link to a web search for exactly that error.
+            $url = Get-TimelineHelpLink -Entry $entry
+            if ($url) {
+                $title = & $anchor $url $title
+            }
             if ($entry.Count -gt 1) {
                 $title = '{0} <span class="times">&times; {1}</span>' -f $title, $entry.Count
             }

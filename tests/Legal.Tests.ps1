@@ -94,10 +94,12 @@ Describe 'The privacy page' {
         $help = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Config\Help.psd1')
         $addresses = @($help.SearchUrl, $help.ArticleUrl) + @(foreach ($entry in $help.Pages.Values) { if ($entry -is [hashtable]) { $entry.Values } else { $entry } })
         $hosts = @($addresses | ForEach-Object { ([uri]$_).Host } | Sort-Object -Unique)
-        $hosts | Should -Be @('learn.microsoft.com', 'support.microsoft.com', 'www.bing.com')
+        $hosts | Should -Be @('learn.microsoft.com', 'support.microsoft.com', 'www.google.com')
         $privacy | Should -Match 'Microsoft Support'
         $privacy | Should -Match 'Microsoft Learn'
-        $privacy | Should -Match 'Bing'
+        $privacy | Should -Match 'Google'
+        # What a search can carry besides numbers and codes is said there too.
+        $privacy | Should -Match 'name of the program'
     }
 
     It 'names winget and the remote computer, the other two ways out of the computer' {

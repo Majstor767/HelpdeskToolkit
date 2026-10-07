@@ -36,7 +36,8 @@ function Get-ChangeTimeline {
         Shows the time line as a table.
     .OUTPUTS
         HelpdeskToolkit.TimelineEvent
-        Objects with the properties Time, Level ("Problem" or "Change"), Kind, Title and Count.
+        Objects with the properties Time, Level ("Problem" or "Change"), Kind, Title, Count and
+        Code (the error code of a problem, when Windows recorded one).
     #>
     [CmdletBinding()]
     [OutputType('HelpdeskToolkit.TimelineEvent')]
@@ -83,11 +84,33 @@ function Get-ChangeTimeline {
             $title = 'Antivirus definitions'
         }
 
+        # The error code Windows wrote into the record of a problem: the exception of
+        # a crash, the error of an update, the stop code of a blue screen. It is what
+        # the problem is looked up by (see Get-TimelineHelpLink). Codes are taken by
+        # their fixed shape, so the language of the message does not matter.
+        $code = ''
+        if ($known.Level -eq 'Problem' -and $record.PSObject.Properties['Message']) {
+            $message = [string]$record.Message
+            $codes = @([regex]::Matches($message, '\b0x[0-9A-Fa-f]{8}\b') | ForEach-Object { $_.Value })
+            $found = switch ($known.Kind) {
+                'Program crashed' {
+                    # The message names two time stamps before the exception code.
+                    if ($message -match 'Exception code:\s*(0x[0-9A-Fa-f]{8})\b') { $Matches[1] } elseif ($codes.Count -ge 3) { $codes[2] }
+                }
+                'Update failed' { if ($codes.Count -gt 0) { $codes[0] } }
+                'Windows crashed (blue screen)' { if ($codes.Count -gt 0) { $codes[0] } }
+            }
+            if ($found) {
+                $code = '0x{0}' -f ([string]$found).Substring(2).ToUpperInvariant()
+            }
+        }
+
         [PSCustomObject]@{
             Time  = [datetime]$record.TimeGenerated
             Level = $known.Level
             Kind  = $known.Kind
             Title = $title
+            Code  = $code
         }
     }
 
@@ -101,6 +124,7 @@ function Get-ChangeTimeline {
             Kind       = $newest.Kind
             Title      = $newest.Title
             Count      = $_.Count
+            Code       = $newest.Code
         }
     } | Sort-Object -Property Time -Descending
 }

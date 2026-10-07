@@ -13,12 +13,14 @@
     # An entry with Windows10 and Windows11 instead of an address depends on the
     # Windows version of this computer.
     #
-    # SearchUrl: for a problem without a page, and for a single event of the event log,
-    # the link is a web search. {0} is replaced with the search words: the name of the
-    # check, or the source and the number of the event. The value of a result (names of
-    # programs, users, drives) never becomes part of an address.
+    # SearchUrl: an error Windows has no place to fix is looked up on the web: a problem
+    # without a page, a single event of the event log, an error code, a program that
+    # crashes, an update that fails. {0} is replaced with the search words: the name of
+    # the check, the source and the number of the event, the code, or the name of the
+    # program or the update (see ConvertTo-SearchName for what counts as a name). A
+    # user, a computer, a folder or a drive never becomes part of an address.
 
-    SearchUrl  = 'https://www.bing.com/search?q={0}'
+    SearchUrl  = 'https://www.google.com/search?q={0}'
 
     # ArticleUrl: the article of Microsoft about an update. {0} is replaced with the
     # number of the update, without "KB".

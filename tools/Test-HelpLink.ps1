@@ -51,7 +51,7 @@ foreach ($key in $help.Pages.Keys) {
 # The two addresses that are completed while the application runs, with an example:
 # the article of an update that exists, and a search.
 $addresses[([string]$help.ArticleUrl -f '5050009')] = [System.Collections.Generic.List[string]]@('ArticleUrl (example: KB5050009)')
-$addresses[([string]$help.SearchUrl -f 'Windows%20event%20ID%2041')] = [System.Collections.Generic.List[string]]@('SearchUrl (example)')
+$addresses[(([string]$help.SearchUrl) -f 'Windows%20event%20ID%2041')] = [System.Collections.Generic.List[string]]@('SearchUrl (example)')
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 

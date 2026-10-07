@@ -98,6 +98,13 @@ The first public version. It will be released as 1.0.0.
   screen (now listed with how often it happened) and for the code Device Manager
   gives a device. Services and the profiles of the firewall get the page that
   explains them, as do fifteen more checks that only had a web search.
+- An error Windows has no place to fix leads to a web search for exactly that error:
+  every problem on the Timeline page (a crash with the program and its exception
+  code, a failed update with its number and error, a blue screen with its stop code),
+  every program the result "Application crashes" names, and the error code of a
+  check that could not be read. The HTML report carries the links of the window. The
+  searches use Google (they used Bing). The name of a program or an update can now be
+  part of a search; a user, a computer, a folder or a drive still cannot.
 - Links open also when Windows cannot open them: when the default browser was removed
   and Windows still names it ("Application not found"), another browser is used; from a
   window with administrator rights the page is opened by the desktop of the user, so

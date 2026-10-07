@@ -177,6 +177,8 @@ function Get-PCHealthReport {
                     Kind  = $_.Kind
                     Title = $_.Title
                     Count = $_.Count
+                    # The error code of a problem; what it is looked up by.
+                    Code  = if ($_.PSObject.Properties['Code']) { [string]$_.Code } else { '' }
                 }
             })
     }

@@ -13,7 +13,9 @@ function Show-WindowTimeline {
                    the window
         - Summary: "2 problems, 5 changes"
         - Events:  one row each with Time, Level (decides the color of the dot), Kind,
-                   Title and Times (how often it happened that day, when more than once)
+                   Title and Times (how often it happened that day, when more than once).
+                   A problem also carries Url, the web search for exactly that error
+                   (see Get-TimelineHelpLink), and its title is shown as a link (Link)
 
         The filter of the page leaves only the problems or only the changes.
     #>
@@ -85,6 +87,7 @@ function Show-WindowTimeline {
                     Events  = @(
                         $_.Group | Sort-Object -Property Time -Descending | ForEach-Object {
                             $time = [string]$_.Time
+                            $url = Get-TimelineHelpLink -Entry $_
                             [PSCustomObject]@{
                                 Time  = if ($time.Length -ge 16) { $time.Substring(11, 5) } else { '' }
                                 Level = [string]$_.Level
@@ -93,6 +96,9 @@ function Show-WindowTimeline {
                                 # the titles the tool wrote itself are translated.
                                 Title = if ($_.Title -in 'Antivirus definitions', 'Microsoft Store apps') { Get-LocalizedText ([string]$_.Title) } else { [string]$_.Title }
                                 Times = if ($_.Count -gt 1) { '{0} {1}' -f $times, $_.Count } else { '' }
+                                # A problem is a link to a web search for exactly that error.
+                                Url   = $url
+                                Link  = if ($url) { 'Yes' } else { '' }
                             }
                         }
                     )

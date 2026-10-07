@@ -134,6 +134,13 @@ number of days of history) are remembered for the next start as well.
   and Critical result is a link to the page of Microsoft that explains the problem
   (free up drive space, troubleshoot Windows Update, blue screens, firewall, printers
   and so on); a problem without such a page gets a web search for its name.
+- **An error Windows cannot fix leads to a search for exactly that error:** a program
+  that keeps crashing (*Search the web for crashes of contoso.exe*), an error code, an
+  event of the event log, and every problem on the Timeline page: a click on a crash
+  searches Google for the program and its exception code, on a failed update for its
+  number and error, on a blue screen for its stop code. A check that could not be
+  read offers the search for the error code Windows gave. The HTML report carries
+  the same links. The tip of a link shows the address it opens.
   The page opens in your browser also where Windows itself fails to open links
   because it still names a default browser that was removed; that case is reported
   as a warning of its own under Software.
@@ -564,8 +571,10 @@ Six data files control the behaviour; no code has to be changed:
 
 - [`HelpdeskToolkit/Config/Help.psd1`](HelpdeskToolkit/Config/Help.psd1):
   the page that explains each problem, and the address of the web search used for
-  everything else. Only the name of a check, or the source and number of an event,
-  ever becomes part of an address; the value of a result never does.
+  everything else (Google; change `SearchUrl` to use another search engine). What
+  becomes part of an address is the name of a check, the source and number of an
+  event, the number of an update, an error code, and the name of a program that
+  crashed or an update that failed; never a user, a computer, a folder or a drive.
 
 The "Typical" values are rules of thumb for a healthy office PC. They are shown for
 comparison only and never affect the status.

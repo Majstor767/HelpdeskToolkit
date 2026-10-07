@@ -380,6 +380,29 @@ details li {
     font-weight: 600;
 }
 
+.links {
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.links a {
+    display: inline-block;
+    margin-right: 18px;
+}
+
+.links a,
+details li a,
+table.timeline a {
+    color: var(--info);
+    text-decoration: none;
+}
+
+.links a:hover,
+details li a:hover,
+table.timeline a:hover {
+    text-decoration: underline;
+}
+
 .badge {
     display: inline-block;
     min-width: 78px;
