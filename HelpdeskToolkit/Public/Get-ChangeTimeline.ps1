@@ -92,7 +92,7 @@ function Get-ChangeTimeline {
     }
 
     # The same thing on the same day becomes one entry with its number and its newest time.
-    @($entries | Where-Object { $_ }) | Group-Object -Property { $_.Time.ToString('yyyyMMdd') }, Kind, Title | ForEach-Object {
+    @($entries | Where-Object { $_ }) | Group-Object -Property { $_.Time.ToString('yyyyMMdd', [cultureinfo]::InvariantCulture) }, Kind, Title | ForEach-Object {
         $newest = $_.Group | Sort-Object -Property Time -Descending | Select-Object -First 1
         [PSCustomObject]@{
             PSTypeName = 'HelpdeskToolkit.TimelineEvent'

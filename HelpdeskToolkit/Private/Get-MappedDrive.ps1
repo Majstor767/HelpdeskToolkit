@@ -18,7 +18,7 @@ function Get-MappedDrive {
     foreach ($key in Get-ChildItem -Path 'HKCU:\Network' -ErrorAction SilentlyContinue) {
         $target = $key.GetValue('RemotePath')
         if ($target) {
-            '{0}: -> {1}' -f $key.PSChildName.ToUpper(), $target
+            '{0}: -> {1}' -f $key.PSChildName.ToUpperInvariant(), $target
         }
     }
 }

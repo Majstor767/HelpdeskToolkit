@@ -43,7 +43,7 @@ Describe 'Get-SoftwareHealth' {
 
         It 'lists only programs installed within the configured number of days as recent' {
             $recent = $results | Where-Object Check -eq 'Recently installed'
-            $recent.Value | Should -Be ('1 in the last 30 days: Archive Tool ({0:yyyy-MM-dd})' -f (Get-Date).Date.AddDays(-5))
+            $recent.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, '1 in the last 30 days: Archive Tool ({0:yyyy-MM-dd})', @((Get-Date).Date.AddDays(-5))))
         }
 
         It 'reports no crashes as OK' {

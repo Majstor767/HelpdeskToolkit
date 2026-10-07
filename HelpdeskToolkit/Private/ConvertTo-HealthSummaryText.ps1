@@ -44,7 +44,7 @@ function ConvertTo-HealthSummaryText {
     }
     else {
         foreach ($item in ($problems | ConvertTo-WindowItem -ShowCategory)) {
-            $lines.Add(('[{0}] {1} - {2}: {3}' -f $item.StatusText.ToUpper(), $item.Category, $item.Check, $item.Value))
+            $lines.Add(('[{0}] {1} - {2}: {3}' -f $item.StatusText.ToUpperInvariant(), $item.Category, $item.Check, $item.Value))
             if ($item.Recommendation) {
                 $lines.Add(('    {0} {1}' -f (Get-LocalizedText 'Fix:'), $item.Recommendation))
             }

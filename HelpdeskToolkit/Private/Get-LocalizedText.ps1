@@ -51,7 +51,7 @@ function Get-LocalizedText {
         # the table has it exactly as written is looked up, not searched for: this runs
         # for every label of every card.
         if ($Text -cmatch '[A-Z]{2}' -and $Text -ceq $Text.ToUpperInvariant() -and -not $table.Exact.Contains($Text)) {
-            return $translation.ToUpper()
+            return $translation.ToUpperInvariant()
         }
         return $translation
     }

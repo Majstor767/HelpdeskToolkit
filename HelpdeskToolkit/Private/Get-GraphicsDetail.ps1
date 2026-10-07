@@ -53,7 +53,7 @@ function Get-GraphicsDetail {
 
         $resolution = if ($adapter.CurrentHorizontalResolution) { '{0} x {1}' -f $adapter.CurrentHorizontalResolution, $adapter.CurrentVerticalResolution } else { '' }
         $range = if ($adapter.MinRefreshRate -and $adapter.MaxRefreshRate) { '{0} - {1} Hz' -f $adapter.MinRefreshRate, $adapter.MaxRefreshRate } else { '' }
-        $driverDate = if ($adapter.DriverDate) { '{0:yyyy-MM-dd}' -f $adapter.DriverDate } else { '' }
+        $driverDate = if ($adapter.DriverDate) { [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd}', @($adapter.DriverDate)) } else { '' }
         # The driver files are listed with their full paths; the names are enough.
         $files = @(([string]$adapter.InstalledDisplayDrivers) -split ',' | ForEach-Object { Split-Path -Path $_.Trim() -Leaf } | Where-Object { $_ } | Select-Object -Unique)
 

@@ -42,7 +42,7 @@ function ConvertTo-DetailRow {
             }
 
             $text = if ($value -is [datetime]) {
-                '{0:yyyy-MM-dd HH:mm:ss}' -f $value
+                [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd HH:mm:ss}', @($value))
             }
             elseif ($value -is [array]) {
                 ($value | ForEach-Object { [string]$_ }) -join ', '

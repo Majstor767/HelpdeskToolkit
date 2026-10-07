@@ -11,21 +11,21 @@ Describe 'Get-WindowsSupportInfo' {
     It 'is OK while the release is supported for a long time' {
         $info = InModuleScope HelpdeskToolkit { Get-WindowsSupportInfo -Caption 'Microsoft Windows 11 Pro' -BuildNumber 26100 -DisplayVersion '91H1' }
         $info.Status | Should -Be 'OK'
-        $info.Value | Should -Be ('Supported until {0:yyyy-MM-dd}' -f (Get-Date).AddDays(400))
+        $info.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, 'Supported until {0:yyyy-MM-dd}', @((Get-Date).AddDays(400))))
         $info.Recommendation | Should -Be ''
     }
 
     It 'is a Warning when support ends within the configured number of days' {
         $info = InModuleScope HelpdeskToolkit { Get-WindowsSupportInfo -Caption 'Microsoft Windows 11 Home' -BuildNumber 26100 -DisplayVersion '90H2' }
         $info.Status | Should -Be 'Warning'
-        $info.Value | Should -Be ('Supported until {0:yyyy-MM-dd} (30 days left)' -f (Get-Date).AddDays(30))
+        $info.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, 'Supported until {0:yyyy-MM-dd} (30 days left)', @((Get-Date).AddDays(30))))
         $info.Recommendation | Should -Match 'feature update'
     }
 
     It 'is Critical when the release is out of support' {
         $info = InModuleScope HelpdeskToolkit { Get-WindowsSupportInfo -Caption 'Microsoft Windows 11 Pro' -BuildNumber 22631 -DisplayVersion '90H1' }
         $info.Status | Should -Be 'Critical'
-        $info.Value | Should -Be ('Out of support since {0:yyyy-MM-dd}' -f (Get-Date).AddDays(-10))
+        $info.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, 'Out of support since {0:yyyy-MM-dd}', @((Get-Date).AddDays(-10))))
         $info.Recommendation | Should -Match 'no longer receives security updates'
     }
 

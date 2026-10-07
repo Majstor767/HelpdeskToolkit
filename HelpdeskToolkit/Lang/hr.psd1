@@ -1212,6 +1212,8 @@
         @{ Match = '^Damaged files could not be repaired \(checked (\S+)\)$'; Text = 'Oštećene datoteke nije bilo moguće popraviti (provjereno $1)' },
         @{ Match = '^No errors \(tested (\S+)\)$'; Text = 'Bez grešaka (testirano $1)' },
         @{ Match = '^Errors found \(tested (\S+)\)$'; Text = 'Pronađene greške (testirano $1)' },
+        @{ Match = '^Charge not reported \(on battery\)$'; Text = 'Napunjenost nije javljena (na bateriji)' },
+        @{ Match = '^Charge not reported \(plugged in\)$'; Text = 'Napunjenost nije javljena (na punjaču)' },
         @{ Match = '^(\d+) programs? without security updates: '; Text = 'Programi bez sigurnosnih ažuriranja ($1): ' },
         @{ Match = '^(\d+) entr(?:y|ies) whose uninstaller is gone: '; Text = 'Unosi bez programa za deinstalaciju ($1): ' },
         @{ Match = '^(\d+) programs? can be updated: '; Text = 'Programi koji se mogu ažurirati ($1): ' },

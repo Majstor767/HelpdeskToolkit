@@ -73,7 +73,7 @@ function Get-SoftwareHealth {
         $since = (Get-Date).Date.AddDays(-$thresholds.RecentDays)
         $recent = @($programs | Where-Object { $_.InstallDate -and $_.InstallDate -ge $since } |
                 Sort-Object -Property InstallDate -Descending |
-                ForEach-Object { '{0} ({1:yyyy-MM-dd})' -f $_.Name, $_.InstallDate })
+                ForEach-Object { [string]::Format([cultureinfo]::InvariantCulture, '{0} ({1:yyyy-MM-dd})', $_.Name, $_.InstallDate) })
 
         if ($recent.Count -eq 0) {
             $value = 'None in the last {0} days' -f $thresholds.RecentDays
@@ -106,7 +106,7 @@ function Get-SoftwareHealth {
             New-CheckResult -Category $category -Check 'Unsupported programs' -Status OK -Value 'None found'
         }
         else {
-            $names = @($unsupported | ForEach-Object { '{0} (support ended {1:yyyy-MM-dd})' -f $_.Name, $_.EndDate })
+            $names = @($unsupported | ForEach-Object { [string]::Format([cultureinfo]::InvariantCulture, '{0} (support ended {1:yyyy-MM-dd})', $_.Name, $_.EndDate) })
             $list = ConvertTo-ListValue -Item $names -Shown 4
             $value = '{0} {1} without security updates: {2}' -f $unsupported.Count, $(if ($unsupported.Count -eq 1) { 'program' } else { 'programs' }), $list.Value
 

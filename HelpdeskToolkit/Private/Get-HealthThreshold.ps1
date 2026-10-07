@@ -13,7 +13,7 @@ function Get-HealthThreshold {
 
     if (-not $script:Thresholds) {
         $path = Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Thresholds.psd1'
-        $script:Thresholds = Import-PowerShellDataFile -Path $path
+        $script:Thresholds = Import-PowerShellDataFile -LiteralPath $path
     }
 
     $script:Thresholds

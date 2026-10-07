@@ -520,7 +520,7 @@ function Get-HardwareHealth {
                     $_.DriverDate -and $_.DriverDate.Year -ge 2006 -and $_.DriverDate -lt $oldBefore
                 } |
                 Sort-Object -Property DriverDate |
-                ForEach-Object { '{0} ({1:yyyy-MM-dd})' -f $_.DeviceName, $_.DriverDate } |
+                ForEach-Object { [string]::Format([cultureinfo]::InvariantCulture, '{0} ({1:yyyy-MM-dd})', $_.DeviceName, $_.DriverDate) } |
                 Select-Object -Unique
         )
         if ($old.Count -eq 0) {
@@ -544,11 +544,11 @@ function Get-HardwareHealth {
         }
         elseif ($memoryTest.HasErrors) {
             New-CheckResult -Category $category -Check 'Memory test' -Status Critical `
-                -Value ('Errors found (tested {0:yyyy-MM-dd})' -f $memoryTest.TestedAt) `
+                -Value ([string]::Format([cultureinfo]::InvariantCulture, 'Errors found (tested {0:yyyy-MM-dd})', @($memoryTest.TestedAt))) `
                 -Recommendation 'Windows Memory Diagnostic found faulty memory. Test the modules one at a time to find the bad one and replace it; until then crashes and damaged files are to be expected.'
         }
         else {
-            New-CheckResult -Category $category -Check 'Memory test' -Status OK -Value ('No errors (tested {0:yyyy-MM-dd})' -f $memoryTest.TestedAt)
+            New-CheckResult -Category $category -Check 'Memory test' -Status OK -Value ([string]::Format([cultureinfo]::InvariantCulture, 'No errors (tested {0:yyyy-MM-dd})', @($memoryTest.TestedAt)))
         }
     }
     catch {
@@ -563,9 +563,18 @@ function Get-HardwareHealth {
         }
 
         foreach ($battery in $batteries) {
-            $charge = [int]$battery.EstimatedChargeRemaining
             # BatteryStatus 1, 4 and 5 mean the computer is running on battery power.
             $onBattery = $battery.BatteryStatus -in 1, 4, 5
+
+            # Some batteries do not tell their charge (the firmware reports nothing, or
+            # more than 100). No charge that was read must not look like an empty battery.
+            $reported = $battery.EstimatedChargeRemaining
+            if ($null -eq $reported -or [int]$reported -lt 0 -or [int]$reported -gt 100) {
+                $power = if ($onBattery) { 'on battery' } else { 'plugged in' }
+                New-CheckResult -Category $category -Check 'Battery' -Status Info -Value ('Charge not reported ({0})' -f $power)
+                continue
+            }
+            $charge = [int]$reported
 
             if ($onBattery) {
                 $status = Get-ThresholdStatus -Value $charge -LowerIsWorse `

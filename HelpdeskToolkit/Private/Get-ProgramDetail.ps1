@@ -45,7 +45,7 @@ function Get-ProgramDetail {
     & $row 'Processes' $processes.Count
     & $row 'Threads' $threads
     & $row 'Memory in use' (Format-Gigabyte -Bytes $memory)
-    & $row 'Running since' $(if ($started) { '{0:yyyy-MM-dd HH:mm:ss}' -f $started } else { $unknown })
+    & $row 'Running since' $(if ($started) { [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd HH:mm:ss}', @($started)) } else { $unknown })
     & $row 'Program file' $(if ($paths.Count -gt 0) { $paths -join "`n" } else { $unknown })
 
     if ($paths.Count -gt 0) {

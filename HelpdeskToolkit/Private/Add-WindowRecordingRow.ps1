@@ -42,7 +42,7 @@ function Add-WindowRecordingRow {
     $latency = if ($Snapshot.PSObject.Properties['Latency']) { $Snapshot.Latency } else { $null }
 
     $values = @(
-        $Snapshot.TakenAt.ToString('yyyy-MM-dd HH:mm:ss')
+        $Snapshot.TakenAt.ToString('yyyy-MM-dd HH:mm:ss', [cultureinfo]::InvariantCulture)
         $(if ($Snapshot.Cpu) { & $number $Snapshot.Cpu.Percent } else { '' })
         $(if ($Snapshot.Cpu) { & $number $Snapshot.Cpu.FrequencyMHz } else { '' })
         $(if ($Snapshot.Memory) { & $number $Snapshot.Memory.Percent } else { '' })

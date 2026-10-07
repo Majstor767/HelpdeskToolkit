@@ -23,7 +23,7 @@ function Get-UnsupportedProgram {
 
     if (-not $script:EndOfLife) {
         $path = Join-Path -Path $script:ModuleRoot -ChildPath 'Config\EndOfLife.psd1'
-        $script:EndOfLife = @((Import-PowerShellDataFile -Path $path).Products)
+        $script:EndOfLife = @((Import-PowerShellDataFile -LiteralPath $path).Products)
     }
 
     $today = (Get-Date).Date

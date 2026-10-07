@@ -259,7 +259,7 @@ Describe 'Get-SystemHealth' {
         It 'reports a recent, normal startup duration as OK' {
             $boot = Get-SystemHealth | Where-Object Check -eq 'Last startup duration'
             $boot.Status | Should -Be 'OK'
-            $boot.Value | Should -Be ('45 seconds (measured {0:yyyy-MM-dd})' -f (Get-Date).AddDays(-2))
+            $boot.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, '45 seconds (measured {0:yyyy-MM-dd})', @((Get-Date).AddDays(-2))))
             $boot.Allowed | Should -Be '0 - 120 seconds'
         }
 

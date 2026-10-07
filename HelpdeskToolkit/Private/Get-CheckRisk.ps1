@@ -34,7 +34,7 @@ function Get-CheckRisk {
     )
 
     if (-not $script:Risks) {
-        $script:Risks = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Risks.psd1')
+        $script:Risks = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Risks.psd1')
     }
 
     $keys = @(

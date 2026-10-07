@@ -115,7 +115,7 @@ function Get-SystemHealth {
     }
 
     if ($os.InstallDate) {
-        New-CheckResult -Category $category -Check 'Windows installed' -Status Info -Value ('{0:yyyy-MM-dd}' -f $os.InstallDate)
+        New-CheckResult -Category $category -Check 'Windows installed' -Status Info -Value ([string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd}', @($os.InstallDate)))
     }
 
     New-CheckResult -Category $category -Check 'Manufacturer and model' -Status Info `
@@ -254,17 +254,17 @@ function Get-SystemHealth {
             switch ($fileCheck.Verdict) {
                 'Unrepaired' {
                     New-CheckResult -Category $category -Check 'System file check' -Status Warning `
-                        -Value ('Damaged files could not be repaired (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt) `
+                        -Value ([string]::Format([cultureinfo]::InvariantCulture, 'Damaged files could not be repaired (checked {0:yyyy-MM-dd})', @($fileCheck.CheckedAt))) `
                         -Recommendation 'Files of Windows are damaged and the System File Checker could not repair them. Open a terminal as administrator and run "DISM /Online /Cleanup-Image /RestoreHealth", then "sfc /scannow" again.'
                 }
                 'Repaired' {
                     New-CheckResult -Category $category -Check 'System file check' -Status Info `
-                        -Value ('Damaged files were found and repaired (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt) `
+                        -Value ([string]::Format([cultureinfo]::InvariantCulture, 'Damaged files were found and repaired (checked {0:yyyy-MM-dd})', @($fileCheck.CheckedAt))) `
                         -Recommendation 'Files of Windows were damaged and have been repaired. When that happens again, test the drive and the memory: damaged system files often come from failing hardware or from switching the computer off the hard way.'
                 }
                 default {
                     New-CheckResult -Category $category -Check 'System file check' -Status OK `
-                        -Value ('No damaged files (checked {0:yyyy-MM-dd})' -f $fileCheck.CheckedAt)
+                        -Value ([string]::Format([cultureinfo]::InvariantCulture, 'No damaged files (checked {0:yyyy-MM-dd})', @($fileCheck.CheckedAt)))
                 }
             }
         }
@@ -288,7 +288,7 @@ function Get-SystemHealth {
             New-CheckResult -Category $category -Check 'Last startup duration' -Status Info -Value 'No measurement recorded'
         }
         else {
-            $value = '{0} seconds (measured {1:yyyy-MM-dd})' -f $boot.Seconds, $boot.MeasuredAt
+            $value = [string]::Format([cultureinfo]::InvariantCulture, '{0} seconds (measured {1:yyyy-MM-dd})', $boot.Seconds, $boot.MeasuredAt)
             $allowed = Format-AllowedRange -Warning $thresholds.Boot.WarningSeconds -Unit 'seconds'
             $ageDays = ((Get-Date) - $boot.MeasuredAt).TotalDays
 

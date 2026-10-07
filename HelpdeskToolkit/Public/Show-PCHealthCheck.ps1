@@ -162,6 +162,19 @@ function Show-PCHealthCheck {
         }
     }
 
+    # A laptop screen can be smaller than the window was designed for. A window that
+    # opens where the last one was may use all screens together; one that opens in
+    # the middle of the main screen has that screen without the taskbar.
+    $area = if ($window.WindowStartupLocation -eq [System.Windows.WindowStartupLocation]::Manual) {
+        New-Object -TypeName System.Windows.Rect -ArgumentList ([System.Windows.SystemParameters]::VirtualScreenLeft),
+            ([System.Windows.SystemParameters]::VirtualScreenTop), ([System.Windows.SystemParameters]::VirtualScreenWidth),
+            ([System.Windows.SystemParameters]::VirtualScreenHeight)
+    }
+    else {
+        [System.Windows.SystemParameters]::WorkArea
+    }
+    [void](Limit-WindowToScreen -Window $window -Area $area)
+
     # The line of the score is drawn for the size its area has, so it is drawn again
     # when the window is resized or the Overview is laid out for the first time.
     $controls.TrendGraph.Add_SizeChanged({ Show-WindowTrend -Gui $script:HealthCheckWindow })

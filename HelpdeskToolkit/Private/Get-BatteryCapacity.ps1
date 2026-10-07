@@ -8,7 +8,8 @@ function Get-BatteryCapacity {
 
         Returns one object per battery with DesignedCapacity, FullChargedCapacity and
         CycleCount ($null when the battery does not count cycles), or nothing on a
-        computer without a battery. No administrator rights are needed.
+        computer without a battery. A battery that reports no usable capacity is
+        left out. No administrator rights are needed.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -19,7 +20,14 @@ function Get-BatteryCapacity {
     $cycles = @(Get-CimInstance -Namespace 'root/wmi' -ClassName BatteryCycleCount -ErrorAction SilentlyContinue)
 
     for ($i = 0; $i -lt $static.Count; $i++) {
-        if ($i -ge $full.Count -or -not $static[$i].DesignedCapacity) {
+        if ($i -ge $full.Count) {
+            continue
+        }
+        # A battery that does not know a capacity reports 0 or the largest number there
+        # is (0xFFFFFFFF). Neither says anything about its health.
+        $designed = [double]$static[$i].DesignedCapacity
+        $charged = [double]$full[$i].FullChargedCapacity
+        if ($designed -le 0 -or $charged -le 0 -or $designed -ge 4294967000 -or $charged -ge 4294967000) {
             continue
         }
 

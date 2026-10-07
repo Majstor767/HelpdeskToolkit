@@ -34,7 +34,7 @@ function Get-CheckAction {
     )
 
     if (-not $script:Actions) {
-        $script:Actions = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Actions.psd1')
+        $script:Actions = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Actions.psd1')
     }
 
     $keys = @($Check, ($Check -replace '\s*[:(].*$', ''))

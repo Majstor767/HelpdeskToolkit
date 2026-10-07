@@ -44,7 +44,7 @@ Describe 'Get-WindowsUpdateHealth' {
         It 'reports the newest update that has an install date' {
             $update = $results | Where-Object Check -eq 'Last installed update'
             $update.Status | Should -Be 'OK'
-            $update.Value | Should -Be ('KB5000002 on {0:yyyy-MM-dd} (10 days ago)' -f (Get-Date).Date.AddDays(-10))
+            $update.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, 'KB5000002 on {0:yyyy-MM-dd} (10 days ago)', @((Get-Date).Date.AddDays(-10))))
             $update.Allowed | Should -Be '0 - 45 days'
             $update.Typical | Should -Be 'typical update'
         }
@@ -102,10 +102,10 @@ Describe 'Get-WindowsUpdateHealth' {
 
         It 'is a Warning while the pause date is in the future' {
             $until = (Get-Date).AddDays(10)
-            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { $until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
+            Mock -ModuleName HelpdeskToolkit Get-RegistryValue { $until.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ', [cultureinfo]::InvariantCulture) }
             $paused = Get-WindowsUpdateHealth | Where-Object Check -eq 'Updates paused'
             $paused.Status | Should -Be 'Warning'
-            $paused.Value | Should -Be ('Yes, until {0:yyyy-MM-dd}' -f $until)
+            $paused.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, 'Yes, until {0:yyyy-MM-dd}', @($until)))
             $paused.Recommendation | Should -Match 'Resume updates'
         }
 

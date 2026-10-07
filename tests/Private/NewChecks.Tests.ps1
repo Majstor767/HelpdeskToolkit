@@ -420,7 +420,7 @@ Describe 'Get-RestorePoint' {
 
         $points.Count | Should -Be 2
         $points[0] | Should -BeOfType [datetime]
-        $points[0].ToUniversalTime().ToString('yyyy-MM-dd HH:mm') | Should -Be '2026-01-12 18:30'
+        $points[0].ToUniversalTime().ToString('yyyy-MM-dd HH:mm', [cultureinfo]::InvariantCulture) | Should -Be '2026-01-12 18:30'
     }
 
     It 'asks the System Restore class in the namespace root/default' {

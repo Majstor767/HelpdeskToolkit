@@ -17,7 +17,7 @@ function Get-CheckDescription {
 
     if (-not $script:Descriptions) {
         $path = Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Descriptions.psd1'
-        $script:Descriptions = Import-PowerShellDataFile -Path $path
+        $script:Descriptions = Import-PowerShellDataFile -LiteralPath $path
     }
 
     if ($script:Descriptions.ContainsKey($Key)) {

@@ -46,7 +46,7 @@ function Write-AppLog {
 
         $lines = New-Object -TypeName System.Collections.Generic.List[string]
         $lines.Add(('{0} [{1}] {2} (HelpdeskToolkit {3}, PowerShell {4}, administrator: {5})' -f
-                (Get-Date).ToString('yyyy-MM-dd HH:mm:ss'), $Level, $Message, (Get-ToolVersion), $PSVersionTable.PSVersion, (Test-IsAdministrator)))
+                (Get-Date).ToString('yyyy-MM-dd HH:mm:ss', [cultureinfo]::InvariantCulture), $Level, $Message, (Get-ToolVersion), $PSVersionTable.PSVersion, (Test-IsAdministrator)))
 
         if ($ErrorRecord) {
             $exception = $ErrorRecord.Exception

@@ -33,7 +33,7 @@ function Enable-WindowRecording {
         New-Item -Path $folder -ItemType Directory -Force | Out-Null
     }
 
-    $path = Join-Path -Path $folder -ChildPath ('Monitor_{0}_{1:yyyyMMdd-HHmmss}.csv' -f $env:COMPUTERNAME, (Get-Date))
+    $path = Join-Path -Path $folder -ChildPath ([string]::Format([cultureinfo]::InvariantCulture, 'Monitor_{0}_{1:yyyyMMdd-HHmmss}.csv', $env:COMPUTERNAME, (Get-Date)))
     $delimiter = [string][cultureinfo]::CurrentCulture.TextInfo.ListSeparator
     $columns = 'Time', 'CpuPercent', 'CpuSpeedMHz', 'MemoryPercent', 'MemoryUsedMB', 'GpuPercent', 'GpuTemperatureC',
         'DiskActivePercent', 'DiskReadKBps', 'DiskWriteKBps', 'NetworkDownKbps', 'NetworkUpKbps', 'BusiestProgram', 'BusiestProgramPercent',

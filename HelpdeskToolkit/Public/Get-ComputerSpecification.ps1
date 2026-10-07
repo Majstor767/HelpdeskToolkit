@@ -162,7 +162,7 @@ function Get-ComputerSpecification {
         foreach ($adapter in $adapters) {
             $driver = 'driver {0}' -f $adapter.DriverVersion
             if ($adapter.DriverDate) {
-                $driver = '{0} from {1:yyyy-MM-dd}' -f $driver, $adapter.DriverDate
+                $driver = [string]::Format([cultureinfo]::InvariantCulture, '{0} from {1:yyyy-MM-dd}', $driver, $adapter.DriverDate)
             }
             $value = '{0} ({1})' -f $adapter.Name, $driver
 
@@ -310,7 +310,7 @@ function Get-ComputerSpecification {
 
         $value = '{0} {1}' -f $bios.Manufacturer, $bios.SMBIOSBIOSVersion
         if ($bios.ReleaseDate) {
-            $value = '{0} ({1:yyyy-MM-dd})' -f $value, $bios.ReleaseDate
+            $value = [string]::Format([cultureinfo]::InvariantCulture, '{0} ({1:yyyy-MM-dd})', $value, $bios.ReleaseDate)
         }
         # Windows exposes the boot mode (UEFI or Legacy) as an environment variable.
         if ($env:firmware_type) {

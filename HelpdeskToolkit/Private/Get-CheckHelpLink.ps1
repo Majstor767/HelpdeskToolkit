@@ -53,7 +53,7 @@ function Get-CheckHelpLink {
     )
 
     if (-not $script:Help) {
-        $script:Help = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Help.psd1')
+        $script:Help = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'Config\Help.psd1')
     }
 
     $search = {

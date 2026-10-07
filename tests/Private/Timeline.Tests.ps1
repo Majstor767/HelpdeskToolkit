@@ -25,10 +25,10 @@ BeforeAll {
     # The time line of a report: two days, newest first, times as text.
     function Get-TestTimeline {
         @(
-            [PSCustomObject]@{ Time = '{0:yyyy-MM-dd} 14:20' -f $today; Level = 'Problem'; Kind = 'Program crashed'; Title = 'editor.exe'; Count = 3 }
-            [PSCustomObject]@{ Time = '{0:yyyy-MM-dd} 09:05' -f $today; Level = 'Change'; Kind = 'Update installed'; Title = 'Antivirus definitions'; Count = 2 }
-            [PSCustomObject]@{ Time = '{0:yyyy-MM-dd} 16:40' -f $today.AddDays(-1); Level = 'Change'; Kind = 'Program installed'; Title = 'Contoso Edit'; Count = 1 }
-            [PSCustomObject]@{ Time = '{0:yyyy-MM-dd} 08:00' -f $today.AddDays(-5); Level = 'Problem'; Kind = 'Unexpected shutdown'; Title = ''; Count = 1 }
+            [PSCustomObject]@{ Time = [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd} 14:20', @($today)); Level = 'Problem'; Kind = 'Program crashed'; Title = 'editor.exe'; Count = 3 }
+            [PSCustomObject]@{ Time = [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd} 09:05', @($today)); Level = 'Change'; Kind = 'Update installed'; Title = 'Antivirus definitions'; Count = 2 }
+            [PSCustomObject]@{ Time = [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd} 16:40', @($today.AddDays(-1))); Level = 'Change'; Kind = 'Program installed'; Title = 'Contoso Edit'; Count = 1 }
+            [PSCustomObject]@{ Time = [string]::Format([cultureinfo]::InvariantCulture, '{0:yyyy-MM-dd} 08:00', @($today.AddDays(-5))); Level = 'Problem'; Kind = 'Unexpected shutdown'; Title = ''; Count = 1 }
         )
     }
 

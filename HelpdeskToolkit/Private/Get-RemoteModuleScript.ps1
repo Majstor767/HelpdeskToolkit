@@ -39,7 +39,7 @@ function Get-RemoteModuleScript {
     }
 
     foreach ($folder in 'Private', 'Public') {
-        $files = Get-ChildItem -Path (Join-Path -Path $script:ModuleRoot -ChildPath $folder) -Filter '*.ps1' | Sort-Object -Property Name
+        $files = Get-ChildItem -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath $folder) -Filter '*.ps1' | Sort-Object -Property Name
         foreach ($file in $files) {
             $parts.Add([System.IO.File]::ReadAllText($file.FullName))
         }

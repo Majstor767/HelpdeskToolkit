@@ -42,14 +42,14 @@ function Set-TestThreshold {
             # End-of-support dates relative to today, so the tests never go out of date:
             # release 90H1 ended, 90H2 ends soon, 91H1 is supported for a long time.
             WindowsSupport = @{
-                Windows10End         = (Get-Date).AddDays(-100).ToString('yyyy-MM-dd')
+                Windows10End         = (Get-Date).AddDays(-100).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
                 HomePro              = @{
-                    '90H1' = (Get-Date).AddDays(-10).ToString('yyyy-MM-dd')
-                    '90H2' = (Get-Date).AddDays(30).ToString('yyyy-MM-dd')
-                    '91H1' = (Get-Date).AddDays(400).ToString('yyyy-MM-dd')
+                    '90H1' = (Get-Date).AddDays(-10).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
+                    '90H2' = (Get-Date).AddDays(30).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
+                    '91H1' = (Get-Date).AddDays(400).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
                 }
                 Enterprise           = @{
-                    '90H1' = (Get-Date).AddDays(355).ToString('yyyy-MM-dd')
+                    '90H1' = (Get-Date).AddDays(355).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
                 }
                 WarningDaysBeforeEnd = 90
             }

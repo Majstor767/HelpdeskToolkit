@@ -83,7 +83,7 @@ function Get-SecurityHealth {
                 ''
             }
             New-CheckResult -Category $category -Check 'Defender definitions' -Status $status `
-                -Value ('{0} {1} old (updated {2:yyyy-MM-dd HH:mm})' -f $age, $(if ($age -eq 1) { 'day' } else { 'days' }), $defender.AntivirusSignatureLastUpdated) `
+                -Value ([string]::Format([cultureinfo]::InvariantCulture, '{0} {1} old (updated {2:yyyy-MM-dd HH:mm})', $age, $(if ($age -eq 1) { 'day' } else { 'days' }), $defender.AntivirusSignatureLastUpdated)) `
                 -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.SignatureWarningDays -Critical $thresholds.SignatureCriticalDays -Unit 'days') `
                 -Typical $thresholds.Typical
@@ -409,7 +409,7 @@ function Get-SecurityHealth {
             }
             else {
                 $names = @($recent | ForEach-Object {
-                        if ($_.InUse) { '{0} (in use right now)' -f $_.Program } else { '{0} ({1:yyyy-MM-dd})' -f $_.Program, $_.LastUsed }
+                        if ($_.InUse) { '{0} (in use right now)' -f $_.Program } else { [string]::Format([cultureinfo]::InvariantCulture, '{0} ({1:yyyy-MM-dd})', $_.Program, $_.LastUsed) }
                     })
                 $list = ConvertTo-ListValue -Item $names -Shown 4
                 New-CheckResult -Category $category -Check $check -Status Info -Details $list.Details `
@@ -487,7 +487,7 @@ function Get-SecurityHealth {
         try {
             $points = @(Get-RestorePoint | Sort-Object -Descending)
             $value = if ($points.Count -gt 0) {
-                'On, {0} restore points, newest from {1:yyyy-MM-dd}' -f $points.Count, $points[0]
+                [string]::Format([cultureinfo]::InvariantCulture, 'On, {0} restore points, newest from {1:yyyy-MM-dd}', $points.Count, $points[0])
             }
             else {
                 'On, no restore point yet'

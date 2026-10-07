@@ -38,7 +38,7 @@ function ConvertTo-HealthReportHtml {
     $newRow = {
         param($Result, [switch]$ShowCategory)
 
-        $statusClass = $Result.Status.ToLower()
+        $statusClass = $Result.Status.ToLowerInvariant()
         $check = ConvertTo-HtmlEncodedText -Text $Result.Check
         if ($ShowCategory) {
             $check = '{0} <span class="category-label">({1})</span>' -f $check, (ConvertTo-HtmlEncodedText -Text $Result.Category)
@@ -149,7 +149,7 @@ function ConvertTo-HealthReportHtml {
     # Counts per status
     $html.Add('<section class="summary" aria-label="Summary">')
     foreach ($status in $statusOrder) {
-        $html.Add(('<div class="tile {0}"><span class="count">{1}</span><span class="label">{2}</span></div>' -f $status.ToLower(), $summary.$status, $status))
+        $html.Add(('<div class="tile {0}"><span class="count">{1}</span><span class="label">{2}</span></div>' -f $status.ToLowerInvariant(), $summary.$status, $status))
     }
     $html.Add('</section>')
 
@@ -174,7 +174,7 @@ function ConvertTo-HealthReportHtml {
         $worst = $statusOrder | Where-Object { @($categoryResults | ForEach-Object { $_.Status }) -contains $_ } | Select-Object -First 1
         [PSCustomObject]@{
             Name    = $category
-            Id      = 'cat-' + ($category.ToLower() -replace '[^a-z0-9]+', '-').Trim('-')
+            Id      = 'cat-' + ($category.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
             Results = @(foreach ($status in $statusOrder) { $categoryResults | Where-Object { $_.Status -eq $status } })
             Worst   = $worst
         }
@@ -183,7 +183,7 @@ function ConvertTo-HealthReportHtml {
 
     $html.Add('<nav class="toc" aria-label="Categories">')
     foreach ($info in $categoryInfo) {
-        $html.Add(('<a href="#{0}"><span class="dot {1}"></span>{2}</a>' -f $info.Id, $info.Worst.ToLower(), (ConvertTo-HtmlEncodedText -Text $info.Name)))
+        $html.Add(('<a href="#{0}"><span class="dot {1}"></span>{2}</a>' -f $info.Id, $info.Worst.ToLowerInvariant(), (ConvertTo-HtmlEncodedText -Text $info.Name)))
     }
     if ($timeline.Count -gt 0) {
         $html.Add('<a href="#timeline"><span class="dot info"></span>Timeline</a>')
@@ -210,7 +210,7 @@ function ConvertTo-HealthReportHtml {
         $counts = foreach ($status in $statusOrder) {
             $count = @($info.Results | Where-Object { $_.Status -eq $status }).Count
             if ($count -gt 0) {
-                '<span class="{0}">{1} {2}</span>' -f $status.ToLower(), $count, $status
+                '<span class="{0}">{1} {2}</span>' -f $status.ToLowerInvariant(), $count, $status
             }
         }
 
@@ -242,7 +242,7 @@ function ConvertTo-HealthReportHtml {
                 $title = '{0} <span class="times">&times; {1}</span>' -f $title, $entry.Count
             }
             $html.Add(('<tr class="{0}"><td class="col-time">{1}</td><td class="col-kind"><span class="dot {2}"></span>{3}</td><td>{4}</td></tr>' -f `
-                    $entry.Level.ToLower(), (ConvertTo-HtmlEncodedText -Text $entry.Time), $(if ($entry.Level -eq 'Problem') { 'critical' } else { 'info' }),
+                    $entry.Level.ToLowerInvariant(), (ConvertTo-HtmlEncodedText -Text $entry.Time), $(if ($entry.Level -eq 'Problem') { 'critical' } else { 'info' }),
                     (ConvertTo-HtmlEncodedText -Text $entry.Kind), $title))
         }
         $html.Add('</tbody></table>')

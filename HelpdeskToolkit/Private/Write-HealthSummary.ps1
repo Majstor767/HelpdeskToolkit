@@ -32,7 +32,7 @@ function Write-HealthSummary {
             Write-Host $currentCategory -ForegroundColor White
         }
 
-        $label = '[{0}]' -f $result.Status.ToUpper()
+        $label = '[{0}]' -f $result.Status.ToUpperInvariant()
         Write-Host ('  {0,-10} ' -f $label) -ForegroundColor $colors[$result.Status] -NoNewline
         Write-Host ('{0}: {1}' -f $result.Check, $result.Value)
 

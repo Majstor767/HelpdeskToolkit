@@ -605,6 +605,36 @@ Describe 'Get-HardwareHealth' {
         }
     }
 
+    Context 'a battery that tells little' {
+        It 'does not take a charge that was not reported for an empty battery (<Name>)' -ForEach @(
+            @{ Name = 'nothing, on battery'; Charge = $null; BatteryStatus = 1; Expected = 'Charge not reported (on battery)' }
+            @{ Name = 'nothing, plugged in'; Charge = $null; BatteryStatus = 2; Expected = 'Charge not reported (plugged in)' }
+            @{ Name = 'a number that is no percentage'; Charge = 255; BatteryStatus = 1; Expected = 'Charge not reported (on battery)' }
+        ) {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } {
+                [PSCustomObject]@{ EstimatedChargeRemaining = $Charge; BatteryStatus = $BatteryStatus }
+            }
+            $battery = Get-HardwareHealth | Where-Object Check -eq 'Battery'
+            $battery.Status | Should -Be 'Info'
+            $battery.Value | Should -Be $Expected
+        }
+
+        It 'reports every battery of a computer that has two' {
+            Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } {
+                [PSCustomObject]@{ EstimatedChargeRemaining = 90; BatteryStatus = 2 }
+                [PSCustomObject]@{ EstimatedChargeRemaining = 4; BatteryStatus = 1 }
+            }
+            Mock -ModuleName HelpdeskToolkit Get-BatteryCapacity {
+                [PSCustomObject]@{ DesignedCapacity = 24000; FullChargedCapacity = 21000; CycleCount = 120 }
+                [PSCustomObject]@{ DesignedCapacity = 72000; FullChargedCapacity = 30000; CycleCount = 480 }
+            }
+            $results = Get-HardwareHealth
+            @($results | Where-Object Check -eq 'Battery').Value | Should -Be @('90 % (plugged in)', '4 % (on battery)')
+            @($results | Where-Object Check -eq 'Battery').Status | Should -Be @('OK', 'Critical')
+            @($results | Where-Object Check -eq 'Battery health').Count | Should -Be 2
+        }
+    }
+
     Context 'battery health' {
         BeforeAll {
             Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_Battery' } {

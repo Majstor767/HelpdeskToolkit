@@ -68,17 +68,17 @@ function Get-WindowsSupportInfo {
 
     if ($daysLeft -lt 0) {
         $info.Status = 'Critical'
-        $info.Value = 'Out of support since {0:yyyy-MM-dd}' -f $end
+        $info.Value = [string]::Format([cultureinfo]::InvariantCulture, 'Out of support since {0:yyyy-MM-dd}', @($end))
         $info.Recommendation = 'This Windows version no longer receives security updates. {0}' -f $upgradeAdvice
     }
     elseif ($daysLeft -lt $support.WarningDaysBeforeEnd) {
         $info.Status = 'Warning'
-        $info.Value = 'Supported until {0:yyyy-MM-dd} ({1} days left)' -f $end, $daysLeft
+        $info.Value = [string]::Format([cultureinfo]::InvariantCulture, 'Supported until {0:yyyy-MM-dd} ({1} days left)', $end, $daysLeft)
         $info.Recommendation = 'Support for this Windows version ends soon. {0}' -f $upgradeAdvice
     }
     else {
         $info.Status = 'OK'
-        $info.Value = 'Supported until {0:yyyy-MM-dd}' -f $end
+        $info.Value = [string]::Format([cultureinfo]::InvariantCulture, 'Supported until {0:yyyy-MM-dd}', @($end))
     }
 
     $info

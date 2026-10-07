@@ -690,7 +690,7 @@ Describe 'Get-SecurityHealth' {
             }
             $result = Get-SecurityHealth | Where-Object Check -eq 'Microphone use'
             $result.Status | Should -Be 'Info'
-            $result.Value | Should -Be ('3 programs in the last 30 days: record.exe (in use right now), Contoso.Meetings ({0:yyyy-MM-dd}), chat.exe ({1:yyyy-MM-dd})' -f (Get-Date).Date.AddDays(-1), (Get-Date).Date.AddDays(-3))
+            $result.Value | Should -Be ([string]::Format([cultureinfo]::InvariantCulture, '3 programs in the last 30 days: record.exe (in use right now), Contoso.Meetings ({0:yyyy-MM-dd}), chat.exe ({1:yyyy-MM-dd})', (Get-Date).Date.AddDays(-1), (Get-Date).Date.AddDays(-3)))
         }
 
         It 'says "program" for a single one' {

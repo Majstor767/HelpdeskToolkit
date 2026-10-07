@@ -76,8 +76,8 @@ $script:CheckThrottleLimit = $null
 $script:ProgressActivity = 'PC Health Check'
 
 # One function per file. Public functions are exported, private ones are internal helpers.
-$public = @(Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Public') -Filter '*.ps1')
-$private = @(Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Private') -Filter '*.ps1')
+$public = @(Get-ChildItem -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath 'Public') -Filter '*.ps1')
+$private = @(Get-ChildItem -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath 'Private') -Filter '*.ps1')
 
 # Loading the files one at a time takes about a second: PowerShell checks and compiles
 # every file by itself. Read into one text and loaded as one block, the same functions

@@ -172,7 +172,7 @@ function Get-PCHealthReport {
         $timeline = @(Get-ChangeTimeline -Days (Get-HealthThreshold).Timeline.Days | ForEach-Object {
                 [PSCustomObject]@{
                     # As text, like GeneratedAt: it survives saving as JSON on every PowerShell version.
-                    Time  = $_.Time.ToString('yyyy-MM-dd HH:mm')
+                    Time  = $_.Time.ToString('yyyy-MM-dd HH:mm', [cultureinfo]::InvariantCulture)
                     Level = $_.Level
                     Kind  = $_.Kind
                     Title = $_.Title
@@ -191,7 +191,7 @@ function Get-PCHealthReport {
         PSTypeName      = 'HelpdeskToolkit.HealthReport'
         ToolVersion     = Get-ToolVersion
         ComputerName    = $env:COMPUTERNAME
-        GeneratedAt     = $startedAt.ToString('yyyy-MM-dd HH:mm:ss')
+        GeneratedAt     = $startedAt.ToString('yyyy-MM-dd HH:mm:ss', [cultureinfo]::InvariantCulture)
         DurationSeconds = [math]::Round($stopwatch.Elapsed.TotalSeconds, 1)
         IsElevated      = Test-IsAdministrator
         EventLogDays    = $Days

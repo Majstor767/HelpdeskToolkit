@@ -81,7 +81,7 @@ function New-HealthCheckWindow {
     # The colors of both themes, by the name of the brush: the light ones as the
     # layout has them, the dark ones from Assets\DarkTheme.psd1 (a brush that is not
     # listed there keeps its color). They are kept for switching the theme later.
-    $darkColors = Import-PowerShellDataFile -Path (Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\DarkTheme.psd1')
+    $darkColors = Import-PowerShellDataFile -LiteralPath (Join-Path -Path $script:ModuleRoot -ChildPath 'Assets\DarkTheme.psd1')
     $palettes = @{ Light = @{}; Dark = @{} }
     foreach ($brush in $xaml.SelectNodes('//*[local-name()="SolidColorBrush"][@x:Key]', $namespaces)) {
         $key = $brush.GetAttribute('Key', $xamlNamespace)

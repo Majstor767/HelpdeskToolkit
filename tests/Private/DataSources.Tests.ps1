@@ -164,9 +164,9 @@ Describe 'Get-UnsupportedProgram' {
     It 'only counts an entry from the day after its end date' {
         InModuleScope HelpdeskToolkit {
             $script:EndOfLife = @(
-                @{ Match = '^Ended Yesterday'; End = (Get-Date).AddDays(-1).ToString('yyyy-MM-dd'); Level = 'Warning' }
-                @{ Match = '^Ends Today'; End = (Get-Date).ToString('yyyy-MM-dd'); Level = 'Warning' }
-                @{ Match = '^Ends Next Month'; End = (Get-Date).AddDays(30).ToString('yyyy-MM-dd'); Level = 'Warning' }
+                @{ Match = '^Ended Yesterday'; End = (Get-Date).AddDays(-1).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture); Level = 'Warning' }
+                @{ Match = '^Ends Today'; End = (Get-Date).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture); Level = 'Warning' }
+                @{ Match = '^Ends Next Month'; End = (Get-Date).AddDays(30).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture); Level = 'Warning' }
             )
         }
         $programs = 'Ended Yesterday Tool', 'Ends Today Tool', 'Ends Next Month Tool' | ForEach-Object { [PSCustomObject]@{ Name = $_; Version = '' } }
@@ -588,5 +588,64 @@ Describe 'Get-SystemFileCheckResult' {
     It 'returns nothing when there is no servicing log' {
         Mock -ModuleName HelpdeskToolkit Test-Path { $false }
         InModuleScope HelpdeskToolkit { Get-SystemFileCheckResult } | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'Get-BatteryCapacity' {
+    BeforeAll {
+        # The three classes of the firmware, with one entry per battery
+        function Set-TestBattery {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+                Justification = 'Test helper that only sets variables of the test.')]
+            param([object[]]$Designed, [object[]]$Full, [object[]]$Cycles = @())
+            $script:designed = $Designed
+            $script:full = $Full
+            $script:cycles = $Cycles
+        }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'BatteryStaticData' } {
+            foreach ($value in $script:designed) { [PSCustomObject]@{ DesignedCapacity = $value } }
+        }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'BatteryFullChargedCapacity' } {
+            foreach ($value in $script:full) { [PSCustomObject]@{ FullChargedCapacity = $value } }
+        }
+        Mock -ModuleName HelpdeskToolkit Get-CimInstance -ParameterFilter { $ClassName -eq 'BatteryCycleCount' } {
+            foreach ($value in $script:cycles) { [PSCustomObject]@{ CycleCount = $value } }
+        }
+    }
+
+    It 'returns both capacities and the charge cycles of a battery' {
+        Set-TestBattery -Designed 60000 -Full 54000 -Cycles 312
+        $capacity = @(InModuleScope HelpdeskToolkit { Get-BatteryCapacity })
+        $capacity.Count | Should -Be 1
+        $capacity[0].DesignedCapacity | Should -Be 60000
+        $capacity[0].FullChargedCapacity | Should -Be 54000
+        $capacity[0].CycleCount | Should -Be 312
+    }
+
+    It 'returns nothing on a computer without a battery' {
+        Set-TestBattery -Designed @() -Full @()
+        @(InModuleScope HelpdeskToolkit { Get-BatteryCapacity }).Count | Should -Be 0
+    }
+
+    It 'has no cycle count for a battery that does not count' {
+        Set-TestBattery -Designed 60000 -Full 54000 -Cycles 0
+        (InModuleScope HelpdeskToolkit { Get-BatteryCapacity }).CycleCount | Should -BeNullOrEmpty
+    }
+
+    It 'leaves out a battery that reports <Name>, which says nothing about its health' -ForEach @(
+        @{ Name = 'no designed capacity'; Designed = 0; Full = 54000 }
+        @{ Name = 'no full capacity'; Designed = 60000; Full = 0 }
+        @{ Name = 'the number that stands for "unknown"'; Designed = 4294967295; Full = 54000 }
+        @{ Name = '"unknown" as its full capacity'; Designed = 60000; Full = 4294967295 }
+    ) {
+        Set-TestBattery -Designed $Designed -Full $Full
+        @(InModuleScope HelpdeskToolkit { Get-BatteryCapacity }).Count | Should -Be 0
+    }
+
+    It 'keeps the second battery when the first reports nothing usable' {
+        Set-TestBattery -Designed 0, 72000 -Full 0, 61000
+        $capacity = @(InModuleScope HelpdeskToolkit { Get-BatteryCapacity })
+        $capacity.Count | Should -Be 1
+        $capacity[0].DesignedCapacity | Should -Be 72000
     }
 }

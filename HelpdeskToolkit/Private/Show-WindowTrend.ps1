@@ -41,7 +41,7 @@ function Show-WindowTrend {
     $controls.TrendArea.Points = $graph.Area
 
     $controls.TrendText.Text = (Get-LocalizedText '{0} checks since {1}: from {2} to {3}') -f
-        $points.Count, $points[0].Time.ToString('yyyy-MM-dd'), $points[0].Score, $points[-1].Score
+        $points.Count, $points[0].Time.ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture), $points[0].Score, $points[-1].Score
     $controls.TrendCaption.Text = Get-LocalizedText 'oldest check on the left, newest on the right, 0 - 100'
     $controls.TrendBorder.Visibility = [System.Windows.Visibility]::Visible
 }

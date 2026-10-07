@@ -52,7 +52,7 @@ function Get-WindowsUpdateHealth {
                 ''
             }
             New-CheckResult -Category $category -Check 'Last installed update' -Status $status `
-                -Value ('{0} on {1:yyyy-MM-dd} ({2} days ago)' -f $latest.HotFixID, $latest.InstalledOn, $daysAgo) `
+                -Value ([string]::Format([cultureinfo]::InvariantCulture, '{0} on {1:yyyy-MM-dd} ({2} days ago)', $latest.HotFixID, $latest.InstalledOn, $daysAgo)) `
                 -Recommendation $recommendation `
                 -Allowed (Format-AllowedRange -Warning $thresholds.WarningDaysSinceLastUpdate -Unit 'days') -Typical $thresholds.Typical
         }
@@ -91,7 +91,7 @@ function Get-WindowsUpdateHealth {
 
     if ($pausedUntil -and $pausedUntil -gt (Get-Date)) {
         New-CheckResult -Category $category -Check 'Updates paused' -Status Warning `
-            -Value ('Yes, until {0:yyyy-MM-dd}' -f $pausedUntil) `
+            -Value ([string]::Format([cultureinfo]::InvariantCulture, 'Yes, until {0:yyyy-MM-dd}', @($pausedUntil))) `
             -Recommendation 'Windows Update is paused, so security updates are not installed. Open Settings > Windows Update and choose "Resume updates".'
     }
     else {
