@@ -25,7 +25,7 @@ Everything stays on the computer, in places only your Windows user can read:
 | Settings of the window | `%LOCALAPPDATA%\HelpdeskToolkit\settings.json` |
 | The last 30 reports, for "since the last check" and the score over time | `%LOCALAPPDATA%\HelpdeskToolkit\History` |
 | Sizes of folders that take long to measure, for half an hour | `%LOCALAPPDATA%\HelpdeskToolkit\Cache` |
-| A log of unexpected errors of the program | `%LOCALAPPDATA%\HelpdeskToolkit\app.log` |
+| A log of unexpected errors of the program, and of every uninstaller it started for you | `%LOCALAPPDATA%\HelpdeskToolkit\app.log` |
 | Reports you save or open, and recordings of the Live monitor when you start one | the folder you choose (`Documents\HelpdeskToolkit` by default) |
 
 Uninstalling removes the program. To remove what it kept, delete the folder

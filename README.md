@@ -269,8 +269,13 @@ computer is doing right now:
 - **What takes up the space:** every drive letter can be opened to see its largest
   installed programs and folders. A click on a program asks whether to uninstall it
   and then starts the program's own uninstaller, the one Windows starts from
-  *Installed apps*; a program without one (an app from the Store) opens that page
-  instead, with its name copied for the search field. A button opens the page where
+  *Installed apps*, and the way Windows starts it: as the user, also when the window
+  has administrator rights (an uninstaller of a game launcher that is started with
+  more rights shows its window and then does nothing). A program without an
+  uninstall command (an app from the Store) opens *Installed apps* instead, with its
+  name copied for the search field. A program whose uninstaller no longer exists
+  cannot be uninstalled; the window says so and opens *Programs and Features*, where
+  Windows offers to take such an entry out of the list. A button opens the page where
   files are cleaned up
 - **Network:** download and upload rate with a history graph, the link speed of every
   adapter, and how quickly the router and the internet answer a ping. The **Internet**

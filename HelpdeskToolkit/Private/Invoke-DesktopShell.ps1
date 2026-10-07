@@ -13,7 +13,9 @@ function Invoke-DesktopShell {
         opened that way runs as the user, in the browser the user chose.
 
         This is the way Microsoft describes for starting something without
-        administrator rights from a program that has them.
+        administrator rights from a program that has them. The uninstaller of a
+        program is started the same way (see Open-WindowUninstall), because that is
+        how Windows itself starts it.
 
         Throws when the desktop cannot be reached (Explorer is not running). Whether
         the thing really opened is not reported back.
@@ -25,7 +27,10 @@ function Invoke-DesktopShell {
         [string]$FilePath,
 
         # Arguments for a program.
-        [string]$Arguments = ''
+        [string]$Arguments = '',
+
+        # The folder the program is started in; without it, the one Windows chooses.
+        [string]$WorkingDirectory = ''
     )
 
     # 8 = the window of the desktop, 1 = return an object that can be scripted;
@@ -37,7 +42,10 @@ function Invoke-DesktopShell {
     }
 
     $application = $desktop.Document.Application
-    if ($Arguments) {
+    if ($WorkingDirectory) {
+        $application.ShellExecute($FilePath, $Arguments, $WorkingDirectory)
+    }
+    elseif ($Arguments) {
         $application.ShellExecute($FilePath, $Arguments)
     }
     else {

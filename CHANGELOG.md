@@ -100,7 +100,11 @@ The first public version. It will be released as 1.0.0.
   the browser does not run as administrator. A default browser that is gone is
   reported as a warning under Software.
 - A click on a program in "What takes up the space" starts the program's own
-  uninstaller, after a question; a program without one opens Installed apps.
+  uninstaller, after a question; a program without one opens Installed apps. The
+  uninstaller is started as the user, the way Windows starts it, also from a window
+  with administrator rights: started with those rights, the uninstallers of game
+  launchers showed their window and then did nothing. A program whose uninstaller
+  no longer exists opens Programs and Features, where Windows removes the entry.
 - A side bar in the manner of Windows 11: an icon for every page, the check categories
   under a heading of their own, a bar that marks the open page, the number of problems
   per category, and the report actions, the rights and the settings below.

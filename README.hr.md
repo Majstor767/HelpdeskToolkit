@@ -260,8 +260,13 @@ ovom trenutku:
 - **Što zauzima prostor:** svako slovo diska može se otvoriti da se vide njegovi najveći
   instalirani programi i mape. Klik na program pita želiš li ga deinstalirati i zatim
   pokreće vlastitu deinstalaciju tog programa, istu koju Windows pokreće iz *Installed
-  apps*; za program koji je nema (aplikacija iz Storea) otvara se ta stranica, s
-  njegovim nazivom kopiranim za polje pretrage. Gumb otvara stranicu na kojoj se čiste
+  apps*, i onako kako je Windows pokreće: kao korisnik, i kad prozor ima
+  administratorska prava (deinstalacija pokretača igara pokrenuta s većim pravima
+  pokaže svoj prozor i zatim ne napravi ništa). Za program bez naredbe za
+  deinstalaciju (aplikacija iz Storea) otvara se *Installed apps*, s njegovim nazivom
+  kopiranim za polje pretrage. Program čiji program za deinstalaciju više ne postoji
+  ne može se deinstalirati; prozor to kaže i otvara *Programs and Features*, gdje
+  Windows ponudi da takav unos ukloni s popisa. Gumb otvara stranicu na kojoj se čiste
   datoteke
 - **Mreža:** brzina preuzimanja i slanja s grafom povijesti, brzina veze svakog adaptera
   te koliko brzo router i internet odgovaraju na ping. Pločica **Internet** na vrhu

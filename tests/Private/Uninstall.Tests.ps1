@@ -218,6 +218,7 @@ Describe 'A click on a program: Open-WindowUninstall' -Skip:(-not $isSta) {
         # Whatever a test forgets to say: nobody is asked and nothing is started.
         Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $false }
         Mock -ModuleName HelpdeskToolkit Start-Process { }
+        Mock -ModuleName HelpdeskToolkit Invoke-DesktopShell { }
         Mock -ModuleName HelpdeskToolkit Invoke-CheckAction { $true }
         Mock -ModuleName HelpdeskToolkit Set-Clipboard { }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $false }
@@ -225,6 +226,8 @@ Describe 'A click on a program: Open-WindowUninstall' -Skip:(-not $isSta) {
             [PSCustomObject]@{ Name = 'Contoso Office'; Version = '16.0'; UninstallString = ''; ProductCode = '{11111111-2222-3333-4444-555555555555}'; Scope = 'Machine' }
             [PSCustomObject]@{ Name = 'Contoso Chat'; Version = '2.1'; UninstallString = 'RunDll32.EXE contoso,Uninstall'; ProductCode = ''; Scope = 'User' }
             [PSCustomObject]@{ Name = 'Contoso Store App'; Version = '1.0'; UninstallString = ''; ProductCode = ''; Scope = 'Machine' }
+            # What is left of a program whose folder was deleted by hand
+            [PSCustomObject]@{ Name = 'Contoso Old Game'; Version = '1.0'; UninstallString = ('"{0}" /S' -f (Join-Path -Path $TestDrive -ChildPath 'Old Game\unins000.exe')); ProductCode = ''; Scope = 'Machine' }
         }
     }
 
@@ -252,8 +255,11 @@ Describe 'A click on a program: Open-WindowUninstall' -Skip:(-not $isSta) {
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Office' } | Should -BeTrue
 
         Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -Scope It -ParameterFilter {
-            $FilePath -like '*\System32\msiexec.exe' -and $ArgumentList -eq '/x {11111111-2222-3333-4444-555555555555}'
+            $FilePath -like '*\System32\msiexec.exe' -and $ArgumentList -eq '/x {11111111-2222-3333-4444-555555555555}' -and
+            # From the folder the uninstaller is in, as when Windows starts it
+            $WorkingDirectory -like '*\System32'
         }
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-DesktopShell -Times 0 -Exactly -Scope It
         $gui.Controls.StatusText.Text | Should -Be 'The uninstaller of "Contoso Office" was started. Follow its window, and measure the drive again when it is done.'
     }
 
@@ -263,22 +269,70 @@ Describe 'A click on a program: Open-WindowUninstall' -Skip:(-not $isSta) {
         Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -Scope It -ParameterFilter { $FilePath -eq 'RunDll32.EXE' -and $ArgumentList -eq 'contoso,Uninstall' }
     }
 
-    It 'does not start what one user wrote into the registry with administrator rights, and opens Installed apps instead' {
+    It 'hands the start to the desktop of the user when the window has administrator rights, as Windows would start it' {
+        Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $true }
+        Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Office' } | Should -BeTrue
+
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-DesktopShell -Times 1 -Exactly -Scope It -ParameterFilter {
+            $FilePath -like '*\System32\msiexec.exe' -and $Arguments -eq '/x {11111111-2222-3333-4444-555555555555}' -and $WorkingDirectory -like '*\System32'
+        }
+        # Never by itself: what it starts would have administrator rights too.
+        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 0 -Exactly -Scope It
+        $gui.Controls.StatusText.Text | Should -BeLike 'The uninstaller of "Contoso Office" was started.*'
+    }
+
+    It 'starts the uninstaller of a program of one user the same way, so it never gets more rights than that user has' {
         Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $true }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Chat' } | Should -BeTrue
 
-        Should -Invoke -ModuleName HelpdeskToolkit Confirm-WindowChoice -Times 0 -Exactly -Scope It
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-DesktopShell -Times 1 -Exactly -Scope It -ParameterFilter { $FilePath -eq 'RunDll32.EXE' -and $Arguments -eq 'contoso,Uninstall' }
         Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 0 -Exactly -Scope It
-        Should -Invoke -ModuleName HelpdeskToolkit Invoke-CheckAction -Times 1 -Exactly -Scope It -ParameterFilter { $Check -eq 'Installed programs' }
-        $gui.Controls.StatusText.Text | Should -BeLike '"Contoso Chat" is installed for one user only, so its uninstaller is not started with administrator rights. Installed apps is open.*'
     }
 
-    It 'still starts the uninstaller of a program for everybody with administrator rights' {
+    It 'starts nothing with administrator rights when the desktop cannot be reached, and opens Installed apps' {
         Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $true }
         Mock -ModuleName HelpdeskToolkit Test-IsAdministrator { $true }
+        Mock -ModuleName HelpdeskToolkit Invoke-DesktopShell { throw 'The desktop of the signed-in user was not found.' }
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Office' } | Should -BeTrue
-        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -Scope It
+
+        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 0 -Exactly -Scope It
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-CheckAction -Times 1 -Exactly -Scope It -ParameterFilter { $Check -eq 'Installed programs' }
+        $gui.Controls.StatusText.Text | Should -BeLike 'The uninstaller of "Contoso Office" did not start. Installed apps is open.*'
+    }
+
+    It 'writes down what it started, and what did not start' {
+        $log = InModuleScope HelpdeskToolkit { Get-AppDataPath -ChildPath 'app.log' }
+        if (Test-Path -LiteralPath $log) {
+            Remove-Item -LiteralPath $log -Force
+        }
+        Mock -ModuleName HelpdeskToolkit Confirm-WindowChoice { $true }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Office' } | Should -BeTrue
+        (Get-Content -LiteralPath $log) -join "`n" | Should -Match '\[Info\] The uninstaller of "Contoso Office" was started as the user: \S+msiexec\.exe /x \{11111111-'
+
+        Mock -ModuleName HelpdeskToolkit Start-Process { throw 'The system cannot find the file specified' }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Office' } | Should -BeTrue
+        (Get-Content -LiteralPath $log) -join "`n" | Should -Match '\[Error\] The uninstaller of "Contoso Office" did not start'
+    }
+
+    It 'says that a program whose uninstaller is gone cannot be uninstalled, and opens the place where Windows removes the entry' {
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Old Game' } | Should -BeTrue
+
+        # Nothing to ask: there is nothing that could be started.
+        Should -Invoke -ModuleName HelpdeskToolkit Confirm-WindowChoice -Times 0 -Exactly -Scope It
+        Should -Invoke -ModuleName HelpdeskToolkit Start-Process -Times 1 -Exactly -Scope It -ParameterFilter { $FilePath -like '*\System32\control.exe' -and $ArgumentList -eq 'appwiz.cpl' }
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-CheckAction -Times 0 -Exactly -Scope It
+        Should -Invoke -ModuleName HelpdeskToolkit Set-Clipboard -Times 1 -Exactly -Scope It -ParameterFilter { $Value -eq 'Contoso Old Game' }
+        $gui.Controls.StatusText.Text | Should -BeLike '"Contoso Old Game" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left. "Programs and Features" is open;*'
+    }
+
+    It 'falls back to Installed apps when Programs and Features does not open' {
+        Mock -ModuleName HelpdeskToolkit Start-Process { throw 'The system cannot find the file specified' }
+        InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Open-WindowUninstall -Gui $Gui -Name 'Contoso Old Game' } | Should -BeTrue
+
+        Should -Invoke -ModuleName HelpdeskToolkit Invoke-CheckAction -Times 1 -Exactly -Scope It
+        $gui.Controls.StatusText.Text | Should -BeLike '"Contoso Old Game" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left. Installed apps is open.*'
     }
 
     It 'opens Installed apps, with the name copied, for a program without an uninstaller' {
@@ -315,7 +369,8 @@ Describe 'The texts of uninstalling' {
         foreach ($text in 'Uninstall a program', 'Start the uninstaller of "{0}"?', 'Nothing was started.', 'The uninstaller of "{0}" did not start.',
             'The uninstaller of "{0}" was started. Follow its window, and measure the drive again when it is done.',
             'Click to uninstall this program: its own uninstaller starts after you confirm',
-            '"{0}" is installed for one user only, so its uninstaller is not started with administrator rights.') {
+            '"{0}" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left.',
+            '"{0}" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left. "Programs and Features" is open; choose the entry there and Uninstall, and Windows offers to remove it from the list.') {
             $texts[$text] | Should -Not -BeNullOrEmpty -Because "'$text' is shown to the user"
         }
     }

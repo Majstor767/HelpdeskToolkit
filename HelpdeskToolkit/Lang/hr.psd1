@@ -1020,10 +1020,11 @@
         'Uninstall a program'                                  = 'Deinstalacija programa'
         'Start the uninstaller of "{0}"?'                      = 'Pokrenuti deinstalaciju programa "{0}"?'
         'The uninstaller of the program opens, the same one Windows starts from Installed apps. Follow its window; it can ask for administrator rights.' = 'Otvorit će se program za deinstalaciju, isti koji Windows pokreće iz Instaliranih aplikacija. Prati njegov prozor; može zatražiti administratorska prava.'
+        '"{0}" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left. "Programs and Features" is open; choose the entry there and Uninstall, and Windows offers to remove it from the list.' = '"{0}" se ne može deinstalirati: njegov program za deinstalaciju više ne postoji, ostao je samo unos na popisu. Otvoreno je "Programs and Features"; ondje odaberi unos i Uninstall, pa Windows ponudi da ga ukloni s popisa.'
+        '"{0}" cannot be uninstalled: its uninstaller no longer exists, only the entry in the list is left.' = '"{0}" se ne može deinstalirati: njegov program za deinstalaciju više ne postoji, ostao je samo unos na popisu.'
         'Nothing was started.'                                 = 'Ništa nije pokrenuto.'
         'The uninstaller of "{0}" was started. Follow its window, and measure the drive again when it is done.' = 'Deinstalacija programa "{0}" je pokrenuta. Prati njezin prozor, a kad završi, ponovno izmjeri disk.'
         'The uninstaller of "{0}" did not start.'              = 'Deinstalacija programa "{0}" nije se pokrenula.'
-        '"{0}" is installed for one user only, so its uninstaller is not started with administrator rights.' = '"{0}" je instaliran samo za jednog korisnika, pa se njegova deinstalacija ne pokreće s administratorskim pravima.'
 
         # --- Where a problem is explained -------------------------------------------
         'What this means and how to fix it'                    = 'Što ovo znači i kako se popravlja'
