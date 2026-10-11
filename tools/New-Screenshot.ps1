@@ -141,7 +141,13 @@ $pictures = @{
         $visual = New-Object -TypeName System.Windows.Media.DrawingVisual
         $context = $visual.RenderOpen()
         $context.DrawRectangle($Window.Background, $null, $area)
-        $context.DrawRectangle((New-Object -TypeName System.Windows.Media.VisualBrush -ArgumentList $content), $null, $area)
+        # Exactly the area of the content: left to itself the brush shows the bounds of
+        # everything that is drawn, and a graph that reaches past its frame would
+        # squeeze the whole picture.
+        $brush = New-Object -TypeName System.Windows.Media.VisualBrush -ArgumentList $content
+        $brush.ViewboxUnits = [System.Windows.Media.BrushMappingMode]::Absolute
+        $brush.Viewbox = $area
+        $context.DrawRectangle($brush, $null, $area)
         $context.Close()
 
         $bitmap = New-Object -TypeName System.Windows.Media.Imaging.RenderTargetBitmap -ArgumentList $width, $height, 96, 96, ([System.Windows.Media.PixelFormats]::Pbgra32)

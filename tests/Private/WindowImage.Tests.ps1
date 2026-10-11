@@ -54,6 +54,43 @@ Describe 'Get-WindowImage' -Skip:(-not $isSta) {
         $transparent | Should -Be 0
     }
 
+    It 'shows the window as it is when something is drawn outside of it, instead of squeezing everything into the picture' {
+        $gui = Get-TestWindow -Width 400 -Height 300
+        $arrange = {
+            $gui.Window.Content.Measure((New-Object -TypeName System.Windows.Size -ArgumentList 400, 300))
+            $gui.Window.Content.Arrange((New-Object -TypeName System.Windows.Rect -ArgumentList 0, 0, 400, 300))
+            $gui.Window.Content.UpdateLayout()
+        }
+        # The size of the picture, then blue, green, red and opacity of every pixel
+        $read = {
+            $image = InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Get-WindowImage -Gui $Gui }
+            $pixels = New-Object -TypeName 'byte[]' -ArgumentList ($image.PixelWidth * $image.PixelHeight * 4)
+            $image.CopyPixels($pixels, $image.PixelWidth * 4, 0)
+            , @($image.PixelWidth, $image.PixelHeight, $pixels)
+        }
+        # Drawing a window for the first time settles its layout; compare what comes after.
+        [void](& $read)
+        & $arrange
+        $before = & $read
+
+        # Like a graph that reaches past its frame: a shape far below the content,
+        # which the window itself would cut off.
+        $canvas = New-Object -TypeName System.Windows.Controls.Canvas
+        $shape = New-Object -TypeName System.Windows.Shapes.Rectangle
+        $shape.Width = 50
+        $shape.Height = 50
+        $shape.Fill = [System.Windows.Media.Brushes]::Red
+        [System.Windows.Controls.Canvas]::SetTop($shape, 700)
+        [void]$canvas.Children.Add($shape)
+        [void]$gui.Window.Content.Children.Add($canvas)
+        & $arrange
+
+        $after = & $read
+        $after[0] | Should -Be $before[0]
+        $after[1] | Should -Be $before[1]
+        [System.Linq.Enumerable]::SequenceEqual([byte[]]$before[2], [byte[]]$after[2]) | Should -BeTrue
+    }
+
     It 'returns nothing while the window has no size yet' {
         $gui = Get-TestWindow -Width 0
         InModuleScope HelpdeskToolkit -Parameters @{ Gui = $gui } { Get-WindowImage -Gui $Gui } | Should -BeNullOrEmpty

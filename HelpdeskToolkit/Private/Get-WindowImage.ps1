@@ -42,7 +42,13 @@ function Get-WindowImage {
     $context = $visual.RenderOpen()
     try {
         $context.DrawRectangle($window.Background, $null, $area)
-        $context.DrawRectangle((New-Object -TypeName System.Windows.Media.VisualBrush -ArgumentList $root), $null, $area)
+        # The brush shows exactly the area of the content. Left to itself it shows the
+        # bounds of everything that is drawn, and a graph that reaches past its frame
+        # (where the window clips it) would squeeze the whole picture.
+        $brush = New-Object -TypeName System.Windows.Media.VisualBrush -ArgumentList $root
+        $brush.ViewboxUnits = [System.Windows.Media.BrushMappingMode]::Absolute
+        $brush.Viewbox = $area
+        $context.DrawRectangle($brush, $null, $area)
     }
     finally {
         $context.Close()
