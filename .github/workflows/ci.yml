@@ -19,17 +19,21 @@ jobs:
       matrix:
         shell: [powershell, pwsh]
 
+    # The shell of every step of the job. It is set here because GitHub knows the
+    # matrix in the defaults of a job, but not in the "shell" of a single step.
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
       - name: Install Pester and PSScriptAnalyzer
-        shell: ${{ matrix.shell }}
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Install-Module -Name Pester -MinimumVersion 5.5.0 -Scope CurrentUser -Force -SkipPublisherCheck
           Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
 
       - name: Run PSScriptAnalyzer and Pester
-        shell: ${{ matrix.shell }}
         run: ./tools/Test-Project.ps1 -Coverage
