@@ -250,3 +250,26 @@ function New-TestEvent {
         }
     }
 }
+
+# Makes a property of a drive read as a text instead of a number, the way the Storage
+# module of Windows shows it once that module is loaded in the process ("SSD" instead of
+# 4). Where the module really is loaded, as on a computer where the tests run with
+# administrator rights, the property already reads as that text and cannot be replaced,
+# so it is left as it is.
+function Add-TestStorageText {
+    param(
+        [Parameter(Mandatory)]
+        [object]$Drive,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [string]$Text
+    )
+
+    if ($Drive.PSObject.Properties[$Name] -is [System.Management.Automation.PSScriptProperty]) {
+        return
+    }
+    $Drive | Add-Member -NotePropertyName $Name -NotePropertyValue $Text -Force
+}

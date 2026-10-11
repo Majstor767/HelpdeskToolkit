@@ -180,6 +180,10 @@ function Invoke-PCHealthCheck {
             param([string]$Status, [string[]]$Argument = @())
 
             $env:HELPDESKTOOLKIT_TEST_STATUS = $Status
+            # The script writes its failure to the error stream on purpose. Where errors
+            # are terminating (GitHub Actions starts its shell that way), Windows
+            # PowerShell would turn that line into an exception of the test itself.
+            $ErrorActionPreference = 'Continue'
             try {
                 $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script @Argument 2>&1
                 [PSCustomObject]@{ ExitCode = $LASTEXITCODE; Output = ($output | Out-String) }

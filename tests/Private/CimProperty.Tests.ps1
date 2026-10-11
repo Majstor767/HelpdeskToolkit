@@ -13,9 +13,9 @@ BeforeAll {
             DeviceId = '0'; FriendlyName = 'Contoso SSD 512'; MediaType = [uint16]4; BusType = [uint16]17
             Size = [uint64]512GB; FirmwareVersion = 'FW2.1'; HealthStatus = [uint16]0
         }
-        $drive | Add-Member -NotePropertyName MediaType -NotePropertyValue 'SSD' -Force
-        $drive | Add-Member -NotePropertyName BusType -NotePropertyValue 'NVMe' -Force
-        $drive | Add-Member -NotePropertyName HealthStatus -NotePropertyValue 'Healthy' -Force
+        Add-TestStorageText -Drive $drive -Name MediaType -Text 'SSD'
+        Add-TestStorageText -Drive $drive -Name BusType -Text 'NVMe'
+        Add-TestStorageText -Drive $drive -Name HealthStatus -Text 'Healthy'
         $drive
     }
 }

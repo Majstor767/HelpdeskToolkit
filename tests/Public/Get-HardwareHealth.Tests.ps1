@@ -255,9 +255,9 @@ Describe 'Get-HardwareHealth' {
                 $drive = New-CimInstance -Namespace 'root/Microsoft/Windows/Storage' -ClassName MSFT_PhysicalDisk -ClientOnly -Property @{
                     FriendlyName = 'Contoso SSD 512'; MediaType = [uint16]4; BusType = [uint16]17; Size = [uint64]512GB; HealthStatus = [uint16]1
                 }
-                $drive | Add-Member -NotePropertyName MediaType -NotePropertyValue 'SSD' -Force
-                $drive | Add-Member -NotePropertyName BusType -NotePropertyValue 'NVMe' -Force
-                $drive | Add-Member -NotePropertyName HealthStatus -NotePropertyValue 'Warning' -Force
+                Add-TestStorageText -Drive $drive -Name MediaType -Text 'SSD'
+                Add-TestStorageText -Drive $drive -Name BusType -Text 'NVMe'
+                Add-TestStorageText -Drive $drive -Name HealthStatus -Text 'Warning'
                 $drive
             }
 

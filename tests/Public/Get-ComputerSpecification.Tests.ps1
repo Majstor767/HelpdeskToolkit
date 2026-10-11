@@ -324,8 +324,8 @@ Describe 'Get-ComputerSpecification' {
                     DeviceId = '0'; FriendlyName = 'Contoso SSD 512'; MediaType = [uint16]4; BusType = [uint16]17
                     Size = [uint64]512GB; FirmwareVersion = 'FW2.1'
                 }
-                $drive | Add-Member -NotePropertyName MediaType -NotePropertyValue 'SSD' -Force
-                $drive | Add-Member -NotePropertyName BusType -NotePropertyValue 'NVMe' -Force
+                Add-TestStorageText -Drive $drive -Name MediaType -Text 'SSD'
+                Add-TestStorageText -Drive $drive -Name BusType -Text 'NVMe'
                 $drive
             }
 
