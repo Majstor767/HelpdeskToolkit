@@ -1,6 +1,6 @@
 @{
     RootModule           = 'HelpdeskToolkit.psm1'
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '1.0.0'
     GUID                 = '0e354cc9-7f28-44f2-96b4-5782f88829b9'
     Author               = 'Antonio Majstorovic'
     Copyright            = '(c) 2026 Antonio Majstorovic. Released under the MIT License.'

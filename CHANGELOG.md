@@ -4,9 +4,9 @@ All notable changes to this project are written down here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-11
 
-The first public version. It will be released as 1.0.0.
+The first public version.
 
 ### Checks
 
