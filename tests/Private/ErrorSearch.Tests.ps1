@@ -512,6 +512,11 @@ Describe 'The Timeline page: a problem is a link' -Skip:(-not $isSta) {
         $rows[2].Url | Should -Be (Get-TestSearch 'Windows unexpected shutdown event 6008')
     }
 
+    It 'gives a problem that names no program a text to click' {
+        $rows[2].Title | Should -Be 'Search the web for this error'
+        $rows[2].Link | Should -Be 'Yes'
+    }
+
     It 'leaves the row of a change as plain text' {
         $rows[1].Title | Should -Be 'Contoso Edit'
         $rows[1].Link | Should -Be ''
@@ -611,6 +616,7 @@ Describe 'The HTML report: the same links' {
         $report | Add-Member -NotePropertyName Timeline -NotePropertyValue @(
             New-TestEntry -Kind 'Program crashed' -Title 'editor.exe' -Code '0xC0000005' -Count 2
             New-TestEntry -Kind 'Program installed' -Title 'Contoso Edit' -Level 'Change'
+            New-TestEntry -Kind 'Unexpected shutdown'
         ) -Force
         $html = InModuleScope HelpdeskToolkit -Parameters @{ Report = $report } { ConvertTo-HealthReportHtml -Report $Report }
         $anchors = @([regex]::Matches($html, '<a href="(?<url>https://[^"]+)"(?<rest>[^>]*)>(?<text>[^<]*)</a>'))
@@ -639,6 +645,11 @@ Describe 'The HTML report: the same links' {
     It 'makes a problem of the time line a link and leaves a change as text' {
         $html | Should -Match ([regex]::Escape(('<a href="{0}"{1}>editor.exe</a> <span class="times">' -f (Get-TestSearch 'editor.exe crash exception code 0xC0000005'), $attributes)))
         $html | Should -Match '<td>Contoso Edit</td>'
+    }
+
+    It 'gives a problem of the time line that names no program a text to click' {
+        $html | Should -Match ([regex]::Escape(('<td><a href="{0}"{1}>Search the web for this error</a></td>' -f (Get-TestSearch 'Windows unexpected shutdown event 6008'), $attributes)))
+        $html | Should -Not -Match '<a [^>]*></a>'
     }
 
     It 'gives a result that is fine and names nothing no link' {
@@ -672,7 +683,7 @@ Describe 'The texts of the searches' {
         foreach ($table in $croatian.Values | Where-Object { $_ -is [hashtable] }) {
             foreach ($key in $table.Keys) { $texts[$key] = $table[$key] }
         }
-        foreach ($text in 'Search the web for crashes of {0}', 'Search the web for the crashes of this program', 'Search the web for error {0}', 'Search the web for this problem',
+        foreach ($text in 'Search the web for this error', 'Search the web for crashes of {0}', 'Search the web for the crashes of this program', 'Search the web for error {0}', 'Search the web for this problem',
             'Look for a change (an installation, an update, a driver) shortly before the first failure: that is the usual cause. A click on a problem searches the web for exactly that error.') {
             $texts[$text] | Should -Not -BeNullOrEmpty -Because "'$text' is shown to the user"
         }

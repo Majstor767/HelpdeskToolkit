@@ -266,7 +266,8 @@ function ConvertTo-HealthReportHtml {
             # A problem is a link to a web search for exactly that error.
             $url = Get-TimelineHelpLink -Entry $entry
             if ($url) {
-                $title = & $anchor $url $title
+                # A shutdown or a blue screen names no program; the link needs a text to click.
+                $title = & $anchor $url $(if ($title.Trim()) { $title } else { 'Search the web for this error' })
             }
             if ($entry.Count -gt 1) {
                 $title = '{0} <span class="times">&times; {1}</span>' -f $title, $entry.Count

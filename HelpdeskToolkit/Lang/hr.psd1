@@ -1044,6 +1044,7 @@
         'What this means and how to fix it'                    = 'Što ovo znači i kako se popravlja'
         'Event {0}: {1} ({2}x)'                                = 'Događaj {0}: {1} ({2}x)'
         'Look up what this event means and how it is fixed'    = 'Potraži što ovaj događaj znači i kako se popravlja'
+        'Search the web for this error'                        = 'Potraži ovu grešku na webu'
         'Search the web for this problem'                      = 'Potraži ovaj problem na webu'
         'About update {0}'                                     = 'O ažuriranju {0}'
         'Windows returned no information about the operating system and the computer.' = 'Windows nije vratio podatke o operacijskom sustavu i računalu.'

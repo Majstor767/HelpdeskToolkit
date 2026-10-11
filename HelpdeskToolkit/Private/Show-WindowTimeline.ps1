@@ -94,7 +94,16 @@ function Show-WindowTimeline {
                                 Kind  = Get-LocalizedText ([string]$_.Kind)
                                 # Names of programs and updates stay as they are; only
                                 # the titles the tool wrote itself are translated.
-                                Title = if ($_.Title -in 'Antivirus definitions', 'Microsoft Store apps') { Get-LocalizedText ([string]$_.Title) } else { [string]$_.Title }
+                                Title = if ($_.Title -in 'Antivirus definitions', 'Microsoft Store apps') {
+                                    Get-LocalizedText ([string]$_.Title)
+                                }
+                                elseif ($url -and -not ([string]$_.Title).Trim()) {
+                                    # A shutdown or a blue screen names no program; the link needs a text to click.
+                                    Get-LocalizedText 'Search the web for this error'
+                                }
+                                else {
+                                    [string]$_.Title
+                                }
                                 Times = if ($_.Count -gt 1) { '{0} {1}' -f $times, $_.Count } else { '' }
                                 # A problem is a link to a web search for exactly that error.
                                 Url   = $url
