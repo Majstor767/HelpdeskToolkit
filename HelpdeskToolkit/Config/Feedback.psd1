@@ -23,9 +23,10 @@
     # What is sent is said in PRIVACY.md and in the form itself: the text, the address
     # the user typed in if any, and the versions of the application and of Windows.
 
-    Endpoint       = ''
+    Endpoint       = 'https://formspree.io/f/mljglwey'
 
-    Fields         = @{}
+    # Formspree uses "_subject" as the subject line of the e-mail it sends on.
+    Fields         = @{ _subject = 'HelpdeskToolkit feedback' }
 
     # The longest text the form accepts, in characters.
     MaximumLength  = 4000

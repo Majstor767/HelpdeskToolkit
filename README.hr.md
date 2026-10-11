@@ -185,7 +185,7 @@ je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
 
 **Send feedback**, na dnu bočne trake, otvara mali obrazac: napiši što radi, što ne radi
 ili što nedostaje, dodaj svoju e-adresu ako želiš odgovor i klikni **Send** (Ctrl+Enter).
-Poruka stiže autoru e-poštom preko servisa za obrasce. Obrazac prije slanja kaže što se
+Poruka stiže autoru e-poštom preko servisa za obrasce (Formspree). Obrazac prije slanja kaže što se
 šalje: tvoj tekst, adresa ako si je upisao te verzije aplikacije i Windowsa; nikad ime
 računala, tvoje korisničko ime ni rezultati. Poruka koja se ne može poslati ostaje u
 obrascu. Gumb postoji samo kad `Config\Feedback.psd1` navodi servis za obrasce.

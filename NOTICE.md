@@ -45,8 +45,9 @@ their content, and their terms and privacy policies apply when you open them. A 
 a pointer, not a recommendation of everything behind it.
 
 Feedback you send from the window is delivered by the form service named in
-`HelpdeskToolkit\Config\Feedback.psd1`, an independent company whose terms and privacy
-policy apply to the message it handles. See [PRIVACY.md](PRIVACY.md).
+`HelpdeskToolkit\Config\Feedback.psd1`: Formspree (`formspree.io`), an independent company
+whose terms and privacy policy apply to the message it handles. HelpdeskToolkit is not
+affiliated with it. See [PRIVACY.md](PRIVACY.md).
 
 ## Third-party software
 

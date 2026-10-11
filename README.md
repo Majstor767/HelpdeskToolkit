@@ -192,7 +192,7 @@ dismissed or when the problem is gone.
 **Send feedback**, at the bottom of the side bar, opens a small form: write what works,
 what does not or what is missing, add your e-mail address if you would like an answer,
 and click **Send** (Ctrl+Enter). The message reaches the author by e-mail through a form
-service. The form says what is sent before you send it: your text, the address if you
+service (Formspree). The form says what is sent before you send it: your text, the address if you
 gave one, and the versions of the application and of Windows; never the name of the
 computer, your user name or a result. A message that cannot be sent stays in the form.
 The button is there only when `Config\Feedback.psd1` names a form service.

@@ -106,8 +106,8 @@ The first public version.
   searches use Google (they used Bing). The name of a program or an update can now be
   part of a search; a user, a computer, a folder or a drive still cannot.
 - **Send feedback**, at the bottom of the side bar: a form over the window whose message
-  reaches the author by e-mail through a form service (`Config\Feedback.psd1`; without
-  one the button is not shown). It sends the text, an address to answer to if one was
+  reaches the author by e-mail through a form service (Formspree, set in
+  `Config\Feedback.psd1`; without one the button is not shown). It sends the text, an address to answer to if one was
   given, and the versions of the application and of Windows, only after a click on
   Send, and says so in the form. A message that cannot be sent stays in the form.
 - Links open also when Windows cannot open them: when the default browser was removed
@@ -151,7 +151,9 @@ The first public version.
   window runs in.
 - Keyboard shortcuts for the common actions. Print Screen copies a picture of the
   window, which also works while the window runs with administrator rights and the
-  shortcut of a screenshot tool does not.
+  shortcut of a screenshot tool does not. The picture shows the window as it is: the
+  graph of the score, which reaches past its frame, used to squeeze the picture of
+  the Overview.
 
 ### Live monitor
 

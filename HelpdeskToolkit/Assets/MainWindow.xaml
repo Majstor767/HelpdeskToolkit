@@ -1110,8 +1110,8 @@
 
             <!-- Left: the pages and the report, then the rights and the settings at the bottom -->
             <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
-                <DockPanel Margin="8,10,8,8">
-                    <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-8,8,-8,0" Padding="8,6,8,0">
+                <DockPanel Margin="8,8,8,4">
+                    <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="-8,4,-8,0" Padding="8,4,8,0">
                         <StackPanel>
                             <!-- Whether the window runs with administrator rights: without them
                                  a button offers the restart, with them a line says so. -->
