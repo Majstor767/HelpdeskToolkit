@@ -116,7 +116,8 @@ Describe 'The privacy page' {
     It 'covers every command of the module that contacts the network' {
         # Whoever adds a way out of the computer has to describe it on the privacy page
         # and then add the command here.
-        $known = 'Invoke-WebRequest', 'Invoke-Command'
+        # Invoke-RestMethod is "Send feedback": one request, after a click on Send.
+        $known = 'Invoke-WebRequest', 'Invoke-Command', 'Invoke-RestMethod'
         $files = Get-ChildItem -Path (Join-Path -Path $moduleRoot -ChildPath 'Private'), (Join-Path -Path $moduleRoot -ChildPath 'Public') -Filter '*.ps1'
         $found = foreach ($file in $files) {
             $tokens = $null
@@ -127,6 +128,34 @@ Describe 'The privacy page' {
                 Where-Object { $_ -match '^(Invoke-WebRequest|Invoke-RestMethod|Invoke-Command|New-PSSession|Enter-PSSession|Send-MailMessage|Start-BitsTransfer|Test-NetConnection|Test-Connection|Resolve-DnsName)$' }
         }
         @($found | Sort-Object -Unique) | Should -Be ($known | Sort-Object)
+    }
+
+    It 'says what a feedback message contains and how it reaches the author' {
+        $privacy | Should -Match 'Send feedback'
+        $privacy | Should -Match 'Config\\Feedback\.psd1'
+        $privacy | Should -Match 'the text you wrote'
+        $privacy | Should -Match 'your e-mail address, only if you typed one in'
+        $privacy | Should -Match 'does not contain the name of the computer, your user name, or any result'
+        (Get-TestText 'NOTICE.md') | Should -Match 'Feedback you send from the window is delivered by the form service'
+    }
+
+    It 'names the form service by its address once one is set' {
+        $feedback = Import-PowerShellDataFile -Path (Join-Path -Path $moduleRoot -ChildPath 'Config\Feedback.psd1')
+        if ([string]$feedback.Endpoint) {
+            $service = ([uri][string]$feedback.Endpoint).Host
+            $privacy | Should -Match ([regex]::Escape($service)) -Because 'the privacy page must name the service the messages go to'
+            (Get-TestText 'NOTICE.md') | Should -Match ([regex]::Escape($service))
+        }
+        else {
+            # No service, no button: nothing can be sent.
+            [string]$feedback.Endpoint | Should -Be ''
+        }
+    }
+
+    It 'sends a feedback message from one function only' {
+        $files = Get-ChildItem -Path (Join-Path -Path $moduleRoot -ChildPath 'Private'), (Join-Path -Path $moduleRoot -ChildPath 'Public') -Filter '*.ps1'
+        $senders = @($files | Where-Object { [System.IO.File]::ReadAllText($_.FullName) -match '(?m)^[^#\r\n]*\bInvoke-RestMethod\b' } | ForEach-Object Name)
+        $senders | Should -Be @('Send-FeedbackMessage.ps1')
     }
 
     It 'has no .NET class that talks to the network in the module besides ping and the name lookup' {

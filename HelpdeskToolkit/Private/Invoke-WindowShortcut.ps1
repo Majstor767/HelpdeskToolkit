@@ -75,6 +75,21 @@ function Invoke-WindowShortcut {
         return $false
     }
 
+    # The form "Send feedback": Esc closes it and Ctrl+Enter sends. Every other key is
+    # left to the field that is being typed in, and no shortcut of the window behind it
+    # works while the form is open.
+    if ($controls.FeedbackOverlay.Visibility -eq [System.Windows.Visibility]::Visible) {
+        if ($Key -eq 'Escape') {
+            & $click $controls.FeedbackCancelButton
+            return $true
+        }
+        if ($Key -eq 'Return' -and $Control) {
+            & $click $controls.FeedbackSendButton
+            return $true
+        }
+        return $false
+    }
+
     # Selects a page of the list by its name.
     $open = {
         param([string]$Name)

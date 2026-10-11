@@ -328,6 +328,28 @@
 
         <!-- Slim scroll bars without arrow buttons. The two invisible buttons above and
              below the thumb make a click on the empty track scroll by one page. -->
+        <!-- A field for several lines of text: like InputBox, with the text at the top -->
+        <Style x:Key="InputArea" TargetType="TextBox" BasedOn="{StaticResource InputBox}">
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Frame" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource InfoBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ScrollPageButton" TargetType="RepeatButton">
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
@@ -1100,6 +1122,8 @@
                                 <TextBlock x:Name="ElevationText" Text="Standard rights: some checks are skipped." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap"/>
                             </DockPanel>
                             <Button x:Name="SettingsButton" Content="Settings" Tag="&#xE713;" ToolTip="Language, theme and the automatic check (Ctrl+,)" Style="{StaticResource NavActionButton}"/>
+                            <!-- Shown only when a form service is set (see Config\Feedback.psd1). -->
+                            <Button x:Name="FeedbackButton" Content="Send feedback" Tag="&#xE939;" ToolTip="Write to the author of the application: what works, what does not, what is missing" Style="{StaticResource NavActionButton}" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
 
@@ -2362,6 +2386,28 @@
                 </StackPanel>
                 <CheckBox x:Name="StartupRememberBox" Content="Remember my answer and do not ask again" Foreground="{DynamicResource TextBrush}" Margin="0,18,0,0"/>
                 <TextBlock Text="The answer can be changed on the Settings page." Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="20,3,0,0"/>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- "Send feedback": a form over the window. What is written here goes to the author
+         by e-mail through a form service, and only after a click on Send. -->
+    <Border x:Name="FeedbackOverlay" Background="{DynamicResource OverlayBrush}" Visibility="Collapsed">
+        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="28,24" Width="580" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="&#xE939;" FontFamily="Segoe MDL2 Assets" FontSize="28" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,10"/>
+                <TextBlock Text="Send feedback" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                <TextBlock Text="Tell the author what works well, what does not, or what is missing. Your message reaches the author by e-mail." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <TextBox x:Name="FeedbackText" Style="{StaticResource InputArea}" Height="150" Margin="0,14,0,0"/>
+                <TextBlock x:Name="FeedbackCount" Foreground="{DynamicResource MutedBrush}" FontSize="12" HorizontalAlignment="Right" Margin="0,3,2,0"/>
+                <TextBlock Text="Your e-mail address (optional: only if you would like an answer)" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="0,6,0,4"/>
+                <TextBox x:Name="FeedbackAddress" Style="{StaticResource InputBox}" MaxLength="200"/>
+                <TextBlock x:Name="FeedbackNote" Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <TextBlock x:Name="FeedbackStatus" Foreground="{DynamicResource TextBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,0" Visibility="Collapsed"/>
+                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                    <Button x:Name="FeedbackSendButton" Content="Send" Tag="&#xE724;" ToolTip="Keys: Ctrl+Enter" Style="{StaticResource AccentButton}" Margin="0,0,10,0"/>
+                    <Button x:Name="FeedbackCancelButton" Content="Cancel" ToolTip="Key: Esc" Style="{StaticResource ActionButton}"/>
+                </StackPanel>
             </StackPanel>
         </Border>
     </Border>

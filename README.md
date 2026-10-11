@@ -189,6 +189,14 @@ dismissed or when the problem is gone.
 
 ![The Timeline page](docs/screenshot-timeline.png)
 
+**Send feedback**, at the bottom of the side bar, opens a small form: write what works,
+what does not or what is missing, add your e-mail address if you would like an answer,
+and click **Send** (Ctrl+Enter). The message reaches the author by e-mail through a form
+service. The form says what is sent before you send it: your text, the address if you
+gave one, and the versions of the application and of Windows; never the name of the
+computer, your user name or a result. A message that cannot be sent stays in the form.
+The button is there only when `Config\Feedback.psd1` names a form service.
+
 Keyboard shortcuts:
 
 | Key | Action |
@@ -576,6 +584,11 @@ Six data files control the behaviour; no code has to be changed:
   event, the number of an update, an error code, and the name of a program that
   crashed or an update that failed; never a user, a computer, a folder or a drive.
 
+- [`HelpdeskToolkit/Config/Feedback.psd1`](HelpdeskToolkit/Config/Feedback.psd1):
+  the form service **Send feedback** hands its messages to. With an empty `Endpoint`
+  the button is not shown. Whoever publishes a version of their own sets a form of
+  their own here, or leaves it empty.
+
 The "Typical" values are rules of thumb for a healthy office PC. They are shown for
 comparison only and never affect the status.
 
@@ -709,8 +722,8 @@ The steps for a release, the PowerShell Gallery and winget are written down in
 
 - **No telemetry.** The program has no server and no account, and sends nothing about
   you or your computer to anyone. Which network connections it makes (the connectivity
-  tests, winget, and the pages you open by clicking a link) and how each is avoided is
-  listed in [PRIVACY.md](PRIVACY.md).
+  tests, winget, the pages you open by clicking a link, and a feedback message you
+  choose to send) and how each is avoided is listed in [PRIVACY.md](PRIVACY.md).
 - **A report contains personal data**: the name of the computer, user names, installed
   programs, network addresses, the serial number. Share it with care, and never in a
   public issue.

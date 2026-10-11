@@ -105,6 +105,11 @@ The first public version.
   check that could not be read. The HTML report carries the links of the window. The
   searches use Google (they used Bing). The name of a program or an update can now be
   part of a search; a user, a computer, a folder or a drive still cannot.
+- **Send feedback**, at the bottom of the side bar: a form over the window whose message
+  reaches the author by e-mail through a form service (`Config\Feedback.psd1`; without
+  one the button is not shown). It sends the text, an address to answer to if one was
+  given, and the versions of the application and of Windows, only after a click on
+  Send, and says so in the form. A message that cannot be sent stays in the form.
 - Links open also when Windows cannot open them: when the default browser was removed
   and Windows still names it ("Application not found"), another browser is used; from a
   window with administrator rights the page is opened by the desktop of the user, so

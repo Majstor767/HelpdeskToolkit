@@ -47,6 +47,8 @@ $script:Actions = $null
 $script:Risks = $null
 # Where a problem is explained on the web (Config\Help.psd1), read on first use.
 $script:Help = $null
+# Where "Send feedback" sends to (Config\Feedback.psd1), read on first use.
+$script:Feedback = $null
 # Programs that no longer get security updates (Config\EndOfLife.psd1), read on first use.
 $script:EndOfLife = $null
 # Language of the window ("en" or "hr") and the translations of that language.

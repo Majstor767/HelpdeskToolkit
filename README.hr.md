@@ -183,6 +183,13 @@ je lako naći. Obavijest nestaje kad je zatvoriš ili kad problema više nema.
 
 ![Stranica Timeline](docs/screenshot-timeline.png)
 
+**Send feedback**, na dnu bočne trake, otvara mali obrazac: napiši što radi, što ne radi
+ili što nedostaje, dodaj svoju e-adresu ako želiš odgovor i klikni **Send** (Ctrl+Enter).
+Poruka stiže autoru e-poštom preko servisa za obrasce. Obrazac prije slanja kaže što se
+šalje: tvoj tekst, adresa ako si je upisao te verzije aplikacije i Windowsa; nikad ime
+računala, tvoje korisničko ime ni rezultati. Poruka koja se ne može poslati ostaje u
+obrascu. Gumb postoji samo kad `Config\Feedback.psd1` navodi servis za obrasce.
+
 Tipkovni prečaci:
 
 | Tipka | Radnja |
@@ -691,9 +698,9 @@ izdanje, PowerShell Gallery i winget zapisani su u [docs/publishing.md](docs/pub
 ## Privatnost i pravne napomene
 
 - **Bez telemetrije.** Program nema poslužitelj ni korisnički račun i nikome ne šalje
-  ništa o tebi ni o tvom računalu. Koje mrežne veze otvara (testovi povezanosti, winget
-  i stranice koje otvoriš klikom na link) i kako se svaka izbjegava, piše u
-  [PRIVACY.md](PRIVACY.md).
+  ništa o tebi ni o tvom računalu. Koje mrežne veze otvara (testovi povezanosti, winget,
+  stranice koje otvoriš klikom na link i povratna informacija koju sam odlučiš poslati)
+  i kako se svaka izbjegava, piše u [PRIVACY.md](PRIVACY.md).
 - **Izvještaj sadrži osobne podatke**: ime računala, korisnička imena, instalirane
   programe, mrežne adrese, serijski broj. Dijeli ga oprezno i nikad u javnoj prijavi
   problema.

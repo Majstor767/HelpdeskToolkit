@@ -44,6 +44,10 @@ Microsoft Learn and to web searches on Google. Those sites belong to their opera
 their content, and their terms and privacy policies apply when you open them. A link is
 a pointer, not a recommendation of everything behind it.
 
+Feedback you send from the window is delivered by the form service named in
+`HelpdeskToolkit\Config\Feedback.psd1`, an independent company whose terms and privacy
+policy apply to the message it handles. See [PRIVACY.md](PRIVACY.md).
+
 ## Third-party software
 
 Nothing of a third party is contained in the program: it is written in PowerShell and

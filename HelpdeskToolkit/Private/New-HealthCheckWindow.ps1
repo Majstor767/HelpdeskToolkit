@@ -142,6 +142,11 @@ function New-HealthCheckWindow {
         $controls.ThemeToggle.ToolTip = Get-LocalizedText 'Switch to the light theme (Ctrl+T)'
     }
 
+    # "Send feedback" is offered only when a form service is set (see Get-FeedbackSetting).
+    if ((Get-FeedbackSetting).Enabled) {
+        $controls.FeedbackButton.Visibility = [System.Windows.Visibility]::Visible
+    }
+
     $newHistory = { New-Object -TypeName 'System.Collections.Generic.List[double]' }
 
     @{
@@ -229,6 +234,12 @@ function New-HealthCheckWindow {
         MonitorVolumes    = @()
         VolumeSignature   = ''
         DiskUsage         = @{}
+        # A feedback message that is on its way: the background work, its handle, the
+        # time by which it must be done and the timer that asks (see Send-WindowFeedback).
+        FeedbackWorker    = $null
+        FeedbackHandle    = $null
+        FeedbackDeadline  = $null
+        FeedbackTimer     = $null
         # The newest measurement, kept for the detail page of a component; the component
         # whose page is open; and per component what was read about it in the background.
         MonitorSnapshot   = $null

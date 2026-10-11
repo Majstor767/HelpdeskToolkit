@@ -478,6 +478,12 @@ function Show-PCHealthCheck {
     # --- Settings ----------------------------------------------------------------
     $controls.SettingsButton.Add_Click({ Show-WindowPage -Gui $script:HealthCheckWindow -Name 'Settings' })
 
+    # "Send feedback": a form over the window; nothing is sent before "Send".
+    $controls.FeedbackButton.Add_Click({ [void](Show-WindowFeedback -Gui $script:HealthCheckWindow) })
+    $controls.FeedbackSendButton.Add_Click({ [void](Send-WindowFeedback -Gui $script:HealthCheckWindow) })
+    $controls.FeedbackCancelButton.Add_Click({ [void](Close-WindowFeedback -Gui $script:HealthCheckWindow) })
+    $controls.FeedbackText.Add_TextChanged({ Update-WindowFeedback -Gui $script:HealthCheckWindow })
+
     # The language is stored at once and applied by the next start.
     $controls.LanguageBox.Add_SelectionChanged({
             $state = $script:HealthCheckWindow
@@ -614,6 +620,9 @@ function Show-PCHealthCheck {
             $state.Timer.Stop()
             $state.AutoTimer.Stop()
             $state.SignalTimer.Stop()
+            if ($state['FeedbackTimer']) {
+                $state.FeedbackTimer.Stop()
+            }
             Disable-WindowMonitor -Gui $state -Stop
             if ($state.Worker) {
                 # The check runs in a process of its own, which must not outlive the window.

@@ -13,7 +13,9 @@ and HTTPS to 1.1.1.1 and microsoft.com) and a question to winget, the package ma
 of Windows, whether newer versions of the installed programs exist; both are switched
 off with the tick "Skip network tests". A link you click opens a page of Microsoft or
 a web search on Google in your browser; a problem on the Timeline page and a program
-that crashed are such links, and they search for exactly that error.
+that crashed are such links, and they search for exactly that error. "Send feedback" at
+the bottom left sends what you write there, and only that, to the author by e-mail when
+you click Send.
 
 You need Windows 10 (version 1809 or later) or Windows 11. Nothing else.
 
